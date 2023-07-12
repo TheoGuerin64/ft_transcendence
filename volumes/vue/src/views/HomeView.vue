@@ -1,9 +1,19 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import PongGame from '../components/PongGame.vue'
 </script>
 
 <template>
   <main>
-    <TheWelcome />
+    <PongGame />
   </main>
 </template>
+
+<style scoped>
+main {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+</style>
