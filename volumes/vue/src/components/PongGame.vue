@@ -103,6 +103,7 @@ class Pong {
     this.context.fillStyle = '#111'
     this.context.fillRect(offsetX, offsetY, this.width * scale, this.height * scale)
     for (const ball of this.balls) {
+      this.context.fillStyle = ball.color
       this.context.beginPath()
       this.context.arc(
         offsetX + ball.x * scale,
@@ -111,9 +112,8 @@ class Pong {
         0,
         2 * Math.PI
       )
-      this.context.closePath()
-      this.context.fillStyle = ball.color
       this.context.fill()
+      this.context.closePath()
     }
 
     for (const paddle of [this.paddles.left, this.paddles.right]) {
@@ -126,13 +126,15 @@ class Pong {
       )
     }
 
-    this.context.beginPath()
-    this.context.moveTo(offsetX + this.width / 2 * scale, offsetY)
-    this.context.lineTo(offsetX + this.width / 2 * scale, offsetY + this.height * scale)
-    this.context.closePath()
     this.context.strokeStyle = '#fff'
-    this.context.setLineDash([10, 10])
+    this.context.lineWidth = 2 * scale
+    this.context.beginPath()
+    this.context.setLineDash([Math.floor(20 * scale)])
+    console.log(this.context.getLineDash())
+    this.context.moveTo(offsetX + (this.width / 2) * scale, offsetY)
+    this.context.lineTo(offsetX + (this.width / 2) * scale, offsetY + this.height * scale)
     this.context.stroke()
+    this.context.closePath()
 
     this.context.fillStyle = '#fff'
     this.context.font = Math.round(48 * scale) + 'px monospace'
@@ -201,8 +203,7 @@ class Pong {
         this.balls = []
         if (this.scores.right < 5) {
           this.startRound()
-        }
-        else {
+        } else {
           console.log('right wins')
         }
       } else if (ball.x + ball.radius >= this.width) {
@@ -210,8 +211,7 @@ class Pong {
         this.balls = []
         if (this.scores.left < 5) {
           this.startRound()
-        }
-        else {
+        } else {
           console.log('left wins')
         }
       }
