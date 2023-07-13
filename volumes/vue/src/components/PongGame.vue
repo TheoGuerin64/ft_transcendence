@@ -1,4 +1,6 @@
 <script lang="ts">
+type Side = 'left' | 'right'
+
 class Vector2 {
   constructor(public x: number, public y: number) {}
 
@@ -56,10 +58,13 @@ class Pong {
   private paddles: { left: Paddle; right: Paddle }
   private scores: { left: number; right: number }
   public keys: { [key: string]: boolean }
+  public side: Side
+  public winner: Side | null
 
-  constructor(canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement, side: Side) {
     this.canvas = canvas
     this.context = this.canvas.getContext('2d')!
+    this.side = side
 
     this.width = 1200
     this.height = 800
@@ -77,15 +82,18 @@ class Pong {
       up: false,
       down: false
     }
+    this.winner = null
 
     this.onKeyDown = this.onKeyDown.bind(this)
     this.onKeyUp = this.onKeyUp.bind(this)
   }
 
-  #loop = () => {
-    this.#input()
-    this.#physic()
-    this.#events()
+  loop = () => {
+    if (!this.winner) {
+      this.#input()
+      this.#physic()
+      this.#events()
+    }
     this.#draw()
   }
 
@@ -109,8 +117,7 @@ class Pong {
     this.context.closePath()
   }
 
-  #drawBalls(scale: number, offset: Vector2)
-  {
+  #drawBalls(scale: number, offset: Vector2) {
     for (const ball of this.balls) {
       this.context.fillStyle = ball.color
       this.context.beginPath()
@@ -154,6 +161,19 @@ class Pong {
     )
   }
 
+  #drawWinner(scale: number, offset: Vector2) {
+    let text = 'You ' + (this.winner == this.side ? 'win' : 'lose') + '!'
+
+    this.context.fillStyle = '#fff'
+    this.context.font = Math.round(150 * scale) + 'px monospace'
+    this.context.textAlign = 'center'
+    this.context.fillText(
+      text,
+      offset.x + (this.width / 2) * scale,
+      offset.y + (this.height / 2) * scale
+    )
+  }
+
   #draw() {
     let scale = this.#scale()
     let offset: Vector2 = new Vector2(
@@ -166,6 +186,9 @@ class Pong {
     this.#drawBalls(scale, offset)
     this.#drawPaddles(scale, offset)
     this.#drawScores(scale, offset)
+    if (this.winner) {
+      this.#drawWinner(scale, offset)
+    }
   }
 
   #ballHit(ball: Ball, paddle: Paddle, direction: -1 | 1) {
@@ -205,39 +228,37 @@ class Pong {
 
   #input() {
     if (this.keys.up) {
-      if (this.paddles.left.y - this.paddles.left.height / 2 > 0) {
-        this.paddles.left.y -= this.paddles.left.speed
+      if (this.paddles[this.side].y - this.paddles[this.side].height / 2 > 0) {
+        this.paddles[this.side].y -= this.paddles[this.side].speed
       }
     } else if (this.keys.down) {
-      if (this.paddles.left.y + this.paddles.left.height / 2 < this.height) {
-        this.paddles.left.y += this.paddles.left.speed
+      if (this.paddles[this.side].y + this.paddles[this.side].height / 2 < this.height) {
+        this.paddles[this.side].y += this.paddles[this.side].speed
       }
+    }
+  }
+
+  #addScore(side: Side, score: number) {
+    this.scores[side] += score
+    this.balls = []
+    if (this.scores[side] < 5) {
+      this.startRound()
+    } else {
+      this.winner = side
     }
   }
 
   #events() {
     for (const ball of this.balls) {
       if (ball.x - ball.radius <= 0) {
-        this.scores.right++
-        this.balls = []
-        if (this.scores.right < 5) {
-          this.#startRound()
-        } else {
-          console.log('right wins')
-        }
+        this.#addScore('right', 1)
       } else if (ball.x + ball.radius >= this.width) {
-        this.scores.left++
-        this.balls = []
-        if (this.scores.left < 5) {
-          this.#startRound()
-        } else {
-          console.log('left wins')
-        }
+        this.#addScore('left', 1)
       }
     }
   }
 
-  #startRound() {
+  startRound() {
     let ball = new Ball(new Vector2(this.width / 2, this.height / 2), new Vector2(0, 1))
     let side = Math.random() > 0.5 ? -1 : 1
     let degrees = (Math.random() * 100 + 40) * side
@@ -262,8 +283,8 @@ class Pong {
   }
 
   start() {
-    this.clock = window.setInterval(this.#loop, 1000 / 60)
-    this.#startRound()
+    this.clock = window.setInterval(this.loop, 1000 / 60)
+    this.startRound()
   }
 
   stop() {
@@ -288,7 +309,7 @@ export default {
 
   mounted() {
     this.canvas = this.$el as HTMLCanvasElement
-    this.pong = new Pong(this.canvas)
+    this.pong = new Pong(this.canvas, 'right')
 
     window.addEventListener('resize', this.onResize)
     window.addEventListener('keydown', this.pong!.onKeyDown)
