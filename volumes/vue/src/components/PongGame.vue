@@ -82,32 +82,32 @@ class Pong {
     this.onKeyUp = this.onKeyUp.bind(this)
   }
 
-  loop = () => {
-    this.input()
-    this.physic()
-    this.event()
-    this.draw()
+  #loop = () => {
+    this.#input()
+    this.#physic()
+    this.#events()
+    this.#draw()
   }
 
-  draw() {
+  #scale() {
     let scaleWidth = this.canvas.width / this.width
     let scaleHeight = this.canvas.height / this.height
-    let scale = scaleWidth > scaleHeight ? scaleHeight : scaleWidth
-    let offsetX = (this.canvas.width - this.width * scale) / 2
-    let offsetY = (this.canvas.height - this.height * scale) / 2
+    return scaleWidth > scaleHeight ? scaleHeight : scaleWidth
+  }
 
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.context.fillStyle = '#000'
-    this.context.fillRect(0, 0, this.canvas.width, this.canvas.height)
-
+  #drawBackground(scale: number, offset: Vector2) {
     this.context.fillStyle = '#111'
-    this.context.fillRect(offsetX, offsetY, this.width * scale, this.height * scale)
+    this.context.fillRect(offset.x, offset.y, this.width * scale, this.height * scale)
+  }
+
+  #drawBalls(scale: number, offset: Vector2)
+  {
     for (const ball of this.balls) {
       this.context.fillStyle = ball.color
       this.context.beginPath()
       this.context.arc(
-        offsetX + ball.x * scale,
-        offsetY + ball.y * scale,
+        offset.x + ball.x * scale,
+        offset.y + ball.y * scale,
         ball.radius * scale,
         0,
         2 * Math.PI
@@ -115,43 +115,71 @@ class Pong {
       this.context.fill()
       this.context.closePath()
     }
+  }
 
+  #drawPaddles(scale: number, offset: Vector2) {
     for (const paddle of [this.paddles.left, this.paddles.right]) {
       this.context.fillStyle = paddle.color
       this.context.fillRect(
-        offsetX + paddle.x * scale - (paddle.width / 2) * scale,
-        offsetY + paddle.y * scale - (paddle.height / 2) * scale,
+        offset.x + paddle.x * scale - (paddle.width / 2) * scale,
+        offset.y + paddle.y * scale - (paddle.height / 2) * scale,
         paddle.width * scale,
         paddle.height * scale
       )
     }
+  }
 
+  #drawSepartor(scale: number, offset: Vector2) {
     this.context.strokeStyle = '#fff'
     this.context.lineWidth = 2 * scale
     this.context.beginPath()
     this.context.setLineDash([Math.floor(20 * scale)])
-    console.log(this.context.getLineDash())
-    this.context.moveTo(offsetX + (this.width / 2) * scale, offsetY)
-    this.context.lineTo(offsetX + (this.width / 2) * scale, offsetY + this.height * scale)
+    this.context.moveTo(offset.x + (this.width / 2) * scale, offset.y)
+    this.context.lineTo(offset.x + (this.width / 2) * scale, offset.y + this.height * scale)
     this.context.stroke()
     this.context.closePath()
+  }
 
+  #drawScores(scale: number, offset: Vector2) {
     this.context.fillStyle = '#fff'
     this.context.font = Math.round(48 * scale) + 'px monospace'
     this.context.textAlign = 'center'
     this.context.fillText(
       this.scores.left.toString(),
-      offsetX + (this.width / 2 - 100) * scale,
-      offsetY + 100 * scale
+      offset.x + (this.width / 2 - 100) * scale,
+      offset.y + 100 * scale
     )
     this.context.fillText(
       this.scores.right.toString(),
-      offsetX + (this.width / 2 + 100) * scale,
-      offsetY + 100 * scale
+      offset.x + (this.width / 2 + 100) * scale,
+      offset.y + 100 * scale
     )
   }
 
-  physic() {
+  #draw() {
+    let scale = this.#scale()
+    let offset: Vector2 = new Vector2(
+      (this.canvas.width - this.width * scale) / 2,
+      (this.canvas.height - this.height * scale) / 2
+    )
+
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
+    this.#drawBackground(scale, offset)
+    this.#drawBalls(scale, offset)
+    this.#drawPaddles(scale, offset)
+    this.#drawSepartor(scale, offset)
+    this.#drawScores(scale, offset)
+  }
+
+  #ballHit(ball: Ball, paddle: Paddle, direction: -1 | 1) {
+    ball.forward.x = direction * Math.abs(ball.forward.x)
+    ball.forward.rotate(
+      ((ball.y - paddle.y) / (paddle.height + ball.radius / 2)) * Math.PI * 0.5 * direction
+    )
+    ball.speed *= 1.1
+  }
+
+  #physic() {
     for (const ball of this.balls) {
       ball.x += ball.speed * ball.forward.x
       ball.y += ball.speed * ball.forward.y
@@ -165,10 +193,7 @@ class Pong {
         ball.y + ball.radius > this.paddles.left.y - this.paddles.left.height / 2 &&
         ball.y - ball.radius < this.paddles.left.y + this.paddles.left.height / 2
       ) {
-        ball.forward.x = Math.abs(ball.forward.x) // * -1
-        ball.forward.rotate(
-          ((ball.y - this.paddles.left.y) / this.paddles.left.height) * Math.PI * 0.25
-        )
+        this.#ballHit(ball, this.paddles.left, 1)
       }
 
       if (
@@ -176,15 +201,12 @@ class Pong {
         ball.y + ball.radius > this.paddles.right.y - this.paddles.right.height / 2 &&
         ball.y - ball.radius < this.paddles.right.y + this.paddles.right.height / 2
       ) {
-        ball.forward.x = -Math.abs(ball.forward.x) // * -1
-        ball.forward.rotate(
-          ((ball.y - this.paddles.right.y) / this.paddles.right.height) * Math.PI * 0.25
-        )
+        this.#ballHit(ball, this.paddles.right, -1)
       }
     }
   }
 
-  input() {
+  #input() {
     if (this.keys.up) {
       if (this.paddles.left.y - this.paddles.left.height / 2 > 0) {
         this.paddles.left.y -= this.paddles.left.speed
@@ -196,13 +218,13 @@ class Pong {
     }
   }
 
-  event() {
+  #events() {
     for (const ball of this.balls) {
       if (ball.x - ball.radius <= 0) {
         this.scores.right++
         this.balls = []
         if (this.scores.right < 5) {
-          this.startRound()
+          this.#startRound()
         } else {
           console.log('right wins')
         }
@@ -210,12 +232,20 @@ class Pong {
         this.scores.left++
         this.balls = []
         if (this.scores.left < 5) {
-          this.startRound()
+          this.#startRound()
         } else {
           console.log('left wins')
         }
       }
     }
+  }
+
+  #startRound() {
+    let ball = new Ball(new Vector2(this.width / 2, this.height / 2), new Vector2(0, 1))
+    let side = Math.random() > 0.5 ? -1 : 1
+    let degrees = (Math.random() * 100 + 40) * side
+    ball.forward.rotate(degrees * (Math.PI / 180))
+    this.balls.push(ball)
   }
 
   onKeyDown(event: KeyboardEvent) {
@@ -234,17 +264,9 @@ class Pong {
     }
   }
 
-  startRound() {
-    let ball = new Ball(new Vector2(this.width / 2, this.height / 2), new Vector2(0, 1))
-    let side = Math.random() > 0.5 ? -1 : 1
-    let degrees = (Math.random() * 100 + 40) * side
-    ball.forward.rotate(degrees * (Math.PI / 180))
-    this.balls.push(ball)
-  }
-
   start() {
-    this.clock = window.setInterval(this.loop, 1000 / 60)
-    this.startRound()
+    this.clock = window.setInterval(this.#loop, 1000 / 60)
+    this.#startRound()
   }
 
   stop() {
@@ -282,8 +304,8 @@ export default {
   unmounted() {
     this.pong!.stop()
     window.removeEventListener('resize', this.onResize)
-    window.removeEventListener('keydown', this.pong!.input)
-    window.removeEventListener('keyup', this.pong!.input)
+    window.removeEventListener('keydown', this.pong!.onKeyDown)
+    window.removeEventListener('keyup', this.pong!.onKeyUp)
   }
 }
 </script>
