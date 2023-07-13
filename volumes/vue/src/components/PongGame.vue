@@ -1,313 +1,403 @@
 <script lang="ts">
 type Side = 'left' | 'right'
 
-class Vector2 {
-  constructor(public x: number, public y: number) {}
+type HexColor = `#${string}`
 
-  rotate(angle: number) {
+type Font = {
+  family: string
+  size: number
+  weight: string
+}
+
+type Size = {
+  width: number
+  height: number
+}
+
+type Keys = {
+  up: boolean
+  down: boolean
+}
+
+type CanvasConfig = {
+  context: CanvasRenderingContext2D
+  scale: number
+  offset: Vector2
+  size: Size
+}
+
+type TwoSides<T> = {
+  left: T
+  right: T
+}
+
+interface Drawable {
+  draw(config: CanvasConfig): void
+}
+
+class Vector2 {
+  public x: number
+  public y: number
+
+  constructor(x: number = 0, y: number = 0) {
+    this.x = x
+    this.y = y
+  }
+
+  public rotateRad(angle: number): void {
     let x = this.x
     let y = this.y
     this.x = x * Math.cos(angle) - y * Math.sin(angle)
     this.y = x * Math.sin(angle) + y * Math.cos(angle)
   }
+
+  public rotateDeg(angle: number): void {
+    this.rotateRad((angle * Math.PI) / 180)
+  }
 }
 
 class Ball extends Vector2 {
-  public speed: number
+  public color: HexColor
   public forward: Vector2
   public radius: number
-  public color: string
+  public speed: number
 
-  constructor(
-    position: Vector2 = new Vector2(10, 10),
-    forward: Vector2 = new Vector2(1, 1),
-    speed: number = 5
-  ) {
+  constructor(position: Vector2 = new Vector2(10, 10), forward: Vector2 = new Vector2(1, 1)) {
     super(position.x, position.y)
     this.forward = forward
-    this.speed = speed
 
-    this.radius = 10
     this.color = '#fff'
+    this.radius = 10
+    this.speed = 5
+  }
+
+  public draw(config: CanvasConfig): void {
+    config.context.fillStyle = this.color
+    config.context.beginPath()
+    config.context.arc(
+      config.offset.x + this.x * config.scale,
+      config.offset.y + this.y * config.scale,
+      this.radius * config.scale,
+      0,
+      2 * Math.PI
+    )
+    config.context.fill()
+    config.context.closePath()
   }
 }
 
 class Paddle extends Vector2 {
+  public color: HexColor
   public speed: number
-  public width: number
-  public height: number
-  public color: string
+  public size: Size
 
-  constructor(position: Vector2) {
-    super(position.x, position.y)
+  constructor(side: Side, config: CanvasConfig) {
+    if (side === 'left') {
+      super(20, config.size.height / 2)
+    } else {
+      super(config.size.width - 20, config.size.height / 2)
+    }
 
-    this.width = 12
-    this.height = 100
-    this.speed = 10
     this.color = '#fff'
+    this.size = {
+      width: 12,
+      height: 100
+    }
+    this.speed = 10
+  }
+
+  public draw(config: CanvasConfig): void {
+    config.context.fillStyle = this.color
+    config.context.fillRect(
+      config.offset.x + this.x * config.scale - (this.size.width / 2) * config.scale,
+      config.offset.y + this.y * config.scale - (this.size.height / 2) * config.scale,
+      this.size.width * config.scale,
+      this.size.height * config.scale
+    )
+  }
+}
+
+class Background {
+  public color: HexColor
+  public lineColor: HexColor
+  public lineWidth: number
+
+  constructor() {
+    this.color = '#111'
+    this.lineColor = '#fff'
+    this.lineWidth = 2
+  }
+
+  public draw(config: CanvasConfig): void {
+    config.context.fillStyle = this.color
+    config.context.fillRect(
+      config.offset.x,
+      config.offset.y,
+      config.size.width * config.scale,
+      config.size.height * config.scale
+    )
+
+    config.context.strokeStyle = this.lineColor
+    config.context.lineWidth = this.lineWidth * config.scale
+    config.context.beginPath()
+    config.context.setLineDash([Math.floor(20 * config.scale)])
+    config.context.moveTo(config.offset.x + (config.size.width / 2) * config.scale, config.offset.y)
+    config.context.lineTo(
+      config.offset.x + (config.size.width / 2) * config.scale,
+      config.offset.y + config.size.height * config.scale
+    )
+    config.context.stroke()
+    config.context.closePath()
+  }
+}
+
+class Score {
+  public color: HexColor
+  public font: Font
+  public offset: Vector2
+  public side: Side
+  public value: number
+
+  constructor(side: Side) {
+    this.color = '#fff'
+    this.font = {
+      family: 'monospace',
+      size: 48,
+      weight: 'normal'
+    }
+    if (side === 'left') {
+      this.offset = new Vector2(-100, 100)
+    } else {
+      this.offset = new Vector2(100, 100)
+    }
+    this.side = side
+    this.value = 0
+  }
+
+  public draw(config: CanvasConfig): void {
+    config.context.fillStyle = this.color
+    config.context.font =
+      this.font.weight + ' ' + Math.round(this.font.size * config.scale) + 'px ' + this.font.family
+    config.context.textAlign = 'center'
+    config.context.fillText(
+      this.value.toString(),
+      config.offset.x + (config.size.width / 2 - this.offset.x) * config.scale,
+      config.offset.y + this.offset.y * config.scale
+    )
+  }
+}
+
+class EndScreen {
+  public color: HexColor
+  public font: Font
+  public text: string
+  public winner: Side
+
+  constructor(winner: Side, playerSide: Side) {
+    this.winner = winner
+    this.font = {
+      family: 'monospace',
+      size: 150,
+      weight: 'normal'
+    }
+    if (winner == playerSide) {
+      this.color = '#0f0'
+      this.text = 'You won!'
+    } else {
+      this.color = '#f00'
+      this.text = 'You lost!'
+    }
+  }
+
+  public draw(config: CanvasConfig): void {
+    config.context.fillStyle = this.color
+    config.context.font =
+      this.font.weight + ' ' + Math.round(this.font.size * config.scale) + 'px ' + this.font.family
+    config.context.textAlign = 'center'
+    config.context.fillText(
+      this.text,
+      config.offset.x + (config.size.width / 2) * config.scale,
+      config.offset.y + (config.size.height / 2) * config.scale
+    )
   }
 }
 
 class Pong {
-  private canvas: HTMLCanvasElement
-  private context: CanvasRenderingContext2D
-  private width: number
-  private height: number
-  private clock: number | null
+  private background: Background
   private balls: Ball[]
-  private paddles: { left: Paddle; right: Paddle }
-  private scores: { left: number; right: number }
-  public keys: { [key: string]: boolean }
-  public scale: number
-  public offset: Vector2
-  public side: Side
-  public winner: Side | null
+  private canvas: HTMLCanvasElement
+  private clock: number | null
+  private endScreen: EndScreen | null
+  private paddles: TwoSides<Paddle>
+  private scores: TwoSides<Score>
+  private side: Side
+  public config: CanvasConfig
+  public keys: Keys
 
   constructor(canvas: HTMLCanvasElement, side: Side) {
     this.canvas = canvas
-    this.context = this.canvas.getContext('2d')!
     this.side = side
 
-    this.width = 1200
-    this.height = 800
-    this.clock = null
+    this.background = new Background()
     this.balls = []
+    this.config = {
+      context: this.canvas.getContext('2d')!,
+      scale: 1,
+      offset: new Vector2(0, 0),
+      size: {
+        width: 1200,
+        height: 800
+      }
+    }
+    this.clock = null
+    this.endScreen = null
     this.paddles = {
-      left: new Paddle(new Vector2(20, this.height / 2)),
-      right: new Paddle(new Vector2(this.width - 20, this.height / 2))
+      left: new Paddle('left', this.config),
+      right: new Paddle('right', this.config)
     }
     this.scores = {
-      left: 0,
-      right: 0
+      left: new Score('left'),
+      right: new Score('right')
     }
     this.keys = {
       up: false,
       down: false
     }
-    this.scale = 1
-    this.offset = new Vector2(0, 0)
-    this.winner = null
 
-    this.onKeyDown = this.onKeyDown.bind(this)
-    this.onKeyUp = this.onKeyUp.bind(this)
+    this.keyHandler = this.keyHandler.bind(this)
   }
 
-  loop = () => {
-    if (!this.winner) {
-      this.#input()
-      this.#physic()
-      this.#events()
+  public loop = (): void => {
+    if (!this.endScreen) {
+      this.input()
+      this.physic()
+      this.events()
     }
-    this.#draw()
+    this.draw()
   }
 
-  #drawBackground() {
-    this.context.fillStyle = '#111'
-    this.context.fillRect(
-      this.offset.x,
-      this.offset.y,
-      this.width * this.scale,
-      this.height * this.scale
-    )
-
-    this.context.strokeStyle = '#fff'
-    this.context.lineWidth = 2 * this.scale
-    this.context.beginPath()
-    this.context.setLineDash([Math.floor(20 * this.scale)])
-    this.context.moveTo(this.offset.x + (this.width / 2) * this.scale, this.offset.y)
-    this.context.lineTo(
-      this.offset.x + (this.width / 2) * this.scale,
-      this.offset.y + this.height * this.scale
-    )
-    this.context.stroke()
-    this.context.closePath()
-  }
-
-  #drawBalls() {
+  private *toDraw(): Iterable<Drawable> {
+    yield this.background
     for (const ball of this.balls) {
-      this.context.fillStyle = ball.color
-      this.context.beginPath()
-      this.context.arc(
-        this.offset.x + ball.x * this.scale,
-        this.offset.y + ball.y * this.scale,
-        ball.radius * this.scale,
-        0,
-        2 * Math.PI
-      )
-      this.context.fill()
-      this.context.closePath()
+      yield ball
+    }
+    yield this.paddles.left
+    yield this.paddles.right
+    yield this.scores.left
+    yield this.scores.right
+    if (this.endScreen) {
+      yield this.endScreen
     }
   }
 
-  #drawPaddles() {
-    for (const paddle of [this.paddles.left, this.paddles.right]) {
-      this.context.fillStyle = paddle.color
-      this.context.fillRect(
-        this.offset.x + paddle.x * this.scale - (paddle.width / 2) * this.scale,
-        this.offset.y + paddle.y * this.scale - (paddle.height / 2) * this.scale,
-        paddle.width * this.scale,
-        paddle.height * this.scale
-      )
+  private draw(): void {
+    this.config.context.clearRect(0, 0, this.config.size.width, this.config.size.height)
+    for (const drawable of this.toDraw()) {
+      drawable.draw(this.config)
     }
   }
 
-  #drawScores() {
-    this.context.fillStyle = '#fff'
-    this.context.font = Math.round(48 * this.scale) + 'px monospace'
-    this.context.textAlign = 'center'
-    this.context.fillText(
-      this.scores.left.toString(),
-      this.offset.x + (this.width / 2 - 100) * this.scale,
-      this.offset.y + 100 * this.scale
-    )
-    this.context.fillText(
-      this.scores.right.toString(),
-      this.offset.x + (this.width / 2 + 100) * this.scale,
-      this.offset.y + 100 * this.scale
-    )
-  }
-
-  #drawWinner() {
-    let text: string
-    let color: string
-    if (this.winner == this.side) {
-      text = 'You win!'
-      color = '#0f0'
-    } else {
-      text = 'You lose!'
-      color = '#f00'
-    }
-
-    this.context.fillStyle = color
-    this.context.fillStyle = this.context.font = Math.round(150 * this.scale) + 'px monospace'
-    this.context.textAlign = 'center'
-    this.context.fillText(
-      text,
-      this.offset.x + (this.width / 2) * this.scale,
-      this.offset.y + (this.height / 2) * this.scale
-    )
-  }
-
-  #draw() {
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.#drawBackground()
-    this.#drawBalls()
-    this.#drawPaddles()
-    this.#drawScores()
-    if (this.winner) {
-      this.#drawWinner()
-    }
-  }
-
-  #ballHit(ball: Ball, paddle: Paddle, direction: -1 | 1) {
+  private ballHit(ball: Ball, paddle: Paddle, direction: -1 | 1): void {
     ball.forward.x = direction * Math.abs(ball.forward.x)
-    ball.forward.rotate(
-      ((ball.y - paddle.y) / (paddle.height + ball.radius / 2)) * Math.PI * 0.5 * direction
+    ball.forward.rotateRad(
+      ((ball.y - paddle.y) / (paddle.size.height + ball.radius / 2)) * Math.PI * 0.5 * direction
     )
     ball.speed *= 1.1
   }
 
-  #physic() {
+  private physic(): void {
     for (const ball of this.balls) {
       ball.x += ball.speed * ball.forward.x
       ball.y += ball.speed * ball.forward.y
 
-      if (ball.y + ball.radius >= this.height || ball.y - ball.radius <= 0) {
+      if (ball.y + ball.radius >= this.config.size.height || ball.y - ball.radius <= 0) {
         ball.forward.y *= -1
       }
 
       if (
-        ball.x - ball.radius <= this.paddles.left.x + this.paddles.left.width / 2 &&
-        ball.y + ball.radius > this.paddles.left.y - this.paddles.left.height / 2 &&
-        ball.y - ball.radius < this.paddles.left.y + this.paddles.left.height / 2
+        ball.x - ball.radius <= this.paddles.left.x + this.paddles.left.size.width / 2 &&
+        ball.y + ball.radius > this.paddles.left.y - this.paddles.left.size.height / 2 &&
+        ball.y - ball.radius < this.paddles.left.y + this.paddles.left.size.height / 2
       ) {
-        this.#ballHit(ball, this.paddles.left, 1)
+        this.ballHit(ball, this.paddles.left, 1)
       }
 
       if (
-        ball.x + ball.radius >= this.paddles.right.x - this.paddles.right.width / 2 &&
-        ball.y + ball.radius > this.paddles.right.y - this.paddles.right.height / 2 &&
-        ball.y - ball.radius < this.paddles.right.y + this.paddles.right.height / 2
+        ball.x + ball.radius >= this.paddles.right.x - this.paddles.right.size.width / 2 &&
+        ball.y + ball.radius > this.paddles.right.y - this.paddles.right.size.height / 2 &&
+        ball.y - ball.radius < this.paddles.right.y + this.paddles.right.size.height / 2
       ) {
-        this.#ballHit(ball, this.paddles.right, -1)
+        this.ballHit(ball, this.paddles.right, -1)
       }
     }
   }
 
-  #input() {
+  private input(): void {
     if (this.keys.up) {
-      if (this.paddles[this.side].y - this.paddles[this.side].height / 2 > 0) {
+      if (this.paddles[this.side].y - this.paddles[this.side].size.height / 2 > 0) {
         this.paddles[this.side].y -= this.paddles[this.side].speed
       }
     } else if (this.keys.down) {
-      if (this.paddles[this.side].y + this.paddles[this.side].height / 2 < this.height) {
+      if (
+        this.paddles[this.side].y + this.paddles[this.side].size.height / 2 <
+        this.config.size.height
+      ) {
         this.paddles[this.side].y += this.paddles[this.side].speed
       }
     }
   }
 
-  #addScore(side: Side, score: number) {
-    this.scores[side] += score
-    this.balls = []
-    if (this.scores[side] < 5) {
+  private addScore(side: Side, score: number): void {
+    this.scores[side].value += score
+    if (this.scores[side].value < 5) {
       this.startRound()
     } else {
-      this.winner = side
+      this.endScreen = new EndScreen(side, this.side)
     }
   }
 
-  #events() {
+  private events(): void {
     for (const ball of this.balls) {
       if (ball.x - ball.radius <= 0) {
-        this.#addScore('right', 1)
-      } else if (ball.x + ball.radius >= this.width) {
-        this.#addScore('left', 1)
+        this.addScore('right', 1)
+      } else if (ball.x + ball.radius >= this.config.size.width) {
+        this.addScore('left', 1)
       }
     }
   }
 
-  startRound() {
-    let ball = new Ball(new Vector2(this.width / 2, this.height / 2), new Vector2(0, 1))
-    let side = Math.random() > 0.5 ? -1 : 1
-    let degrees = (Math.random() * 100 + 40) * side
-    ball.forward.rotate(degrees * (Math.PI / 180))
+  private startRound(): void {
+    this.balls = []
+    let ball = new Ball(
+      new Vector2(this.config.size.width / 2, this.config.size.height / 2),
+      new Vector2(0, 1)
+    )
+    ball.forward.rotateDeg((Math.random() * 100 + 40) * (Math.random() > 0.5 ? -1 : 1))
     this.balls.push(ball)
   }
 
-  onKeyDown(event: KeyboardEvent) {
+  public keyHandler(event: KeyboardEvent): void {
     if (event.key == 'w' || event.key == 'ArrowUp') {
-      this.keys.up = true
+      this.keys.up = event.type == 'keydown'
     } else if (event.key == 's' || event.key == 'ArrowDown') {
-      this.keys.down = true
+      this.keys.down = event.type == 'keydown'
     }
   }
 
-  onKeyUp(event: KeyboardEvent) {
-    if (event.key == 'w' || event.key == 'ArrowUp') {
-      this.keys.up = false
-    } else if (event.key == 's' || event.key == 'ArrowDown') {
-      this.keys.down = false
-    }
-    // DEV
-    else if (event.key == ' ') {
-      this.side = this.side == 'left' ? 'right' : 'left'
-    }
+  public onResize(): void {
+    let scaleWidth = this.canvas.width / this.config.size.width
+    let scaleHeight = this.canvas.height / this.config.size.height
+    this.config.scale = scaleWidth > scaleHeight ? scaleHeight : scaleWidth
+    this.config.offset.x = (this.canvas.width - this.config.size.width * this.config.scale) / 2
+    this.config.offset.y = (this.canvas.height - this.config.size.height * this.config.scale) / 2
   }
 
-  onResize() {
-    let scaleWidth = this.canvas.width / this.width
-    let scaleHeight = this.canvas.height / this.height
-    this.scale = scaleWidth > scaleHeight ? scaleHeight : scaleWidth
-    this.offset.x = (this.canvas.width - this.width * this.scale) / 2
-    this.offset.y = (this.canvas.height - this.height * this.scale) / 2
-  }
-
-  start() {
+  public start(): void {
     this.clock = window.setInterval(this.loop, 1000 / 60)
     this.startRound()
   }
 
-  stop() {
+  public stop(): void {
     if (this.clock) window.clearInterval(this.clock)
   }
 }
@@ -321,7 +411,7 @@ export default {
   },
 
   methods: {
-    onResize() {
+    onResize(): void {
       this.canvas!.width = this.canvas!.offsetWidth
       this.canvas!.height = this.canvas!.offsetHeight
       this.pong!.onResize()
@@ -333,8 +423,8 @@ export default {
     this.pong = new Pong(this.canvas, 'right')
 
     window.addEventListener('resize', this.onResize)
-    window.addEventListener('keydown', this.pong!.onKeyDown)
-    window.addEventListener('keyup', this.pong!.onKeyUp)
+    window.addEventListener('keydown', this.pong!.keyHandler)
+    window.addEventListener('keyup', this.pong!.keyHandler)
     this.onResize()
 
     this.pong.start()
@@ -343,8 +433,8 @@ export default {
   unmounted() {
     this.pong!.stop()
     window.removeEventListener('resize', this.onResize)
-    window.removeEventListener('keydown', this.pong!.onKeyDown)
-    window.removeEventListener('keyup', this.pong!.onKeyUp)
+    window.removeEventListener('keydown', this.pong!.keyHandler)
+    window.removeEventListener('keyup', this.pong!.keyHandler)
   }
 }
 </script>
