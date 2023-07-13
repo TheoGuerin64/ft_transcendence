@@ -98,6 +98,15 @@ class Pong {
   #drawBackground(scale: number, offset: Vector2) {
     this.context.fillStyle = '#111'
     this.context.fillRect(offset.x, offset.y, this.width * scale, this.height * scale)
+
+    this.context.strokeStyle = '#fff'
+    this.context.lineWidth = 2 * scale
+    this.context.beginPath()
+    this.context.setLineDash([Math.floor(20 * scale)])
+    this.context.moveTo(offset.x + (this.width / 2) * scale, offset.y)
+    this.context.lineTo(offset.x + (this.width / 2) * scale, offset.y + this.height * scale)
+    this.context.stroke()
+    this.context.closePath()
   }
 
   #drawBalls(scale: number, offset: Vector2)
@@ -129,17 +138,6 @@ class Pong {
     }
   }
 
-  #drawSepartor(scale: number, offset: Vector2) {
-    this.context.strokeStyle = '#fff'
-    this.context.lineWidth = 2 * scale
-    this.context.beginPath()
-    this.context.setLineDash([Math.floor(20 * scale)])
-    this.context.moveTo(offset.x + (this.width / 2) * scale, offset.y)
-    this.context.lineTo(offset.x + (this.width / 2) * scale, offset.y + this.height * scale)
-    this.context.stroke()
-    this.context.closePath()
-  }
-
   #drawScores(scale: number, offset: Vector2) {
     this.context.fillStyle = '#fff'
     this.context.font = Math.round(48 * scale) + 'px monospace'
@@ -167,7 +165,6 @@ class Pong {
     this.#drawBackground(scale, offset)
     this.#drawBalls(scale, offset)
     this.#drawPaddles(scale, offset)
-    this.#drawSepartor(scale, offset)
     this.#drawScores(scale, offset)
   }
 
