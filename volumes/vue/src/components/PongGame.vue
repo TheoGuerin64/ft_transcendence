@@ -58,6 +58,8 @@ class Pong {
   private paddles: { left: Paddle; right: Paddle }
   private scores: { left: number; right: number }
   public keys: { [key: string]: boolean }
+  public scale: number
+  public offset: Vector2
   public side: Side
   public winner: Side | null
 
@@ -82,6 +84,8 @@ class Pong {
       up: false,
       down: false
     }
+    this.scale = 1
+    this.offset = new Vector2(0, 0)
     this.winner = null
 
     this.onKeyDown = this.onKeyDown.bind(this)
@@ -97,34 +101,36 @@ class Pong {
     this.#draw()
   }
 
-  #scale() {
-    let scaleWidth = this.canvas.width / this.width
-    let scaleHeight = this.canvas.height / this.height
-    return scaleWidth > scaleHeight ? scaleHeight : scaleWidth
-  }
-
-  #drawBackground(scale: number, offset: Vector2) {
+  #drawBackground() {
     this.context.fillStyle = '#111'
-    this.context.fillRect(offset.x, offset.y, this.width * scale, this.height * scale)
+    this.context.fillRect(
+      this.offset.x,
+      this.offset.y,
+      this.width * this.scale,
+      this.height * this.scale
+    )
 
     this.context.strokeStyle = '#fff'
-    this.context.lineWidth = 2 * scale
+    this.context.lineWidth = 2 * this.scale
     this.context.beginPath()
-    this.context.setLineDash([Math.floor(20 * scale)])
-    this.context.moveTo(offset.x + (this.width / 2) * scale, offset.y)
-    this.context.lineTo(offset.x + (this.width / 2) * scale, offset.y + this.height * scale)
+    this.context.setLineDash([Math.floor(20 * this.scale)])
+    this.context.moveTo(this.offset.x + (this.width / 2) * this.scale, this.offset.y)
+    this.context.lineTo(
+      this.offset.x + (this.width / 2) * this.scale,
+      this.offset.y + this.height * this.scale
+    )
     this.context.stroke()
     this.context.closePath()
   }
 
-  #drawBalls(scale: number, offset: Vector2) {
+  #drawBalls() {
     for (const ball of this.balls) {
       this.context.fillStyle = ball.color
       this.context.beginPath()
       this.context.arc(
-        offset.x + ball.x * scale,
-        offset.y + ball.y * scale,
-        ball.radius * scale,
+        this.offset.x + ball.x * this.scale,
+        this.offset.y + ball.y * this.scale,
+        ball.radius * this.scale,
         0,
         2 * Math.PI
       )
@@ -133,61 +139,55 @@ class Pong {
     }
   }
 
-  #drawPaddles(scale: number, offset: Vector2) {
+  #drawPaddles() {
     for (const paddle of [this.paddles.left, this.paddles.right]) {
       this.context.fillStyle = paddle.color
       this.context.fillRect(
-        offset.x + paddle.x * scale - (paddle.width / 2) * scale,
-        offset.y + paddle.y * scale - (paddle.height / 2) * scale,
-        paddle.width * scale,
-        paddle.height * scale
+        this.offset.x + paddle.x * this.scale - (paddle.width / 2) * this.scale,
+        this.offset.y + paddle.y * this.scale - (paddle.height / 2) * this.scale,
+        paddle.width * this.scale,
+        paddle.height * this.scale
       )
     }
   }
 
-  #drawScores(scale: number, offset: Vector2) {
+  #drawScores() {
     this.context.fillStyle = '#fff'
-    this.context.font = Math.round(48 * scale) + 'px monospace'
+    this.context.font = Math.round(48 * this.scale) + 'px monospace'
     this.context.textAlign = 'center'
     this.context.fillText(
       this.scores.left.toString(),
-      offset.x + (this.width / 2 - 100) * scale,
-      offset.y + 100 * scale
+      this.offset.x + (this.width / 2 - 100) * this.scale,
+      this.offset.y + 100 * this.scale
     )
     this.context.fillText(
       this.scores.right.toString(),
-      offset.x + (this.width / 2 + 100) * scale,
-      offset.y + 100 * scale
+      this.offset.x + (this.width / 2 + 100) * this.scale,
+      this.offset.y + 100 * this.scale
     )
   }
 
-  #drawWinner(scale: number, offset: Vector2) {
+  #drawWinner() {
     let text = 'You ' + (this.winner == this.side ? 'win' : 'lose') + '!'
 
     this.context.fillStyle = '#fff'
-    this.context.font = Math.round(150 * scale) + 'px monospace'
+    this.context.font = Math.round(150 * this.scale) + 'px monospace'
     this.context.textAlign = 'center'
     this.context.fillText(
       text,
-      offset.x + (this.width / 2) * scale,
-      offset.y + (this.height / 2) * scale
+      this.offset.x + (this.width / 2) * this.scale,
+      this.offset.y + (this.height / 2) * this.scale
     )
   }
 
   #draw() {
-    let scale = this.#scale()
-    let offset: Vector2 = new Vector2(
-      (this.canvas.width - this.width * scale) / 2,
-      (this.canvas.height - this.height * scale) / 2
-    )
-
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height)
-    this.#drawBackground(scale, offset)
-    this.#drawBalls(scale, offset)
-    this.#drawPaddles(scale, offset)
-    this.#drawScores(scale, offset)
+    this.#drawBackground()
+    this.#drawBalls()
+    this.#drawPaddles()
+    this.#drawScores()
     if (this.winner) {
-      this.#drawWinner(scale, offset)
+      this.#drawWinner()
     }
   }
 
@@ -282,6 +282,14 @@ class Pong {
     }
   }
 
+  onResize() {
+    let scaleWidth = this.canvas.width / this.width
+    let scaleHeight = this.canvas.height / this.height
+    this.scale = scaleWidth > scaleHeight ? scaleHeight : scaleWidth
+    this.offset.x = (this.canvas.width - this.width * this.scale) / 2
+    this.offset.y = (this.canvas.height - this.height * this.scale) / 2
+  }
+
   start() {
     this.clock = window.setInterval(this.loop, 1000 / 60)
     this.startRound()
@@ -304,6 +312,7 @@ export default {
     onResize() {
       this.canvas!.width = this.canvas!.offsetWidth
       this.canvas!.height = this.canvas!.offsetHeight
+      this.pong!.onResize()
     }
   },
 
