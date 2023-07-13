@@ -168,10 +168,18 @@ class Pong {
   }
 
   #drawWinner() {
-    let text = 'You ' + (this.winner == this.side ? 'win' : 'lose') + '!'
+    let text: string
+    let color: string
+    if (this.winner == this.side) {
+      text = 'You win!'
+      color = '#0f0'
+    } else {
+      text = 'You lose!'
+      color = '#f00'
+    }
 
-    this.context.fillStyle = '#fff'
-    this.context.font = Math.round(150 * this.scale) + 'px monospace'
+    this.context.fillStyle = color
+    this.context.fillStyle = this.context.font = Math.round(150 * this.scale) + 'px monospace'
     this.context.textAlign = 'center'
     this.context.fillText(
       text,
