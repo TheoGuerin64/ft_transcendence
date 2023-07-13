@@ -280,6 +280,10 @@ class Pong {
     } else if (event.key == 's' || event.key == 'ArrowDown') {
       this.keys.down = false
     }
+    // DEV
+    else if (event.key == ' ') {
+      this.side = this.side == 'left' ? 'right' : 'left'
+    }
   }
 
   onResize() {
