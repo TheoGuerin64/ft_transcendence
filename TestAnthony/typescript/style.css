@@ -1,0 +1,19 @@
+#title {
+    text-align: center
+}
+
+#canvas {
+    margin-right: auto;
+    margin-left: auto;
+    display: block;
+}
+
+#playerScore {
+    width:200px;
+    float:left;
+}
+
+#computerScore {
+    width:200px;
+    float:right;
+}
