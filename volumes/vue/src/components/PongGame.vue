@@ -1,4 +1,6 @@
 <script lang="ts">
+import pong_hit_sound from '../assets/pong_hit_sound.wav'
+
 type Side = 'left' | 'right'
 
 type HexColor = `#${string}`
@@ -92,7 +94,7 @@ class Paddle extends Vector2 {
   public size: Size
 
   constructor(side: Side, config: CanvasConfig) {
-    if (side === 'left') {
+    if (side == 'left') {
       super(20, config.size.height / 2)
     } else {
       super(config.size.width - 20, config.size.height / 2)
@@ -165,7 +167,7 @@ class Score {
       size: 48,
       weight: 'normal'
     }
-    if (side === 'left') {
+    if (side == 'left') {
       this.offset = new Vector2(-100, 100)
     } else {
       this.offset = new Vector2(100, 100)
@@ -228,6 +230,7 @@ class Pong {
   private canvas: HTMLCanvasElement
   private clock: number | null
   private endScreen: EndScreen | null
+  private hitSound: HTMLAudioElement
   private paddles: TwoSides<Paddle>
   private scores: TwoSides<Score>
   private side: Side
@@ -251,6 +254,7 @@ class Pong {
     }
     this.clock = null
     this.endScreen = null
+    this.hitSound = new Audio(pong_hit_sound)
     this.paddles = {
       left: new Paddle('left', this.config),
       right: new Paddle('right', this.config)
@@ -303,6 +307,7 @@ class Pong {
       ((ball.y - paddle.y) / (paddle.size.height + ball.radius / 2)) * Math.PI * 0.5 * direction
     )
     ball.speed *= 1.1
+    this.hitSound.play()
   }
 
   private physic(): void {
@@ -312,6 +317,7 @@ class Pong {
 
       if (ball.y + ball.radius >= this.config.size.height || ball.y - ball.radius <= 0) {
         ball.forward.y *= -1
+        this.hitSound.play()
       }
 
       if (
