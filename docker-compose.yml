@@ -27,3 +27,5 @@ services:
          - ./volumes/vue:/app/ft_transcendence
         env_file: ./.env
         restart: unless-stopped
+volumes:
+    database:
