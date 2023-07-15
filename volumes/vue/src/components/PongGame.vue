@@ -304,7 +304,7 @@ class Pong {
   private ballHit(ball: Ball, paddle: Paddle, direction: -1 | 1): void {
     ball.forward.x = direction * Math.abs(ball.forward.x)
     ball.forward.rotateRad(
-      ((ball.y - paddle.y) / (paddle.size.height + ball.radius / 2)) * Math.PI * 0.5 * direction
+      ((ball.y - paddle.y) / (paddle.size.height + ball.radius)) * Math.PI * 0.5 * direction
     )
     ball.speed *= 1.1
     this.hitSound.play()
@@ -387,6 +387,10 @@ class Pong {
       this.keys.up = event.type == 'keydown'
     } else if (event.key == 's' || event.key == 'ArrowDown') {
       this.keys.down = event.type == 'keydown'
+    }
+    // DEV
+    else if (event.key == ' ' && event.type == 'keydown') {
+      this.side = this.side == 'left' ? 'right' : 'left'
     }
   }
 
