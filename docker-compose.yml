@@ -14,7 +14,7 @@ services:
         container_name: postgres
         image: postgres
         volumes:
-         - ./volumes/db:/var/lib/postgresql
+         - database:/var/lib/postgresql
         env_file: ./.env
         restart: unless-stopped
     vue:
