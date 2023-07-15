@@ -301,13 +301,25 @@ class Pong {
     }
   }
 
+  private playSound(sound: HTMLAudioElement): void {
+    sound.pause()
+    sound.currentTime = 0
+    sound.play().catch((e) => {
+      if (e instanceof DOMException) {
+        console.log('Sound could not be played')
+      } else {
+        throw e
+      }
+    })
+  }
+
   private ballHit(ball: Ball, paddle: Paddle, direction: -1 | 1): void {
     ball.forward.x = direction * Math.abs(ball.forward.x)
     ball.forward.rotateRad(
       ((ball.y - paddle.y) / (paddle.size.height + ball.radius)) * Math.PI * 0.5 * direction
     )
     ball.speed *= 1.1
-    this.hitSound.play()
+    this.playSound(this.hitSound)
   }
 
   private physic(): void {
@@ -317,7 +329,7 @@ class Pong {
 
       if (ball.y + ball.radius >= this.config.size.height || ball.y - ball.radius <= 0) {
         ball.forward.y *= -1
-        this.hitSound.play()
+        this.playSound(this.hitSound)
       }
 
       if (
