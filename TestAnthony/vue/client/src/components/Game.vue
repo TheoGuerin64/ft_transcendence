@@ -26,7 +26,7 @@
       }
     },
     created() {
-      this.socket = io("http://10.11.1.7:3000");
+      this.socket = io("http://10.11.1.3:3000");
     },
     mounted() {
       this.context = this.$refs.game.getContext("2d");
