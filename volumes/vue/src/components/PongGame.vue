@@ -1,6 +1,15 @@
-<script lang="ts">
+<script setup lang="ts">
+import { Socket } from 'socket.io-client'
 import pong_hit_sound from '../assets/pong_hit_sound.wav'
+const props = defineProps({
+  socket: {
+    type: Socket,
+    required: true
+  }
+})
+</script>
 
+<script lang="ts">
 type Side = 'left' | 'right'
 
 type HexColor = `#${string}`
@@ -168,9 +177,9 @@ class Score {
       weight: 'normal'
     }
     if (side == 'left') {
-      this.offset = new Vector2(-100, 100)
-    } else {
       this.offset = new Vector2(100, 100)
+    } else {
+      this.offset = new Vector2(-100, 100)
     }
     this.side = side
     this.value = 0
@@ -233,13 +242,13 @@ class Pong {
   private hitSound: HTMLAudioElement
   private paddles: TwoSides<Paddle>
   private scores: TwoSides<Score>
+  private socket: Socket | null
   private side: Side
   public config: CanvasConfig
   public keys: Keys
 
-  constructor(canvas: HTMLCanvasElement, side: Side) {
+  constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
-    this.side = side
 
     this.background = new Background()
     this.balls = []
@@ -263,10 +272,12 @@ class Pong {
       left: new Score('left'),
       right: new Score('right')
     }
+    this.socket = null
     this.keys = {
       up: false,
       down: false
     }
+    this.side = 'left'
 
     this.keyHandler = this.keyHandler.bind(this)
   }
@@ -354,6 +365,7 @@ class Pong {
     if (this.keys.up) {
       if (this.paddles[this.side].y - this.paddles[this.side].size.height / 2 > 0) {
         this.paddles[this.side].y -= this.paddles[this.side].speed
+        this.socket!.emit('cmove', this.paddles[this.side].y)
       }
     } else if (this.keys.down) {
       if (
@@ -361,6 +373,7 @@ class Pong {
         this.config.size.height
       ) {
         this.paddles[this.side].y += this.paddles[this.side].speed
+        this.socket!.emit('cmove', this.paddles[this.side].y)
       }
     }
   }
@@ -384,13 +397,13 @@ class Pong {
     }
   }
 
-  private startRound(): void {
+  private startRound(random: number = 0.5): void {
     this.balls = []
     let ball = new Ball(
       new Vector2(this.config.size.width / 2, this.config.size.height / 2),
       new Vector2(0, 1)
     )
-    ball.forward.rotateDeg((Math.random() * 100 + 40) * (Math.random() > 0.5 ? -1 : 1))
+    ball.forward.rotateDeg((random * 100 + 40) * (random > 0.5 ? -1 : 1))
     this.balls.push(ball)
   }
 
@@ -399,10 +412,6 @@ class Pong {
       this.keys.up = event.type == 'keydown'
     } else if (event.key == 's' || event.key == 'ArrowDown') {
       this.keys.down = event.type == 'keydown'
-    }
-    // DEV
-    else if (event.key == ' ' && event.type == 'keydown') {
-      this.side = this.side == 'left' ? 'right' : 'left'
     }
   }
 
@@ -414,13 +423,28 @@ class Pong {
     this.config.offset.y = (this.canvas.height - this.config.size.height * this.config.scale) / 2
   }
 
-  public start(): void {
+  public start(socket: Socket, random: number): void {
+    this.socket = socket
     this.clock = window.setInterval(this.loop, 1000 / 60)
-    this.startRound()
+    this.startRound(random)
   }
 
   public stop(): void {
     if (this.clock) window.clearInterval(this.clock)
+  }
+
+  public otherMove(y: number): void {
+    this.paddles[this.side == 'left' ? 'right' : 'left'].y = y
+  }
+
+  public setSide(side: Side): void {
+    this.side = side
+    let leftColor = side == 'left' ? '#00f' : '#f00' as HexColor
+    let rightColor = side == 'right' ? '#00f' : '#f00' as HexColor
+    this.paddles.left.color = leftColor
+    this.paddles.right.color = rightColor
+    this.scores.left.color = leftColor
+    this.scores.right.color = rightColor
   }
 }
 
@@ -442,14 +466,22 @@ export default {
 
   mounted() {
     this.canvas = this.$el as HTMLCanvasElement
-    this.pong = new Pong(this.canvas, 'right')
+    this.pong = new Pong(this.canvas)
+    this.socket.on('side', (side: Side) => {
+      this.pong!.setSide(side)
+      this.socket.emit('ready')
+    })
+    this.socket.on('start', (random: number) => {
+      this.pong!.start(this.socket!, random)
+    })
+    this.socket.on('smove', (y: number) => {
+      this.pong!.otherMove(y)
+    })
 
     window.addEventListener('resize', this.onResize)
     window.addEventListener('keydown', this.pong!.keyHandler)
     window.addEventListener('keyup', this.pong!.keyHandler)
     this.onResize()
-
-    this.pong.start()
   },
 
   unmounted() {
