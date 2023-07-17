@@ -1,9 +1,11 @@
-FROM node:current-alpine
-
+FROM node:current-alpine AS base
 RUN npm install -g @nestjs/cli
+WORKDIR /app/ft_transcendence
+EXPOSE 3000
+CMD ["sh", "/app/start.sh"]
 
-WORKDIR /app
+FROM base AS development
+COPY scripts/start_dev.sh /app/start.sh
 
-COPY start.sh /app
-
-CMD ["sh", "start.sh"]
+FROM base AS production
+COPY scripts/start_prod.sh /app/start.sh
