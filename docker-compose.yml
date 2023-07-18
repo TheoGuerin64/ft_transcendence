@@ -1,31 +1,42 @@
-version: '3'
+version: '3.4'
 services:
     nestjs:
         container_name: nestjs
-        build: ./images/nestjs
+        build:
+          context: ./images/nestjs
+          target: development
         image: nestjs
         ports:
          - 3000:3000
         volumes:
          - ./volumes/nestjs:/app/ft_transcendence
-        env_file: ./.env
+        networks:
+         - back-end
         restart: unless-stopped
     postgres:
         container_name: postgres
         image: postgres
         volumes:
          - database:/var/lib/postgresql
+        networks:
+         - back-end
         env_file: ./.env
         restart: unless-stopped
     vue:
         container_name: vue
-        build: ./images/vue
+        build:
+          context: ./images/vue
+          target: development
         image: vue
         ports:
          - 8080:8080
         volumes:
          - ./volumes/vue:/app/ft_transcendence
-        env_file: ./.env
+        networks:
+          - front-end
         restart: unless-stopped
 volumes:
     database:
+networks:
+    back-end:
+    front-end:

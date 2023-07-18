@@ -1,7 +1,11 @@
-FROM node:current-alpine
+FROM node:current-alpine AS base
+WORKDIR /app/ft_transcendence
+EXPOSE 8080
+CMD ["sh", "/app/start.sh"]
 
-WORKDIR /app
+FROM base AS development
+COPY scripts/start_dev.sh /app/start.sh
 
-COPY start.sh /app
-
-CMD ["sh", "start.sh"]
+FROM base AS production
+RUN npm install -g http-server
+COPY scripts/start_prod.sh /app/start.sh
