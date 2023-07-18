@@ -1,8 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import {
+  WebSocketGateway,
+  WebSocketServer,
+  SubscribeMessage,
+  MessageBody,
+} from '@nestjs/websockets';
+import { Server } from 'socket.io';
 
-@Injectable()
+@WebSocketGateway()
 export class AppService {
-  getHello(): string {
-    return 'Hello World!';
+  @WebSocketServer()
+  server: Server;
+
+  @SubscribeMessage('message')
+  handleMessage(@MessageBody() data: string): void {
+    console.log(data);
   }
 }
