@@ -12,12 +12,11 @@ services:
          - ./volumes/nestjs:/app/ft_transcendence
         networks:
          - back-end
+        env_file: ./.env
         restart: unless-stopped
     postgres:
         container_name: postgres
-        image: postgres
-        volumes:
-         - database:/var/lib/postgresql
+        image: postgres:15-alpine
         networks:
          - back-end
         env_file: ./.env
@@ -34,9 +33,8 @@ services:
          - ./volumes/vue:/app/ft_transcendence
         networks:
           - front-end
+        env_file: ./.env
         restart: unless-stopped
-volumes:
-    database:
 networks:
     back-end:
     front-end:
