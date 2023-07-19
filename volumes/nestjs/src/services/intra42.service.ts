@@ -31,12 +31,12 @@ export class Intra42Service {
   }
 
   getData(
-    access_token: string,
+    token: string,
     endpoint: string,
   ): Observable<AxiosResponse<any, any>> {
     return this.httpService.get('https://api.intra.42.fr' + endpoint, {
       headers: {
-        Authorization: 'Bearer ' + access_token,
+        Authorization: 'Bearer ' + token,
       },
     });
   }
