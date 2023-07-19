@@ -21,6 +21,17 @@ services:
          - back-end
         env_file: ./.env
         restart: unless-stopped
+    pgadmin:
+        container_name: pgadmin
+        image: dpage/pgadmin4:latest
+        ports:
+         - 5050:80
+        volumes:
+         - pgadmin:/var/lib/pgadmin
+        networks:
+         - back-end
+        env_file: ./.env
+        restart: unless-stopped
     vue:
         container_name: vue
         build:
@@ -35,6 +46,8 @@ services:
           - front-end
         env_file: ./.env
         restart: unless-stopped
+volumes:
+    pgadmin:
 networks:
     back-end:
     front-end:
