@@ -16,4 +16,8 @@ export class User {
 
   @Column({ type: 'char', length: 64 })
   refresh_token: string;
+
+  @Column({ type: 'varchar', length: 100 })
+  avatar: string;
+
 }

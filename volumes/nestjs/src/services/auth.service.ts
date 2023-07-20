@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { UserService } from './user.service';
 import { Intra42Service, TokenResponse } from './intra42.service';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
@@ -34,17 +35,20 @@ export class AuthService {
             client.emit('auth_success', {
               login: user.login,
               name: user.name,
+              avatar: response.data['image'].link,
             });
           } else {
             const newUser = this.userService.create({
               login: response.data['login'],
               name: response.data['displayname'],
+              avatar: response.data['image'].link,
               ...data,
             });
             this.userService.save(newUser);
             client.emit('auth_success', {
               login: newUser.login,
               name: newUser.name,
+              avatar: newUser.avatar,
             });
           }
         });

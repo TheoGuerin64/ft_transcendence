@@ -8,7 +8,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { AuthService } from './services/auth.service';
 
-@WebSocketGateway()
+@WebSocketGateway({ cors: 'http://localhost:8080' })
 export class AppService {
   @WebSocketServer()
   server: Server;

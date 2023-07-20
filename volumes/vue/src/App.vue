@@ -16,7 +16,7 @@ export default {
 
   mounted() {
     this.socket.on('auth_success', (data: UserResponse) => {
-      this.user = new User(data.login, data.name)
+      this.user = new User(data.login, data.name, data.avatar)
     })
   },
 
