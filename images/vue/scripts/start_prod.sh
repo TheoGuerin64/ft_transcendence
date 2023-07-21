@@ -1,4 +1,3 @@
-sh /app/env.sh
 npm install
 npm run build
 exec http-server dist

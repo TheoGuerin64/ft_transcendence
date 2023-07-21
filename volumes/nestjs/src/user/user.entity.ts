@@ -5,13 +5,13 @@ export class User {
   @PrimaryColumn({ type: 'char', length: 8 })
   login: string;
 
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 16 })
   name: string;
 
   @Column({ type: 'char', length: 64 })
   token: string;
 
-  @Column({ type: 'bigint' })
+  @Column({ type: 'int' })
   expire_at: number;
 
   @Column({ type: 'char', length: 64 })

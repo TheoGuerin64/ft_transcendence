@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
-import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppService } from './app.gateway';
-import { AuthService } from './services/auth.service';
-import { User } from './entities/user.entity';
-import { UserService } from './services/user.service';
-import { Intra42Service } from './services/intra42.service';
+import { JwtModule } from '@nestjs/jwt';
+import { AppGateway } from './app.gateway';
+import { User } from './user/user.entity';
+import { UserModule } from './user/user.module';
 
 @Module({
   imports: [
@@ -21,10 +19,13 @@ import { Intra42Service } from './services/intra42.service';
       entities: [User],
       synchronize: true,
     }),
-    TypeOrmModule.forFeature([User]),
-    HttpModule,
+    JwtModule.register({
+      global: true,
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '2h' },
+    }),
   ],
   controllers: [],
-  providers: [UserService, Intra42Service, AuthService, AppService],
+  providers: [UserModule, AppGateway],
 })
 export class AppModule {}
