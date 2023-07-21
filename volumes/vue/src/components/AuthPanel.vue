@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
 import { User } from '../types'
 </script>
 
@@ -10,6 +9,11 @@ export default {
       type: User,
       default: null
     }
+  },
+  computed: {
+    link() {
+      return this.user ? 'http://127.0.0.1:3000/auth/logout' : 'http://127.0.0.1:3000/auth/login'
+    }
   }
 }
 </script>
@@ -17,7 +21,7 @@ export default {
 <template>
   <div class="AuthPanel">
     <span v-if="user">{{ user.name }}</span>
-    <RouterLink to="/auth">{{ user ? 'Logout' : 'Login' }}</RouterLink>
+    <a :href="link">Connect</a>
   </div>
 </template>
 

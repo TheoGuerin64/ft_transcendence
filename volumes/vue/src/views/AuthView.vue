@@ -2,7 +2,6 @@
 import { Socket } from 'socket.io-client'
 import { User } from '../types'
 import router from '@/router'
-const redirectUri = import.meta.env.VITE_INTRA42_REDIRECT_URI as string
 </script>
 
 <script lang="ts">
@@ -39,6 +38,6 @@ export default {
 <template>
   <div class="AuthPanel">
     <h1>Log in</h1>
-    <a v-if="!code && !user" :href="redirectUri">Connect</a>
+    <a v-if="!code && !user" href="http://127.0.0.1:3000/auth/login">Connect</a>
   </div>
 </template>
