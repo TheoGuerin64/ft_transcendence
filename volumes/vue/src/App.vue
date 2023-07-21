@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
 import { io } from 'socket.io-client'
-import { User, type UserResponse } from './types'
+import { User } from './types'
 import LogPanel from './components/AuthPanel.vue'
+import axios from 'axios'
 </script>
 
 <script lang="ts">
@@ -15,9 +16,18 @@ export default {
   },
 
   mounted() {
-    this.socket.on('auth_success', (data: UserResponse) => {
-      this.user = new User(data.login, data.name, data.avatar)
-    })
+    axios
+      .get('http://127.0.0.1:3000/user/me')
+      .then((response) => {
+        this.user = {
+          login: response.data.login,
+          name: response.data.name,
+          avatar: response.data.avatar
+        }
+      })
+      .catch(() => {
+        this.user = undefined
+      })
   },
 
   unmounted() {
