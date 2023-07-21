@@ -43,6 +43,7 @@ export default {
 
 <template>
   <h1>Home</h1>
+
   <div v-if="user">
     <img :src="user.avatar" width="600" height="500" />
       <input type="file" accept="image/*" ref="inputFile">

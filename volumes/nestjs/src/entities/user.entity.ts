@@ -19,5 +19,4 @@ export class User {
 
   @Column({ type: 'text' })
   avatar: string;
-
 }
