@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { Socket } from 'socket.io';
 import { UserService } from './user.service';
 import { Intra42Service, TokenResponse } from './intra42.service';
-import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class AuthService {
@@ -35,7 +34,7 @@ export class AuthService {
             client.emit('auth_success', {
               login: user.login,
               name: user.name,
-              avatar: response.data['image'].link,
+              avatar: user.avatar,
             });
           } else {
             const newUser = this.userService.create({

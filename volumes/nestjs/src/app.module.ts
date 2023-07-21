@@ -7,6 +7,8 @@ import { AuthService } from './services/auth.service';
 import { User } from './entities/user.entity';
 import { UserService } from './services/user.service';
 import { Intra42Service } from './services/intra42.service';
+import { UserInputController } from './userInput.controller';
+import { UserInputService } from './userInput.services';
 
 @Module({
   imports: [
@@ -24,7 +26,7 @@ import { Intra42Service } from './services/intra42.service';
     TypeOrmModule.forFeature([User]),
     HttpModule,
   ],
-  controllers: [],
-  providers: [UserService, Intra42Service, AuthService, AppService],
+  controllers: [UserInputController],
+  providers: [UserInputService, UserService, Intra42Service, AuthService, AppService],
 })
 export class AppModule {}

@@ -16,10 +16,11 @@ export class AppService {
   constructor(private readonly authService: AuthService) {}
 
   @SubscribeMessage('auth_connect')
-  handleMessage(
+  connectionHandler(
     @MessageBody() code: string,
     @ConnectedSocket() client: Socket,
   ): void {
     this.authService.connect(code, client);
   }
+
 }

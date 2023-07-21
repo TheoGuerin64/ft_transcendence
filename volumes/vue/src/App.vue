@@ -22,6 +22,11 @@ export default {
 
   unmounted() {
     this.socket!.close()
+  },
+  methods: {
+    updateAvatar(fileB64: string) {
+      this.user!.avatar = fileB64
+    }
   }
 }
 </script>
@@ -34,7 +39,7 @@ export default {
     <LogPanel :user="user" />
   </header>
 
-  <RouterView :socket="socket" :user="user" />
+  <RouterView :socket="socket" :user="user" @updateAvatar="updateAvatar"/>
 </template>
 
 <style>
