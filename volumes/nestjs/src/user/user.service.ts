@@ -1,7 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { User } from '../entities/user.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { DeepPartial, Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User } from './user.entity';
+
+export interface ClientUser {
+  login: string;
+  name: string;
+  avatar: string;
+}
 
 @Injectable()
 export class UserService {
