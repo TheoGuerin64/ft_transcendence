@@ -9,10 +9,7 @@ export class User {
   name: string;
 
   @Column({ type: 'char', length: 64 })
-  token: string;
-
-  @Column({ type: 'int' })
-  expire_at: number;
+  access_token: string;
 
   @Column({ type: 'char', length: 64 })
   refresh_token: string;

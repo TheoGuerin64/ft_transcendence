@@ -7,6 +7,11 @@ export default {
       type: User,
       default: null
     }
+  },
+
+  mounted() {
+    if (this.user) console.log(this.user)
+    else console.log('this.user')
   }
 }
 </script>
