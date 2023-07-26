@@ -12,6 +12,8 @@ services:
          - ./src/nestjs/backend:/app/backend
         networks:
          - back-end
+        depends_on:
+         - postgres
         env_file: ./.env
         restart: unless-stopped
     postgres:
@@ -30,6 +32,8 @@ services:
          - pgadmin:/var/lib/pgadmin
         networks:
          - back-end
+        depends_on:
+         - postgres
         env_file: ./.env
         restart: unless-stopped
     vue:
@@ -44,6 +48,8 @@ services:
          - ./src/vue/frontend:/app/frontend
         networks:
           - front-end
+        depends_on:
+         - nestjs
         env_file: ./.env
         restart: unless-stopped
 volumes:
