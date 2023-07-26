@@ -1,15 +1,15 @@
-version: '3.4'
+version: '3'
 services:
     nestjs:
         container_name: nestjs
         build:
-          context: ./images/nestjs
+          context: ./src/nestjs
           target: development
         image: nestjs
         ports:
          - 3000:3000
         volumes:
-         - ./volumes/nestjs:/app/ft_transcendence
+         - ./src/nestjs/backend:/app/backend
         networks:
          - back-end
         env_file: ./.env
@@ -35,13 +35,13 @@ services:
     vue:
         container_name: vue
         build:
-          context: ./images/vue
+          context: ./src/vue
           target: development
         image: vue
         ports:
          - 8080:8080
         volumes:
-         - ./volumes/vue:/app/ft_transcendence
+         - ./src/vue/frontend:/app/frontend
         networks:
           - front-end
         env_file: ./.env
@@ -50,4 +50,6 @@ volumes:
     pgadmin:
 networks:
     back-end:
+      driver: bridge
     front-end:
+      driver: bridge
