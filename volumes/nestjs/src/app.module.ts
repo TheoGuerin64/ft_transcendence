@@ -5,6 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { AppGateway } from './app.gateway';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -24,8 +25,10 @@ import { UserModule } from './user/user.module';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '2h' },
     }),
+    UserModule,
+    AuthModule,
   ],
   controllers: [],
-  providers: [UserModule, AppGateway],
+  providers: [AppGateway],
 })
 export class AppModule {}

@@ -1,4 +1,5 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Request, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { ClientUser } from './user.service';
 
 @Controller('user')
@@ -8,11 +9,12 @@ export class userController {
   }
 
   @Get('me')
-  async getAuth(): Promise<ClientUser> {
+  @UseGuards(AuthGuard('oauth2'))
+  getAuth(@Request() req: any): ClientUser {
     return {
-      login: 'test',
-      name: 'test',
-      avatar: 'test',
+      login: req.user.login,
+      name: req.user.name,
+      avatar: req.user.avatar,
     };
   }
 }
