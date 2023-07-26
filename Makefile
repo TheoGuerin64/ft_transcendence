@@ -6,28 +6,15 @@ start:
 stop:
 	docker compose down
 
-log:
+restart: stop start
+
+logs:
 	docker compose logs -f
 
-shell:
-	@if [ -z "$(APP)" ]; then \
-		echo "APP is not set"; \
-		exit 1; \
-	fi
-	docker exec -it $(APP) sh
-
-format:
-	npm --prefix volumes/nestjs run format
-	npm --prefix volumes/vue run format
-
-lint:
-	npm --prefix volumes/nestjs run lint
-	npm --prefix volumes/vue run lint
-
 clean:
-	docker system prune -af
-	docker volume prune
+	docker system prune -f --volumes
 
-re: stop clean start
+fclean:
+	docker system prune -af --volumes
 
-.PHONY: all start stop log shell format lint clean re
+.PHONY: all start stop restart logs clean fclean

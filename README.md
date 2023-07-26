@@ -10,3 +10,4 @@
   * [POSTGRES_PASSWORD](https://github.com/docker-library/docs/blob/master/postgres/README.md#postgres_password)
   * [PGADMIN_DEFAULT_EMAIL](https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html)
   * [PGADMIN_DEFAULT_PASSWORD](https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html)
+  * JWT_SECRET (minimum 50 char)
