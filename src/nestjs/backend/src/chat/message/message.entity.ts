@@ -15,7 +15,4 @@ export class Message {
 
   @ManyToOne(() => ChatUser, (chatUser) => chatUser.messages)
   sender: ChatUser;
-
-  @ManyToOne(() => Chat, (chat) => chat.messages)
-  chat: Chat;
 }
