@@ -24,13 +24,13 @@ export default {
   mounted() {
     const code = this.$route.query.code as string | undefined
     if (code) {
+      this.$router.replace('/')
       axios
         .get('http://127.0.0.1:3000/auth/sign-in?code=' + code, {
           withCredentials: true
         })
         .then((response) => {
-          this.store.setUser(response.data)
-          this.$router.push('/')
+          this.store.setToken(response.data)
           axios
             .get('http://127.0.0.1:3000/user/me', {
               withCredentials: true
