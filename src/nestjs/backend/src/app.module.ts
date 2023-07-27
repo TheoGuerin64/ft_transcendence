@@ -1,4 +1,6 @@
 import { AuthModule } from './auth/auth.module';
+import { Chat } from './chat/chat.entity';
+import { ChatModule } from './chat/chat.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/user.entity';
@@ -13,7 +15,7 @@ import { UserModule } from './user/user.module';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_USER,
-      entities: [User],
+      entities: [User, Chat],
       synchronize: true,
     }),
     UserModule,
