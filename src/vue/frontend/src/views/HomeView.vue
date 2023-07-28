@@ -4,16 +4,6 @@ import { store } from '../store'
 </script>
 
 <script lang="ts">
-function signout() {
-  axios
-    .get('http://127.0.0.1:3000/auth/sign-out', {
-      withCredentials: true
-    })
-    .then(() => {
-      store.setUser(undefined)
-    })
-}
-
 export default {
   data() {
     return {
@@ -40,17 +30,31 @@ export default {
             })
         })
     }
+  },
+  methods: {
+    signout() {
+      axios
+        .get('http://127.0.0.1:3000/auth/sign-out', {
+          withCredentials: true
+        })
+        .then(() => {
+          store.setUser(undefined)
+        })
+    }
   }
 }
 </script>
 
 <template>
   <main>
+    <routerLink to="/Game">Game</routerLink>
     <div v-if="store.user">
       <h1>{{ store.user.name }}</h1>
       <img :src="store.user.avatar" alt="User avatar" />
+      <button @click="signout">Sign Out</button>
     </div>
-    <a href="http://127.0.0.1:3000/auth/authorize">connect</a>
-    <button @click="signout">Sign Out</button>
+    <div v-else>
+      <a href="http://127.0.0.1:3000/auth/authorize">connect</a>
+    </div>
   </main>
 </template>
