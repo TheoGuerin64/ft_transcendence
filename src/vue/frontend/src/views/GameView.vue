@@ -119,6 +119,19 @@ export default {
         const index = arrayElements.findIndex((element) => element.uuid === Player.login)
         if (index == -1) return
         const elementToMove: THREE.Mesh = arrayElements[index]
+        let elementBB = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3())
+        elementBB.setFromObject(elementToMove)
+        let y = 0
+        elementBB?.copy(elementToMove.geometry.boundingBox).applyMatrix4(elementToMove.matrixWorld)
+        let tmp = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3())
+        for (let x: number = 0; x < arrayElements.length; x++) {
+          tmp.setFromObject(arrayElements[x])
+          if (elementToMove !== arrayElements[x] && elementBB.intersectsBox(tmp)) {
+            console.log('collision')
+            y++
+          }
+        }
+        if (y == 0) console.log('no collision')
         elementToMove.position.x = Player.posX
         elementToMove.position.y = Player.posY
       }
