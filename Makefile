@@ -11,7 +11,7 @@ restart: stop start
 logs:
 	docker compose logs -f
 
-clean:
+clean: stop
 	docker system prune -f --volumes
 
 fclean:

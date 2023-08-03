@@ -11,10 +11,11 @@ export default {
       store,
       socket: null as any,
       killCanvas: function () {},
-      loadPlayers: function (Players: { id: number; posX: number; posY: number }[]) {},
-      addNewPlayer: function (Player: { id: number; posX: number; posY: number }) {},
-      someoneMoved: function (Player: { id: number; posX: number; posY: number }) {},
-      someoneDisconnected: function (id: number) {}
+      loadPlayers: function (Players: { login: string; posX: number; posY: number }[]) {},
+      addNewPlayer: function (Player: { login: string; posX: number; posY: number }) {},
+      someoneMoved: function (Player: { login: string; posX: number; posY: number }) {},
+      someoneDisconnected: function (login: string) {},
+      someoneAlreadyConnect: function () {}
     }
   },
   created() {
@@ -30,17 +31,20 @@ export default {
       return
     }
     this.init()
-    this.socket.on('loadPlayers', (Players: { id: number; posX: number; posY: number }[]) => {
+    this.socket.on('loadPlayers', (Players: { login: string; posX: number; posY: number }[]) => {
       this.loadPlayers(Players)
     })
-    this.socket.on('newPlayerJoined', (Player: { id: number; posX: number; posY: number }) => {
+    this.socket.on('newPlayerJoined', (Player: { login: string; posX: number; posY: number }) => {
       this.addNewPlayer(Player)
     })
-    this.socket.on('someoneMoved', (Player: { id: number; posX: number; posY: number }) => {
+    this.socket.on('someoneMoved', (Player: { login: string; posX: number; posY: number }) => {
       this.someoneMoved(Player)
     })
-    this.socket.on('playerDisconnected', (id: number) => {
-      this.someoneDisconnected(id)
+    this.socket.on('playerDisconnected', (login: string) => {
+      this.someoneDisconnected(login)
+    })
+    this.socket.on('alreadyConnect', () => {
+      this.someoneAlreadyConnect()
     })
   },
   unmounted() {
@@ -52,7 +56,7 @@ export default {
       let camera: THREE.PerspectiveCamera
       let renderer: THREE.WebGLRenderer
       let idCanvas: number
-      const idPlayer: number = Math.round(Math.random() * 100000)
+      const loginPlayer: string = store.user?.name
       const setCanvas = () => {
         scene = new THREE.Scene()
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -62,7 +66,7 @@ export default {
         document.body.appendChild(renderer.domElement)
         document.addEventListener('keydown', checkInput, false)
         camera.position.z = 5
-        this.socket.emit('connection', idPlayer)
+        this.socket.emit('connection', loginPlayer)
         animate()
       }
       const animate = () => {
@@ -78,43 +82,50 @@ export default {
         if (keyCode == 's') updatedY = -0.1
         if (keyCode == 'd') updatedX = 0.1
         if (keyCode == 'a') updatedX = -0.1
-        this.socket.emit('movement', idPlayer, updatedX, updatedY)
+        this.socket.emit('movement', loginPlayer, updatedX, updatedY)
       }
 
       this.killCanvas = () => {
-        this.socket.emit('unconnection', idPlayer)
+        this.socket.emit('unconnection', loginPlayer)
         cancelAnimationFrame(idCanvas)
         document.getElementById('CanvasGame')?.remove()
       }
 
-      this.loadPlayers = (Players: { id: number; posX: number; posY: number }[]) => {
+      this.someoneAlreadyConnect = () => {
+        cancelAnimationFrame(idCanvas)
+        document.getElementById('CanvasGame')?.remove()
+        this.$router.push('/')
+        this.socket.disconnect()
+      }
+
+      this.loadPlayers = (Players: { login: string; posX: number; posY: number }[]) => {
         let i: any
         for (i in Players) {
           this.addNewPlayer(Players[i])
         }
       }
-      this.addNewPlayer = (Player: { id: number; posX: number; posY: number }) => {
+      this.addNewPlayer = (Player: { login: string; posX: number; posY: number }) => {
         const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
         const newPlayer = new THREE.Mesh(geometry, material)
         scene.add(newPlayer)
-        newPlayer.uuid = Player.id.toString()
+        newPlayer.uuid = Player.login
         newPlayer.position.x = Player.posX
         newPlayer.position.y = Player.posY
       }
 
-      this.someoneMoved = (Player: { id: number; posX: number; posY: number }) => {
+      this.someoneMoved = (Player: { login: string; posX: number; posY: number }) => {
         const arrayElements: THREE.Mesh[] = scene.children
-        const index = arrayElements.findIndex((element) => Number(element.uuid) === Player.id)
+        const index = arrayElements.findIndex((element) => element.uuid === Player.login)
         if (index == -1) return
         const elementToMove: THREE.Mesh = arrayElements[index]
         elementToMove.position.x = Player.posX
         elementToMove.position.y = Player.posY
       }
 
-      this.someoneDisconnected = (id: number) => {
+      this.someoneDisconnected = (login: string) => {
         const arrayElements: THREE.Mesh[] = scene.children
-        const index = arrayElements.findIndex((element) => Number(element.uuid) === id)
+        const index = arrayElements.findIndex((element) => element.uuid === login)
         if (index == -1) return
         const elementToDelete: THREE.Mesh = arrayElements[index]
         scene.remove(elementToDelete)
