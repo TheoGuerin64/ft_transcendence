@@ -12,13 +12,20 @@ export class EventGateway {
   @WebSocketServer()
   server: Server;
 
-  Players: { login: string; posX: number; posY: number }[] = [];
+  Players: { login: string; socketID: string; posX: number; posY: number }[] =
+    [];
   @SubscribeMessage('connection')
   connection(
-    @MessageBody() data: string,
+    @MessageBody() login: string,
     @ConnectedSocket() socket: Socket,
   ): void {
-    const newPlayer = { login: data, posX: 0, posY: 0 };
+    console.log('socket id on connect', socket.id);
+    const newPlayer = {
+      login: login,
+      socketID: socket.id,
+      posX: 0,
+      posY: 0,
+    };
     const index = this.Players.findIndex(
       (element) => element.login === newPlayer.login,
     );
@@ -32,12 +39,35 @@ export class EventGateway {
     }
   }
 
+  @SubscribeMessage('disconnecting')
+  disconnect(
+    @MessageBody() data: string,
+    @ConnectedSocket() socket: Socket,
+  ): void {
+    console.log(this.Players);
+    const index: number = this.Players.findIndex(
+      (element) => element.socketID == socket.id,
+    );
+    const playerDisconnected = this.Players[index];
+    this.Players = this.Players.filter(
+      (element) => element.socketID != socket.id,
+    );
+    socket.broadcast.emit('playerDisconnected', playerDisconnected.login);
+  }
+
+  @SubscribeMessage('disconnect')
+  disconnect2(): void {
+    console.log('disconnect2');
+  }
+
   @SubscribeMessage('unconnection')
   unconnection(
     @MessageBody() login: string,
     @ConnectedSocket() socket: Socket,
   ): void {
-    this.Players = this.Players.filter((element) => element.login != login);
+    this.Players = this.Players.filter(
+      (element) => element.socketID != socket.id,
+    );
     socket.broadcast.emit('playerDisconnected', login);
   }
 
@@ -55,4 +85,4 @@ export class EventGateway {
   }
 }
 
-//reset4
+//reset13
