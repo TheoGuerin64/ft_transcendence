@@ -47,7 +47,8 @@ export default {
       this.someoneAlreadyConnect()
     })
   },
-  unmounted() {
+  beforeUnmount() {
+    console.log('unmount', this.socket)
     this.killCanvas()
   },
   methods: {
