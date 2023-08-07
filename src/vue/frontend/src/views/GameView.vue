@@ -86,7 +86,7 @@ export default {
       let camera: THREE.PerspectiveCamera
       let renderer: THREE.WebGLRenderer
       let idCanvas: number
-      let sphere: THREE.Mesh
+      let ball: THREE.Mesh
       const setCanvas = () => {
         scene = new THREE.Scene()
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -96,11 +96,18 @@ export default {
         document.body.appendChild(renderer.domElement)
         document.addEventListener('keydown', checkInput, false)
         camera.position.z = 5
-        const geometry = new THREE.SphereGeometry(0.25)
+
+        const geometry2 = new THREE.BoxGeometry(4, 4, 0)
+        const material2 = new THREE.MeshBasicMaterial({ color: 0xffffff })
+        const plane = new THREE.Mesh(geometry2, material2)
+        plane.position.set(0, 0, 0)
+        scene.add(plane)
+
+        const geometry = new THREE.BoxGeometry(0.15, 0.15, 0)
         const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
-        sphere = new THREE.Mesh(geometry, material)
-        sphere.position.set(-2, -2, 0)
-        scene.add(sphere)
+        ball = new THREE.Mesh(geometry, material)
+        ball.position.set(-2, -2, 0)
+        scene.add(ball)
         animate()
       }
       const animate = () => {
@@ -132,7 +139,7 @@ export default {
         }
       }
       this.addNewPlayer = (Player: { login: string; posX: number; posY: number }) => {
-        const geometry = new THREE.BoxGeometry(0.5, 0.5, 0.5)
+        const geometry = new THREE.BoxGeometry(0.5, 0.5, 0)
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
         const newPlayer = new THREE.Mesh(geometry, material)
         scene.add(newPlayer)
@@ -164,8 +171,7 @@ export default {
       }
 
       this.movementBall = (posX: number, posY: number) => {
-        sphere.position.set(posX, posY, 0)
-        console.log('movementBall')
+        ball.position.set(posX, posY, 0)
         this.socket.emit('movementBall')
       }
 
