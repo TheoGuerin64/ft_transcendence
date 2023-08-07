@@ -55,9 +55,10 @@ export default {
       this.someoneAlreadyConnect()
     })
 
-    this.socket.on('movementBall', (posX, posY) => {
+    this.socket.on('movementBall', (posX: number, posY: number) => {
       this.movementBall(posX, posY)
     })
+
     this.socket.on('gameStarted', (gameString: string) => {
       console.log('gameStart')
       this.init()
@@ -139,7 +140,7 @@ export default {
         }
       }
       this.addNewPlayer = (Player: { login: string; posX: number; posY: number }) => {
-        const geometry = new THREE.BoxGeometry(0.5, 0.5, 0)
+        const geometry = new THREE.BoxGeometry(0.1, 0.5, 0)
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
         const newPlayer = new THREE.Mesh(geometry, material)
         scene.add(newPlayer)

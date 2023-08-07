@@ -58,8 +58,8 @@ class Ball {
 
   constructor() {
     this.speed = 0.01;
-    this.directionX = Math.random() * (0.5 - -0.5) + -0.5;
-    this.directionY = Math.random() * (1 - -1) + -1;
+    this.directionX = Math.random() * (1 - -1) + -1;
+    this.directionY = Math.random() * (0.5 - -0.5) + -0.5;
     this.positionX = 0;
     this.positionY = 0;
   }
@@ -136,20 +136,27 @@ class Game {
   }
 }
 
+const stepPlayer = 0.1;
+const heightPlayer = 0.5;
+const widthPlayer = 0.1;
+const lengthBall = 0.15;
+const border = 2;
+const IncreaseBallSpeed = 0.001;
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const updateDirectionX = (ball: Ball, collide: string): void => {
   let newPosition;
   if (collide == 'Wall') {
-    if (ball.getPositionX() - 0.15 / 2 <= -2) {
-      newPosition = -2 + 0.15 / 2;
+    if (ball.getPositionX() - lengthBall / 2 <= -border) {
+      newPosition = -border + lengthBall / 2;
     } else {
-      newPosition = 2 - 0.15 / 2;
+      newPosition = border - lengthBall / 2;
     }
   } else {
-    if (ball.getPositionX() - 0.15 / 2 <= -1.5) {
-      newPosition = -1.5 + 0.15 / 2;
+    if (ball.getPositionX() - lengthBall / 2 <= -(border - widthPlayer)) {
+      newPosition = -(border - widthPlayer) + lengthBall / 2;
     } else {
-      newPosition = 1.5 - 0.15 / 2;
+      newPosition = border - widthPlayer - lengthBall / 2;
     }
   }
   ball.setPositionX(newPosition);
@@ -159,16 +166,16 @@ const updateDirectionX = (ball: Ball, collide: string): void => {
 const updateDirectionY = (ball: Ball, collide: string): void => {
   let newPosition;
   if (collide == 'Wall') {
-    if (ball.getPositionY() - 0.15 / 2 <= -2) {
-      newPosition = -2 + 0.15 / 2;
+    if (ball.getPositionY() - lengthBall / 2 <= -border) {
+      newPosition = -border + lengthBall / 2;
     } else {
-      newPosition = 2 - 0.15 / 2;
+      newPosition = border - lengthBall / 2;
     }
   } else {
-    if (ball.getPositionY() - 0.15 / 2 <= -1.5) {
-      newPosition = -1.5 + 0.15 / 2;
+    if (ball.getPositionY() - lengthBall / 2 <= -(border - widthPlayer)) {
+      newPosition = -(border - widthPlayer) + lengthBall / 2;
     } else {
-      newPosition = 1.5 - 0.15 / 2;
+      newPosition = border - widthPlayer - lengthBall / 2;
     }
   }
   ball.setPositionY(newPosition);
@@ -181,7 +188,6 @@ const HitPlayer = (
   playerOne: Player,
   playerTwo: Player,
 ): boolean => {
-  console.log('PlayerOneX', playerOne.getPosX());
   if (
     ball.getPositionX() < 0 &&
     ball.getPositionY() >= playerOne.getPosY() - 0.25 &&
@@ -207,11 +213,6 @@ export class EventGateway {
   PlayersCustomQueue: Player[] = [];
   Games: Game[] = [];
 
-  step = 0.1;
-  LengthPlayer = 0.5;
-  lengthBall = 0.15;
-  border = 2;
-
   @SubscribeMessage('connection')
   connection(
     @MessageBody() login: string,
@@ -223,7 +224,6 @@ export class EventGateway {
     );
     if (indexPlayer == -1) {
       this.Players.push(newPlayer);
-      console.log('connect', this.Players);
     } else {
       socket.emit('alreadyConnect');
     }
@@ -287,6 +287,8 @@ export class EventGateway {
     const firstPlayer = this.Players[indexPlayer];
     if (this.PlayersNormalQueue.length >= 1) {
       const secondPlayer = this.PlayersNormalQueue.pop();
+      firstPlayer.setPosX(-border + widthPlayer / 2);
+      secondPlayer.setPosX(border - widthPlayer / 2);
       const newGame = new Game('NormalGame', firstPlayer, secondPlayer);
       this.Games.push(newGame);
       socket
@@ -309,30 +311,18 @@ export class EventGateway {
       return;
     }
     const Player = this.Players[index];
-    const offSet = this.LengthPlayer / 2 + this.step;
+    const offSet = heightPlayer / 2 + stepPlayer;
     if (data[1] == 'w') {
-      if (Player.getPosY() + offSet < this.border) {
-        Player.setPosY(Player.getPosY() + this.step);
+      if (Player.getPosY() + offSet < border) {
+        Player.setPosY(Player.getPosY() + stepPlayer);
       } else {
-        Player.setPosY(this.border - this.LengthPlayer / 2);
+        Player.setPosY(border - heightPlayer / 2);
       }
     } else if (data[1] == 's') {
-      if (Player.getPosY() - offSet > -this.border) {
-        Player.setPosY(Player.getPosY() - this.step);
+      if (Player.getPosY() - offSet > -border) {
+        Player.setPosY(Player.getPosY() - stepPlayer);
       } else {
-        Player.setPosY(-this.border + this.LengthPlayer / 2);
-      }
-    } else if (data[1] == 'a') {
-      if (Player.getPosX() - offSet > -this.border) {
-        Player.setPosX(Player.getPosX() - this.step);
-      } else {
-        Player.setPosX(-this.border + this.LengthPlayer / 2);
-      }
-    } else if (data[1] == 'd') {
-      if (Player.getPosX() + offSet < this.border) {
-        Player.setPosX(Player.getPosX() + this.step);
-      } else {
-        Player.setPosX(this.border - this.LengthPlayer / 2);
+        Player.setPosY(-border + heightPlayer / 2);
       }
     }
     this.server.emit('someoneMoved', data[1], Player);
@@ -354,30 +344,29 @@ export class EventGateway {
     );
 
     if (
-      ball.getPositionX() - this.lengthBall / 2 <= -this.border ||
-      ball.getPositionX() + this.lengthBall / 2 >= this.border
+      ball.getPositionX() - lengthBall / 2 <= -border ||
+      ball.getPositionX() + lengthBall / 2 >= border
     ) {
       updateDirectionX(ball, 'Wall');
     }
     if (
-      ball.getPositionY() - this.lengthBall / 2 <= -this.border ||
-      ball.getPositionY() + this.lengthBall / 2 >= this.border
+      ball.getPositionY() - lengthBall / 2 <= -border ||
+      ball.getPositionY() + lengthBall / 2 >= border
     ) {
       updateDirectionY(ball, 'Wall');
     }
-    const offSet = this.border - this.LengthPlayer;
+    const offSet = border - widthPlayer;
     if (
-      (ball.getPositionX() - this.lengthBall / 2 <= -offSet ||
-        ball.getPositionX() + this.lengthBall / 2 >= offSet) &&
+      (ball.getPositionX() - lengthBall / 2 <= -offSet ||
+        ball.getPositionX() + lengthBall / 2 >= offSet) &&
       HitPlayer(ball, playerOne, playerTwo)
     ) {
-      console.log('hit player');
       updateDirectionX(ball, 'Player');
     }
     if (ball.getHitSomething()) {
-      ball.setSpeed(ball.getSpeed() + 0.000001);
+      ball.setSpeed(ball.getSpeed() + IncreaseBallSpeed);
     }
     socket.emit('movementBall', ball.getPositionX(), ball.getPositionY());
   }
 }
-//reset7
+//reset8
