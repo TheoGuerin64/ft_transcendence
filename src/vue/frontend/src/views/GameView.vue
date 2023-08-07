@@ -19,7 +19,8 @@ export default {
         Player: { login: string; posX: number; posY: number }
       ) {},
       someoneDisconnected: function (login: string) {},
-      someoneAlreadyConnect: function () {}
+      someoneAlreadyConnect: function () {},
+      movementBall: function (posX: number, posY: number) {}
     }
   },
   created() {
@@ -54,6 +55,9 @@ export default {
       this.someoneAlreadyConnect()
     })
 
+    this.socket.on('movementBall', (posX, posY) => {
+      this.movementBall(posX, posY)
+    })
     this.socket.on('gameStarted', (gameString: string) => {
       console.log('gameStart')
       this.init()
@@ -82,7 +86,7 @@ export default {
       let camera: THREE.PerspectiveCamera
       let renderer: THREE.WebGLRenderer
       let idCanvas: number
-      let planes: THREE.Mesh[] = []
+      let sphere: THREE.Mesh
       const setCanvas = () => {
         scene = new THREE.Scene()
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -92,24 +96,9 @@ export default {
         document.body.appendChild(renderer.domElement)
         document.addEventListener('keydown', checkInput, false)
         camera.position.z = 5
-        var geo = new THREE.PlaneGeometry(2, 2)
-        var mat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
-        for (let x = 0; x < 4; x++) {
-          planes.push(new THREE.Mesh(geo, mat))
-          if (x < 2) {
-            planes[x].rotateX(-Math.PI / 2)
-          } else {
-            planes[x].rotateY(-Math.PI / 2)
-          }
-          scene.add(planes[x])
-        }
-        planes[0].position.y = -2
-        planes[1].position.y = 2
-        planes[2].position.x = -2
-        planes[3].position.x = 2
         const geometry = new THREE.SphereGeometry(0.25)
         const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
-        const sphere = new THREE.Mesh(geometry, material)
+        sphere = new THREE.Mesh(geometry, material)
         sphere.position.set(-2, -2, 0)
         scene.add(sphere)
         animate()
@@ -120,7 +109,7 @@ export default {
       }
 
       const checkInput = (event: KeyboardEvent) => {
-        this.socket.emit('movement', this.loginPlayer, event.key)
+        this.socket.emit('movementPlayer', this.loginPlayer, event.key)
       }
 
       this.killCanvas = () => {
@@ -162,39 +151,8 @@ export default {
           return
         }
         const elementToMove: THREE.Mesh = arrayElements[index]
-        let elementBB = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3())
-        elementBB.setFromObject(elementToMove)
-        let y = 0
-        elementBB?.copy(elementToMove.geometry.boundingBox).applyMatrix4(elementToMove.matrixWorld)
-        let tmp = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3())
-        for (let x: number = 0; x < arrayElements.length; x++) {
-          tmp.setFromObject(arrayElements[x])
-          if (elementToMove !== arrayElements[x]) {
-            if (elementBB.intersectsBox(tmp)) {
-              if (arrayElements[x].geometry.type == 'BoxGeometry') {
-                console.log('collision with box')
-              } else {
-                console.log('collision with something else')
-                y++
-              }
-            }
-          }
-        }
-        if (y == 0) {
-          elementToMove.position.x = Player.posX
-          elementToMove.position.y = Player.posY
-        } else {
-          if (keyCode == 'w') {
-            elementToMove.position.y = Player.posY - 0.1
-          } else if (keyCode == 'a') {
-            elementToMove.position.x = Player.posY + 0.1
-          } else if (keyCode == 's') {
-            elementToMove.position.y = Player.posY + 0.1
-          } else if (keyCode == 'd') {
-            elementToMove.position.x = Player.posX - 0.1
-          }
-          this.socket.emit('playerCollide', Player.login, keyCode)
-        }
+        elementToMove.position.x = Player.posX
+        elementToMove.position.y = Player.posY
       }
 
       this.someoneDisconnected = (login: string) => {
@@ -205,6 +163,13 @@ export default {
         scene.remove(elementToDelete)
       }
 
+      this.movementBall = (posX: number, posY: number) => {
+        sphere.position.set(posX, posY, 0)
+        console.log('movementBall')
+        this.socket.emit('movementBall')
+      }
+
+      this.socket.emit('movementBall')
       setCanvas()
     },
     joinNormalQueue(): void {
