@@ -10,10 +10,14 @@ export default {
     return {
       store,
       socket: null as any,
+      loginPlayer: store.user?.name as string,
       killCanvas: function () {},
       loadPlayers: function (Players: { login: string; posX: number; posY: number }[]) {},
       addNewPlayer: function (Player: { login: string; posX: number; posY: number }) {},
-      someoneMoved: function (Player: { login: string; posX: number; posY: number }) {},
+      someoneMoved: function (
+        keyCode: string,
+        Player: { login: string; posX: number; posY: number }
+      ) {},
       someoneDisconnected: function (login: string) {},
       someoneAlreadyConnect: function () {}
     }
@@ -30,25 +34,46 @@ export default {
       this.$router.push('/')
       return
     }
-    this.init()
+    this.socket.emit('connection', this.loginPlayer)
     this.socket.on('loadPlayers', (Players: { login: string; posX: number; posY: number }[]) => {
       this.loadPlayers(Players)
     })
     this.socket.on('newPlayerJoined', (Player: { login: string; posX: number; posY: number }) => {
       this.addNewPlayer(Player)
     })
-    this.socket.on('someoneMoved', (Player: { login: string; posX: number; posY: number }) => {
-      this.someoneMoved(Player)
-    })
+    this.socket.on(
+      'someoneMoved',
+      (keyCode: string, Player: { login: string; posX: number; posY: number }) => {
+        this.someoneMoved(keyCode, Player)
+      }
+    )
     this.socket.on('playerDisconnected', (login: string) => {
       this.someoneDisconnected(login)
     })
     this.socket.on('alreadyConnect', () => {
       this.someoneAlreadyConnect()
     })
+
+    this.socket.on('gameStarted', (gameString: string) => {
+      console.log('gameStart')
+      this.init()
+      const game = JSON.parse(gameString)
+      this.addNewPlayer({
+        login: game.playerOne.login,
+        posX: game.playerOne.posX,
+        posY: game.playerOne.posY
+      })
+      this.addNewPlayer({
+        login: game.playerTwo.login,
+        posX: game.playerTwo.posX,
+        posY: game.playerTwo.posY
+      })
+    })
+    this.socket.on('alreadyInQueue', () => {
+      console.log('already in queue')
+    })
   },
   beforeUnmount() {
-    console.log('unmount', this.socket)
     this.killCanvas()
   },
   methods: {
@@ -57,7 +82,7 @@ export default {
       let camera: THREE.PerspectiveCamera
       let renderer: THREE.WebGLRenderer
       let idCanvas: number
-      const loginPlayer: string = store.user?.name
+      let planes: THREE.Mesh[] = []
       const setCanvas = () => {
         scene = new THREE.Scene()
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
@@ -67,7 +92,26 @@ export default {
         document.body.appendChild(renderer.domElement)
         document.addEventListener('keydown', checkInput, false)
         camera.position.z = 5
-        this.socket.emit('connection', loginPlayer)
+        var geo = new THREE.PlaneGeometry(2, 2)
+        var mat = new THREE.MeshBasicMaterial({ color: 0xffffff, side: THREE.DoubleSide })
+        for (let x = 0; x < 4; x++) {
+          planes.push(new THREE.Mesh(geo, mat))
+          if (x < 2) {
+            planes[x].rotateX(-Math.PI / 2)
+          } else {
+            planes[x].rotateY(-Math.PI / 2)
+          }
+          scene.add(planes[x])
+        }
+        planes[0].position.y = -2
+        planes[1].position.y = 2
+        planes[2].position.x = -2
+        planes[3].position.x = 2
+        const geometry = new THREE.SphereGeometry(0.25)
+        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+        const sphere = new THREE.Mesh(geometry, material)
+        sphere.position.set(-2, -2, 0)
+        scene.add(sphere)
         animate()
       }
       const animate = () => {
@@ -76,18 +120,11 @@ export default {
       }
 
       const checkInput = (event: KeyboardEvent) => {
-        const keyCode = event.key
-        let updatedX = 0
-        let updatedY = 0
-        if (keyCode == 'w') updatedY = 0.1
-        if (keyCode == 's') updatedY = -0.1
-        if (keyCode == 'd') updatedX = 0.1
-        if (keyCode == 'a') updatedX = -0.1
-        this.socket.emit('movement', loginPlayer, updatedX, updatedY)
+        this.socket.emit('movement', this.loginPlayer, event.key)
       }
 
       this.killCanvas = () => {
-        this.socket.emit('unconnection', loginPlayer)
+        this.socket.emit('unconnection', this.loginPlayer)
         cancelAnimationFrame(idCanvas)
         document.getElementById('CanvasGame')?.remove()
       }
@@ -115,10 +152,15 @@ export default {
         newPlayer.position.y = Player.posY
       }
 
-      this.someoneMoved = (Player: { login: string; posX: number; posY: number }) => {
+      this.someoneMoved = (
+        keyCode: string,
+        Player: { login: string; posX: number; posY: number }
+      ) => {
         const arrayElements: THREE.Mesh[] = scene.children
         const index = arrayElements.findIndex((element) => element.uuid === Player.login)
-        if (index == -1) return
+        if (index == -1) {
+          return
+        }
         const elementToMove: THREE.Mesh = arrayElements[index]
         let elementBB = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3())
         elementBB.setFromObject(elementToMove)
@@ -127,14 +169,32 @@ export default {
         let tmp = new THREE.Box3(new THREE.Vector3(), new THREE.Vector3())
         for (let x: number = 0; x < arrayElements.length; x++) {
           tmp.setFromObject(arrayElements[x])
-          if (elementToMove !== arrayElements[x] && elementBB.intersectsBox(tmp)) {
-            console.log('collision')
-            y++
+          if (elementToMove !== arrayElements[x]) {
+            if (elementBB.intersectsBox(tmp)) {
+              if (arrayElements[x].geometry.type == 'BoxGeometry') {
+                console.log('collision with box')
+              } else {
+                console.log('collision with something else')
+                y++
+              }
+            }
           }
         }
-        if (y == 0) console.log('no collision')
-        elementToMove.position.x = Player.posX
-        elementToMove.position.y = Player.posY
+        if (y == 0) {
+          elementToMove.position.x = Player.posX
+          elementToMove.position.y = Player.posY
+        } else {
+          if (keyCode == 'w') {
+            elementToMove.position.y = Player.posY - 0.1
+          } else if (keyCode == 'a') {
+            elementToMove.position.x = Player.posY + 0.1
+          } else if (keyCode == 's') {
+            elementToMove.position.y = Player.posY + 0.1
+          } else if (keyCode == 'd') {
+            elementToMove.position.x = Player.posX - 0.1
+          }
+          this.socket.emit('playerCollide', Player.login, keyCode)
+        }
       }
 
       this.someoneDisconnected = (login: string) => {
@@ -146,6 +206,9 @@ export default {
       }
 
       setCanvas()
+    },
+    joinNormalQueue(): void {
+      this.socket.emit('joinNormalQueue', this.loginPlayer)
     }
   }
 }
@@ -156,6 +219,7 @@ export default {
     <body>
       <routerLink to="/">Home</routerLink>
       <h1>Game</h1>
+      <button @click="joinNormalQueue">Join Normal Queue</button>
     </body>
   </html>
 </template>
