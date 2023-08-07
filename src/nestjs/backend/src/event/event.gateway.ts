@@ -58,8 +58,8 @@ class Ball {
 
   constructor() {
     this.speed = 0.01;
-    this.directionY = Math.random() * (1 - -1) + -1;
     this.directionX = Math.random() * (0.5 - -0.5) + -0.5;
+    this.directionY = Math.random() * (1 - -1) + -1;
     this.positionX = 0;
     this.positionY = 0;
   }
@@ -137,16 +137,65 @@ class Game {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const updateDirectionX = (ball: Ball, newPosition: number): void => {
+const updateDirectionX = (ball: Ball, collide: string): void => {
+  let newPosition;
+  if (collide == 'Wall') {
+    if (ball.getPositionX() - 0.15 / 2 <= -2) {
+      newPosition = -2 + 0.15 / 2;
+    } else {
+      newPosition = 2 - 0.15 / 2;
+    }
+  } else {
+    if (ball.getPositionX() - 0.15 / 2 <= -1.5) {
+      newPosition = -1.5 + 0.15 / 2;
+    } else {
+      newPosition = 1.5 - 0.15 / 2;
+    }
+  }
   ball.setPositionX(newPosition);
   ball.setDirectionX(-ball.getDirectionX());
   ball.setHitSomething(true);
 };
-const updateDirectionY = (ball: Ball, newPosition: number): void => {
+const updateDirectionY = (ball: Ball, collide: string): void => {
+  let newPosition;
+  if (collide == 'Wall') {
+    if (ball.getPositionY() - 0.15 / 2 <= -2) {
+      newPosition = -2 + 0.15 / 2;
+    } else {
+      newPosition = 2 - 0.15 / 2;
+    }
+  } else {
+    if (ball.getPositionY() - 0.15 / 2 <= -1.5) {
+      newPosition = -1.5 + 0.15 / 2;
+    } else {
+      newPosition = 1.5 - 0.15 / 2;
+    }
+  }
   ball.setPositionY(newPosition);
   ball.setDirectionY(-ball.getDirectionY());
-
   ball.setHitSomething(true);
+};
+
+const HitPlayer = (
+  ball: Ball,
+  playerOne: Player,
+  playerTwo: Player,
+): boolean => {
+  console.log('PlayerOneX', playerOne.getPosX());
+  if (
+    ball.getPositionX() < 0 &&
+    ball.getPositionY() >= playerOne.getPosY() - 0.25 &&
+    ball.getPositionY() <= playerOne.getPosY() + 0.25
+  ) {
+    return true;
+  } else if (
+    ball.getPositionX() > 0 &&
+    ball.getPositionY() >= playerTwo.getPosY() - 0.25 &&
+    ball.getPositionY() <= playerTwo.getPosY() + 0.25
+  ) {
+    return true;
+  }
+  return false;
 };
 @WebSocketGateway({ cors: true })
 export class EventGateway {
@@ -159,7 +208,8 @@ export class EventGateway {
   Games: Game[] = [];
 
   step = 0.1;
-  DemiLengthSquare = 0.25;
+  LengthPlayer = 0.5;
+  lengthBall = 0.15;
   border = 2;
 
   @SubscribeMessage('connection')
@@ -195,6 +245,9 @@ export class EventGateway {
     this.Players = this.Players.filter(
       (element) => element.getSocketID() != socket.id,
     );
+    this.PlayersNormalQueue = this.PlayersNormalQueue.filter(
+      (element) => element.getSocketID() != socket.id,
+    );
     socket.broadcast.emit('playerDisconnected', playerDisconnected.getLogin());
   }
 
@@ -205,6 +258,9 @@ export class EventGateway {
     @ConnectedSocket() socket: Socket,
   ): void {
     this.Players = this.Players.filter(
+      (element) => element.getSocketID() != socket.id,
+    );
+    this.PlayersNormalQueue = this.PlayersNormalQueue.filter(
       (element) => element.getSocketID() != socket.id,
     );
     socket.broadcast.emit('playerDisconnected', login);
@@ -253,15 +309,31 @@ export class EventGateway {
       return;
     }
     const Player = this.Players[index];
-    const offSet = this.DemiLengthSquare + this.step;
-    if (data[1] == 'w' && Player.getPosY() + offSet < this.border) {
-      Player.setPosY(Player.getPosY() + this.step);
-    } else if (data[1] == 'a' && Player.getPosX() - offSet > -this.border) {
-      Player.setPosX(Player.getPosX() - this.step);
-    } else if (data[1] == 's' && Player.getPosY() - offSet > -this.border) {
-      Player.setPosY(Player.getPosY() - this.step);
-    } else if (data[1] == 'd' && Player.getPosX() + offSet < this.border) {
-      Player.setPosX(Player.getPosX() + this.step);
+    const offSet = this.LengthPlayer / 2 + this.step;
+    if (data[1] == 'w') {
+      if (Player.getPosY() + offSet < this.border) {
+        Player.setPosY(Player.getPosY() + this.step);
+      } else {
+        Player.setPosY(this.border - this.LengthPlayer / 2);
+      }
+    } else if (data[1] == 's') {
+      if (Player.getPosY() - offSet > -this.border) {
+        Player.setPosY(Player.getPosY() - this.step);
+      } else {
+        Player.setPosY(-this.border + this.LengthPlayer / 2);
+      }
+    } else if (data[1] == 'a') {
+      if (Player.getPosX() - offSet > -this.border) {
+        Player.setPosX(Player.getPosX() - this.step);
+      } else {
+        Player.setPosX(-this.border + this.LengthPlayer / 2);
+      }
+    } else if (data[1] == 'd') {
+      if (Player.getPosX() + offSet < this.border) {
+        Player.setPosX(Player.getPosX() + this.step);
+      } else {
+        Player.setPosX(this.border - this.LengthPlayer / 2);
+      }
     }
     this.server.emit('someoneMoved', data[1], Player);
   }
@@ -269,7 +341,10 @@ export class EventGateway {
   @SubscribeMessage('movementBall')
   async movementBall(@ConnectedSocket() socket: Socket): Promise<void> {
     await sleep(15);
+    //need to find the good matchs
     const ball = this.Games[0].getBall();
+    const playerOne = this.Games[0].getPlayerOne();
+    const playerTwo = this.Games[0].getPlayerTwo();
     ball.setHitSomething(false);
     ball.setPositionX(
       ball.getPositionX() + ball.getDirectionX() * ball.getSpeed(),
@@ -278,31 +353,26 @@ export class EventGateway {
       ball.getPositionY() + ball.getDirectionY() * ball.getSpeed(),
     );
 
-    //cleanable
-    if (ball.getPositionX() <= -2) {
-      updateDirectionX(ball, -2);
-    } else if (ball.getPositionX() >= 2) {
-      updateDirectionX(ball, 2);
-    }
-    if (ball.getPositionY() <= -2) {
-      updateDirectionY(ball, -2);
-    } else if (ball.getPositionY() >= 2) {
-      updateDirectionY(ball, 2);
+    if (
+      ball.getPositionX() - this.lengthBall / 2 <= -this.border ||
+      ball.getPositionX() + this.lengthBall / 2 >= this.border
+    ) {
+      updateDirectionX(ball, 'Wall');
     }
     if (
-      ball.getPositionX() <= -1.5 &&
-      this.Games[0].getPlayerOne().getPosY() - 1 <= ball.getPositionY() &&
-      this.Games[0].getPlayerOne().getPosY() + 1 >= ball.getPositionY()
+      ball.getPositionY() - this.lengthBall / 2 <= -this.border ||
+      ball.getPositionY() + this.lengthBall / 2 >= this.border
     ) {
-      console.log('player hit');
-      updateDirectionX(ball, -1.5);
-    } else if (
-      ball.getPositionX() >= 1.5 &&
-      this.Games[0].getPlayerOne().getPosY() - 1 <= ball.getPositionY() &&
-      this.Games[0].getPlayerOne().getPosY() + 1 >= ball.getPositionY()
+      updateDirectionY(ball, 'Wall');
+    }
+    const offSet = this.border - this.LengthPlayer;
+    if (
+      (ball.getPositionX() - this.lengthBall / 2 <= -offSet ||
+        ball.getPositionX() + this.lengthBall / 2 >= offSet) &&
+      HitPlayer(ball, playerOne, playerTwo)
     ) {
-      updateDirectionX(ball, 1.5);
-      console.log('player hit');
+      console.log('hit player');
+      updateDirectionX(ball, 'Player');
     }
     if (ball.getHitSomething()) {
       ball.setSpeed(ball.getSpeed() + 0.000001);
