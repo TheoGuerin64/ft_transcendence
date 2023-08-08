@@ -9,11 +9,12 @@ export class Ball {
   private hitSomething: boolean;
 
   constructor() {
-    this.speed = 0.01;
+    this.speed = 0.001;
     this.directionX = Math.random() * (1 - -1) + -1;
     this.directionY = Math.random() * (0.5 - -0.5) + -0.5;
     this.positionX = 0;
     this.positionY = 0;
+    this.hitSomething = false;
   }
 
   getSpeed(): number {

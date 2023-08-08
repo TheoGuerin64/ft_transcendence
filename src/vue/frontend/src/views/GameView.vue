@@ -11,12 +11,15 @@ export default {
       store,
       socket: null as any,
       loginPlayer: store.user?.name as string,
+      idGame: -1,
+      scorePlayerOne: 0,
+      scorePlayerTwo: 0,
       killCanvas: function () {},
       loadPlayers: function (Players: { login: string; posX: number; posY: number }[]) {},
       addNewPlayer: function (Player: { login: string; posX: number; posY: number }) {},
       someoneMoved: function (
         keyCode: string,
-        Player: { login: string; posX: number; posY: number }
+        Player: { login: string; socketID: string; posX: number; posY: number; point: number }
       ) {},
       someoneDisconnected: function (login: string) {},
       someoneAlreadyConnect: function () {},
@@ -44,7 +47,10 @@ export default {
     })
     this.socket.on(
       'someoneMoved',
-      (keyCode: string, Player: { login: string; posX: number; posY: number }) => {
+      (
+        keyCode: string,
+        Player: { login: string; socketID: string; posX: number; posY: number; point: number }
+      ) => {
         this.someoneMoved(keyCode, Player)
       }
     )
@@ -60,9 +66,10 @@ export default {
     })
 
     this.socket.on('gameStarted', (gameString: string) => {
-      console.log('gameStart')
-      this.init()
       const game = JSON.parse(gameString)
+      this.idGame = game.id
+      this.socket.emit('addToRoom', game.id.toString())
+      this.init()
       this.addNewPlayer({
         login: game.playerOne.login,
         posX: game.playerOne.posX,
@@ -74,8 +81,17 @@ export default {
         posY: game.playerTwo.posY
       })
     })
+
     this.socket.on('alreadyInQueue', () => {
       console.log('already in queue')
+    })
+
+    this.socket.on('someoneWinPoint', (winner: string) => {
+      if (winner == 'playerOne') {
+        this.scorePlayerOne++
+      } else if (winner == 'playerTwo') {
+        this.scorePlayerTwo++
+      }
     })
   },
   beforeUnmount() {
@@ -109,6 +125,7 @@ export default {
         ball = new THREE.Mesh(geometry, material)
         ball.position.set(-2, -2, 0)
         scene.add(ball)
+        this.socket.emit('movementBall', this.idGame.toString())
         animate()
       }
       const animate = () => {
@@ -117,7 +134,9 @@ export default {
       }
 
       const checkInput = (event: KeyboardEvent) => {
-        this.socket.emit('movementPlayer', this.loginPlayer, event.key)
+        if (this.idGame != -1) {
+          this.socket.emit('movementPlayer', this.loginPlayer, event.key, this.idGame.toString())
+        }
       }
 
       this.killCanvas = () => {
@@ -151,7 +170,7 @@ export default {
 
       this.someoneMoved = (
         keyCode: string,
-        Player: { login: string; posX: number; posY: number }
+        Player: { login: string; socketID: string; posX: number; posY: number; point: number }
       ) => {
         const arrayElements: THREE.Mesh[] = scene.children
         const index = arrayElements.findIndex((element) => element.uuid === Player.login)
@@ -173,10 +192,9 @@ export default {
 
       this.movementBall = (posX: number, posY: number) => {
         ball.position.set(posX, posY, 0)
-        this.socket.emit('movementBall')
+        this.socket.emit('movementBall', this.idGame.toString())
       }
 
-      this.socket.emit('movementBall')
       setCanvas()
     },
     joinNormalQueue(): void {
@@ -192,6 +210,8 @@ export default {
       <routerLink to="/">Home</routerLink>
       <h1>Game</h1>
       <button @click="joinNormalQueue">Join Normal Queue</button>
+      <p ref="scorePlayerOne">Player One: {{ scorePlayerOne }}</p>
+      <p ref="scorePlayerTwo">Player Two: {{ scorePlayerTwo }}</p>
     </body>
   </html>
 </template>

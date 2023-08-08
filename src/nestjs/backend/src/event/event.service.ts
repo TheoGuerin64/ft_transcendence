@@ -3,18 +3,15 @@ import { Game } from './game.service';
 import { Injectable } from '@nestjs/common';
 import { Player } from './player.service';
 import { Server, Socket } from 'socket.io';
-import { WebSocketServer } from '@nestjs/websockets';
 @Injectable()
 export class EventService {
-  private readonly stepPlayer: 0.1;
-  private readonly heightPlayer: 0.5;
-  private readonly widthPlayer: 0.1;
-  private readonly lengthBall: 0.15;
-  private readonly border: 2;
-  private readonly IncreaseBallSpeed: 0.001;
+  private readonly stepPlayer = 0.1;
+  private readonly heightPlayer = 0.5;
+  private readonly widthPlayer = 0.1;
+  private readonly lengthBall = 0.15;
+  private readonly border = 2;
+  private readonly IncreaseBallSpeed = 0.0005;
 
-  @WebSocketServer()
-  server: Server;
   Players: Player[] = [];
   PlayersNormalQueue: Player[] = [];
   PlayersCustomQueue: Player[] = [];
@@ -59,7 +56,7 @@ export class EventService {
     socket.broadcast.emit('playerDisconnected', login);
   }
 
-  joinNormalQueue(login: string, socket: Socket) {
+  joinNormalQueue(login: string, socket: Socket, server: Server) {
     const indexPlayer = this.Players.findIndex(
       (element) => element.getLogin() === login,
     );
@@ -79,6 +76,7 @@ export class EventService {
       firstPlayer.setPosX(-this.border + this.widthPlayer / 2);
       secondPlayer.setPosX(this.border - this.widthPlayer / 2);
       const newGame = new Game('NormalGame', firstPlayer, secondPlayer);
+      this.newPoint(newGame, socket, server, 'noOne');
       this.Games.push(newGame);
       socket
         .to(secondPlayer.getSocketID())
@@ -89,7 +87,10 @@ export class EventService {
     }
   }
 
-  movementPlayer(data: { login: string; keyCode: string }) {
+  movementPlayer(
+    data: { login: string; keyCode: string; idGame: string },
+    server: Server,
+  ) {
     const index = this.Players.findIndex(
       (element) => element.getLogin() === data[0],
     );
@@ -111,11 +112,7 @@ export class EventService {
         Player.setPosY(-this.border + this.heightPlayer / 2);
       }
     }
-    this.server.emit('someoneMoved', data[1], Player);
-  }
-
-  sleep(ms) {
-    new Promise((r) => setTimeout(r, ms));
+    server.in(data[2]).emit('someoneMoved', data[1], Player);
   }
 
   updateDirectionX(ball: Ball, collide: string): void {
@@ -160,7 +157,6 @@ export class EventService {
     }
     ball.setPositionY(newPosition);
     ball.setDirectionY(-ball.getDirectionY());
-    ball.setHitSomething(true);
   }
 
   HitPlayer = (ball: Ball, playerOne: Player, playerTwo: Player): boolean => {
@@ -180,43 +176,73 @@ export class EventService {
     return false;
   };
 
-  async movementBall(socket: Socket) {
-    await this.sleep(15);
-    //need to find the good matchs
-    const ball = this.Games[0].getBall();
-    const playerOne = this.Games[0].getPlayerOne();
-    const playerTwo = this.Games[0].getPlayerTwo();
-    ball.setHitSomething(false);
-    ball.setPositionX(
-      ball.getPositionX() + ball.getDirectionX() * ball.getSpeed(),
-    );
-    ball.setPositionY(
-      ball.getPositionY() + ball.getDirectionY() * ball.getSpeed(),
-    );
+  async movementBall(
+    socket: Socket,
+    server: Server,
+    idGame: string,
+  ): Promise<void> {
+    setTimeout(() => {
+      const index = this.Games.findIndex(
+        (element) => element.getGameID() === idGame,
+      );
+      if (index == -1) {
+        return;
+      }
+      const game = this.Games[index];
+      const ball = game.getBall();
+      const playerOne = game.getPlayerOne();
+      const playerTwo = game.getPlayerTwo();
+      ball.setHitSomething(false);
+      ball.setPositionX(
+        ball.getPositionX() + ball.getDirectionX() * ball.getSpeed(),
+      );
+      ball.setPositionY(
+        ball.getPositionY() + ball.getDirectionY() * ball.getSpeed(),
+      );
 
-    if (
-      ball.getPositionX() - this.lengthBall / 2 <= -this.border ||
-      ball.getPositionX() + this.lengthBall / 2 >= this.border
-    ) {
-      this.updateDirectionX(ball, 'Wall');
+      if (ball.getPositionX() - this.lengthBall / 2 <= -this.border) {
+        this.newPoint(game, socket, server, 'playerOne');
+      } else if (ball.getPositionX() + this.lengthBall / 2 >= this.border) {
+        this.newPoint(game, socket, server, 'playerTwo');
+      }
+      if (
+        ball.getPositionY() - this.lengthBall / 2 <= -this.border ||
+        ball.getPositionY() + this.lengthBall / 2 >= this.border
+      ) {
+        this.updateDirectionY(ball, 'Wall');
+      }
+      const offSet = this.border - this.widthPlayer;
+      if (
+        (ball.getPositionX() - this.lengthBall / 2 <= -offSet ||
+          ball.getPositionX() + this.lengthBall / 2 >= offSet) &&
+        this.HitPlayer(ball, playerOne, playerTwo)
+      ) {
+        this.updateDirectionX(ball, 'Player');
+      }
+      if (ball.getHitSomething() == true) {
+        ball.setSpeed(ball.getSpeed() + this.IncreaseBallSpeed);
+      }
+      server
+        .in(idGame)
+        .emit('movementBall', ball.getPositionX(), ball.getPositionY());
+    }, 15);
+  }
+
+  newPoint(game: Game, socket: Socket, server: Server, winnerPoint: string) {
+    if (winnerPoint == 'playerOne') {
+      game.getPlayerOne().setPoint(game.getPlayerOne().getPoint() + 1);
+    } else if (winnerPoint == 'playerTwo') {
+      game.getPlayerTwo().setPoint(game.getPlayerTwo().getPoint() + 1);
     }
-    if (
-      ball.getPositionY() - this.lengthBall / 2 <= -this.border ||
-      ball.getPositionY() + this.lengthBall / 2 >= this.border
-    ) {
-      this.updateDirectionY(ball, 'Wall');
-    }
-    const offSet = this.border - this.widthPlayer;
-    if (
-      (ball.getPositionX() - this.lengthBall / 2 <= -offSet ||
-        ball.getPositionX() + this.lengthBall / 2 >= offSet) &&
-      this.HitPlayer(ball, playerOne, playerTwo)
-    ) {
-      this.updateDirectionX(ball, 'Player');
-    }
-    if (ball.getHitSomething()) {
-      ball.setSpeed(ball.getSpeed() + this.IncreaseBallSpeed);
-    }
-    socket.emit('movementBall', ball.getPositionX(), ball.getPositionY());
+    game.getPlayerOne().setPosY(0);
+    game.getPlayerTwo().setPosY(0);
+    game.setBall(new Ball());
+    server.in(game.getGameID()).emit('someoneWinPoint', winnerPoint);
+    server.in(game.getGameID()).emit('someoneMoved', 'x', game.getPlayerOne());
+    server.in(game.getGameID()).emit('someoneMoved', 'x', game.getPlayerTwo());
+  }
+
+  addToRoom(socket: Socket, idGame: string) {
+    socket.join(idGame);
   }
 }

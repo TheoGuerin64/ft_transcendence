@@ -7,10 +7,12 @@ export class Game {
   private readonly gameType: string;
   private readonly playerOne: Player;
   private readonly playerTwo: Player;
-  private readonly ball: Ball;
+  private ball: Ball;
+  private id = 0;
 
   constructor(gameType: string, playerOne: Player, playerTwo: Player) {
-    this.gameID = playerTwo.getSocketID();
+    this.id += 1;
+    this.gameID = this.id.toString();
     this.gameType = gameType;
     this.playerOne = playerOne;
     this.playerOne.setPoint(0);
@@ -33,5 +35,9 @@ export class Game {
   }
   getBall(): Ball {
     return this.ball;
+  }
+
+  setBall(ball: Ball): void {
+    this.ball = ball;
   }
 }

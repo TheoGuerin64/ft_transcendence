@@ -28,7 +28,7 @@ export class Player {
   getPosY(): number {
     return this.posY;
   }
-  getpoint(): number {
+  getPoint(): number {
     return this.point;
   }
   setPosX(newPosX: number): void {
