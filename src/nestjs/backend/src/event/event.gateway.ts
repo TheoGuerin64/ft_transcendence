@@ -1,5 +1,7 @@
 import { EventService } from './event.service';
-import { Socket } from 'socket.io';
+import { Server, Socket } from 'socket.io';
+import { WebSocketServer } from '@nestjs/websockets';
+
 import {
   ConnectedSocket,
   MessageBody,
@@ -9,6 +11,9 @@ import {
 
 @WebSocketGateway({ cors: true })
 export class EventGateway {
+  @WebSocketServer()
+  server: Server;
+
   constructor(private readonly EventService: EventService) {}
   @SubscribeMessage('connection')
   connection(
@@ -38,19 +43,30 @@ export class EventGateway {
     @MessageBody() login: string,
     @ConnectedSocket() socket: Socket,
   ): void {
-    this.EventService.joinNormalQueue(login, socket);
+    this.EventService.joinNormalQueue(login, socket, this.server);
   }
 
   @SubscribeMessage('movementPlayer')
   movementPlayer(
-    @MessageBody() data: { login: string; keyCode: string },
+    @MessageBody() data: { login: string; keyCode: string; idGame: string },
   ): void {
-    this.EventService.movementPlayer(data);
+    this.EventService.movementPlayer(data, this.server);
   }
 
   @SubscribeMessage('movementBall')
-  async movementBall(@ConnectedSocket() socket: Socket): Promise<void> {
-    await this.EventService.movementBall(socket);
+  async movementBall(
+    @MessageBody() idGame: string,
+    @ConnectedSocket() socket: Socket,
+  ): Promise<void> {
+    await this.EventService.movementBall(socket, this.server, idGame);
+  }
+
+  @SubscribeMessage('addToRoom')
+  addToRoom(
+    @MessageBody() idGame: string,
+    @ConnectedSocket() socket: Socket,
+  ): void {
+    this.EventService.addToRoom(socket, idGame);
   }
 }
-//reset8
+//reset
