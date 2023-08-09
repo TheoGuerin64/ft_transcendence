@@ -1,4 +1,9 @@
+import { Game } from './game.service';
+import { Globals } from './globals.service';
 import { Injectable } from '@nestjs/common';
+import { Player } from './player.service';
+import { Server } from 'socket.io';
+
 @Injectable()
 export class Ball {
   private speed: number;
@@ -53,5 +58,129 @@ export class Ball {
   }
   setHitSomething(hitSomething: boolean): void {
     this.hitSomething = hitSomething;
+  }
+
+  static async ballMovement(server: Server, game: Game): Promise<void> {
+    while (true) {
+      await this.sleep(15);
+      this.newBallPosition(server, game);
+      server
+        .in(game.getGameID())
+        .emit(
+          'ballMovement',
+          game.getBall().getPositionX(),
+          game.getBall().getPositionY(),
+        );
+    }
+  }
+
+  private static sleep(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private static newBallPosition(server: Server, game: Game): void {
+    const ball = game.getBall();
+
+    let newPosX = ball.getPositionX() + ball.getDirectionX() * ball.getSpeed();
+    let newPosY = ball.getPositionY() + ball.getDirectionY() * ball.getSpeed();
+
+    if (
+      newPosY <= -Globals.collisionBallMapBorder ||
+      newPosY >= Globals.collisionBallMapBorder
+    ) {
+      ball.setDirectionY(-ball.getDirectionY());
+      newPosY = Ball.adaptNewPosition(newPosY);
+    }
+    if (
+      newPosX <= -Globals.collisionBallMapBorder ||
+      newPosX >= Globals.collisionBallMapBorder
+    ) {
+      if (this.ballHitPaddle(newPosX, newPosY, game)) {
+        ball.setDirectionX(-ball.getDirectionX());
+        newPosX = this.adaptNewPosition(newPosX);
+      } else {
+        this.someoneWinPoint(server, game, newPosX);
+        game.setBall(new Ball());
+      }
+    }
+
+    ball.setPositionX(newPosX);
+    ball.setPositionY(newPosY);
+  }
+
+  private static ballHitPaddle(
+    newPosX: number,
+    newPosY: number,
+    game: Game,
+  ): boolean {
+    if (
+      (newPosX <= -Globals.collisionBallMapBorder &&
+        this.ballAtPlayerHeight(newPosY, game.getPlayerOne())) ||
+      (newPosX >= Globals.collisionBallMapBorder &&
+        this.ballAtPlayerHeight(newPosY, game.getPlayerTwo()))
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private static ballAtPlayerHeight(newPosY: number, player: Player): boolean {
+    if (
+      newPosY >= player.getPosY() - Globals.playerHeight / 2 &&
+      newPosY <= player.getPosY() + Globals.playerHeight / 2
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  private static adaptNewPosition(newPos: number): number {
+    if (newPos <= -Globals.collisionBallMapBorder) {
+      newPos = -Globals.collisionBallMapBorder;
+    } else if (newPos >= Globals.collisionBallMapBorder) {
+      newPos = Globals.collisionBallMapBorder;
+    }
+    return newPos;
+  }
+
+  private static someoneWinPoint(
+    server: Server,
+    game: Game,
+    newPosX: number,
+  ): void {
+    if (newPosX <= -Globals.collisionBallMapBorder) {
+      this.emitWinnerPoint(
+        server,
+        game.getGameID(),
+        game.getPlayerTwo(),
+        'PlayerTwoWinPoint',
+        'PlayerTwoWinGame',
+      );
+    } else {
+      this.emitWinnerPoint(
+        server,
+        game.getGameID(),
+        game.getPlayerOne(),
+        'PlayerOneWinPoint',
+        'PlayerOneWinGame',
+      );
+    }
+  }
+
+  private static emitWinnerPoint(
+    server: Server,
+    gameID: string,
+    player: Player,
+    messageWinPoint: string,
+    messageWinGame: string,
+  ): void {
+    player.setPoint(player.getPoint() + 1);
+    if (player.getPoint() >= 5) {
+      server.in(gameID).emit(messageWinGame);
+    } else {
+      server.in(gameID).emit(messageWinPoint);
+    }
   }
 }

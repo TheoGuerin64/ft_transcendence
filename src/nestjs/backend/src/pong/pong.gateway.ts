@@ -18,7 +18,7 @@ export class PongGateway {
 
   @SubscribeMessage('connectGame')
   connect(@ConnectedSocket() socket: Socket, @MessageBody() login: string) {
-    this.PongService.connect(socket, login);
+    this.PongService.connectGame(socket, login);
   }
   @SubscribeMessage('joinQueue')
   joinQueue(@MessageBody() login: string) {
@@ -37,4 +37,5 @@ export class PongGateway {
     this.PongService.playerMovement(this.server, socket, keycode);
   }
 }
-//reset2
+
+//reset
