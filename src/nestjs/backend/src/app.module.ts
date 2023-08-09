@@ -1,6 +1,6 @@
 import { AuthModule } from './auth/auth.module';
-import { EventsModule } from './event/event.module';
 import { Module } from '@nestjs/common';
+import { PongModule } from './pong/pong.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
@@ -19,7 +19,7 @@ import { UserModule } from './user/user.module';
     }),
     UserModule,
     AuthModule,
-    EventsModule,
+    PongModule,
   ],
   controllers: [],
   providers: [],
