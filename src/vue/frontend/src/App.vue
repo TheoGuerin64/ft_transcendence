@@ -1,30 +1,54 @@
 <script setup lang="ts">
 import axios from 'axios'
-import { store } from './store'
+import { useStore, type UserType } from './store'
 import { RouterView } from 'vue-router'
+import NavMenu from './components/NavMenu.vue'
 </script>
 
 <script lang="ts">
 export default {
   data() {
     return {
-      store
+      store: useStore
     }
   },
 
-  mounted() {
-    axios
-      .get('http://127.0.0.1:3000/user/me', {
-        withCredentials: true
-      })
-      .then((response) => {
-        this.store.setUser(response.data)
-      })
-      .catch(() => {})
+  methods: {
+    /**
+     * Get the current user from the backend.
+     */
+    async getUser(): Promise<UserType | null> {
+      try {
+        const response = await axios.get('http://127.0.0.1:3000/user', {
+          withCredentials: true
+        })
+        return response.data
+      } catch (error: any) {
+        if (axios.isAxiosError(error) && error.response && error.response.status == 401) {
+          return null
+        } else {
+          throw error
+        }
+      }
+    }
+  },
+
+  async mounted() {
+    // Get the current user when the app is mounted and the store is empty.
+    if (this.store.user === undefined) {
+      const user = await this.getUser()
+      this.store.setUser(user)
+    }
   }
 }
 </script>
 
 <template>
-  <RouterView />
+  <div v-if="store.user !== undefined">
+    <notifications position="bottom right" />
+    <header>
+      <NavMenu />
+    </header>
+    <RouterView />
+  </div>
 </template>
