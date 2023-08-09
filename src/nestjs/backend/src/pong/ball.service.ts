@@ -9,7 +9,7 @@ export class Ball {
   private hitSomething: boolean;
 
   constructor() {
-    this.speed = 0.001;
+    this.speed = 0.1;
     this.directionX = Math.random() * (1 - -1) + -1;
     this.directionY = Math.random() * (0.5 - -0.5) + -0.5;
     this.positionX = 0;

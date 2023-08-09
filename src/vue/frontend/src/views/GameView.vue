@@ -9,21 +9,13 @@ export default {
   data() {
     return {
       store,
+      login: store.user?.name,
       socket: null as any,
-      loginPlayer: store.user?.name as string,
-      idGame: -1,
       scorePlayerOne: 0,
       scorePlayerTwo: 0,
-      killCanvas: function () {},
-      loadPlayers: function (Players: { login: string; posX: number; posY: number }[]) {},
-      addNewPlayer: function (Player: { login: string; posX: number; posY: number }) {},
-      someoneMoved: function (
-        keyCode: string,
-        Player: { login: string; socketID: string; posX: number; posY: number; point: number }
-      ) {},
-      someoneDisconnected: function (login: string) {},
-      someoneAlreadyConnect: function () {},
-      movementBall: function (posX: number, posY: number) {}
+
+      ballMovement: (posX: number, posY: number) => {},
+      someoneMoved: (login: string, posY: number) => {}
     }
   },
   created() {
@@ -38,67 +30,34 @@ export default {
       this.$router.push('/')
       return
     }
-    this.socket.emit('connection', this.loginPlayer)
-    this.socket.on('loadPlayers', (Players: { login: string; posX: number; posY: number }[]) => {
-      this.loadPlayers(Players)
-    })
-    this.socket.on('newPlayerJoined', (Player: { login: string; posX: number; posY: number }) => {
-      this.addNewPlayer(Player)
-    })
-    this.socket.on(
-      'someoneMoved',
-      (
-        keyCode: string,
-        Player: { login: string; socketID: string; posX: number; posY: number; point: number }
-      ) => {
-        this.someoneMoved(keyCode, Player)
-      }
-    )
-    this.socket.on('playerDisconnected', (login: string) => {
-      this.someoneDisconnected(login)
-    })
-    this.socket.on('alreadyConnect', () => {
-      this.someoneAlreadyConnect()
-    })
+    this.connect()
 
-    this.socket.on('movementBall', (posX: number, posY: number) => {
-      this.movementBall(posX, posY)
+    this.socket.on('findGame', (playerOneLogin: string, playerTwoLogin: string) => {
+      this.socket.emit('joinGameRoom')
+      this.init(playerOneLogin, playerTwoLogin)
     })
-
-    this.socket.on('gameStarted', (gameString: string) => {
-      const game = JSON.parse(gameString)
-      this.idGame = game.id
-      this.socket.emit('addToRoom', game.id.toString())
-      this.init()
-      this.addNewPlayer({
-        login: game.playerOne.login,
-        posX: game.playerOne.posX,
-        posY: game.playerOne.posY
-      })
-      this.addNewPlayer({
-        login: game.playerTwo.login,
-        posX: game.playerTwo.posX,
-        posY: game.playerTwo.posY
-      })
+    this.socket.on('ballMovement', (posX: number, posY: number) => {
+      this.ballMovement(posX, posY)
     })
-
-    this.socket.on('alreadyInQueue', () => {
-      console.log('already in queue')
+    this.socket.on('someoneMoved', (login: string, posY: number) => {
+      this.someoneMoved(login, posY)
     })
-
-    this.socket.on('someoneWinPoint', (winner: string) => {
-      if (winner == 'playerOne') {
-        this.scorePlayerOne++
-      } else if (winner == 'playerTwo') {
-        this.scorePlayerTwo++
-      }
+    this.socket.on('PlayerOneWinPoint', () => {
+      this.scorePlayerOne++
+    })
+    this.socket.on('PlayerTwoWinPoint', () => {
+      this.scorePlayerTwo++
+    })
+    this.socket.on('PlayerOneWinGame', () => {
+      console.log('player one win !')
+    })
+    this.socket.on('PlayerTwoWinGame', () => {
+      console.log('player two win !')
     })
   },
-  beforeUnmount() {
-    this.killCanvas()
-  },
+  beforeUnmount() {},
   methods: {
-    init() {
+    init(playerOneLogin: string, playerTwoLogin: string) {
       let scene: THREE.Scene
       let camera: THREE.PerspectiveCamera
       let renderer: THREE.WebGLRenderer
@@ -111,7 +70,7 @@ export default {
         renderer.domElement.id = 'CanvasGame'
         renderer.setSize(window.innerWidth, window.innerHeight)
         document.body.appendChild(renderer.domElement)
-        document.addEventListener('keydown', checkInput, false)
+        document.addEventListener('keydown', this.checkInput, false)
         camera.position.z = 5
 
         const geometry2 = new THREE.BoxGeometry(4, 4, 0)
@@ -123,82 +82,50 @@ export default {
         const geometry = new THREE.BoxGeometry(0.15, 0.15, 0)
         const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
         ball = new THREE.Mesh(geometry, material)
-        ball.position.set(-2, -2, 0)
+        ball.position.set(0, 0, 0)
         scene.add(ball)
-        this.socket.emit('movementBall', this.idGame.toString())
+
+        addNewPlayer(playerOneLogin, -2 - 0.1 / 2)
+        addNewPlayer(playerTwoLogin, 2 + 0.1 / 2)
         animate()
+      }
+      const addNewPlayer = (login: string, posX: number) => {
+        const geometry = new THREE.BoxGeometry(0.1, 0.5, 0)
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+        const newPlayer = new THREE.Mesh(geometry, material)
+        scene.add(newPlayer)
+        newPlayer.uuid = login
+        newPlayer.position.x = posX
+        newPlayer.position.y = 0
       }
       const animate = () => {
         idCanvas = requestAnimationFrame(animate)
         renderer.render(scene, camera)
       }
 
-      const checkInput = (event: KeyboardEvent) => {
-        if (this.idGame != -1) {
-          this.socket.emit('movementPlayer', this.loginPlayer, event.key, this.idGame.toString())
-        }
+      this.ballMovement = (posX, posY) => {
+        ball.position.set(posX, posY, 0)
       }
 
-      this.killCanvas = () => {
-        this.socket.emit('unconnection', this.loginPlayer)
-        cancelAnimationFrame(idCanvas)
-        document.getElementById('CanvasGame')?.remove()
-      }
-
-      this.someoneAlreadyConnect = () => {
-        cancelAnimationFrame(idCanvas)
-        document.getElementById('CanvasGame')?.remove()
-        this.$router.push('/')
-        this.socket.disconnect()
-      }
-
-      this.loadPlayers = (Players: { login: string; posX: number; posY: number }[]) => {
-        let i: any
-        for (i in Players) {
-          this.addNewPlayer(Players[i])
-        }
-      }
-      this.addNewPlayer = (Player: { login: string; posX: number; posY: number }) => {
-        const geometry = new THREE.BoxGeometry(0.1, 0.5, 0)
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
-        const newPlayer = new THREE.Mesh(geometry, material)
-        scene.add(newPlayer)
-        newPlayer.uuid = Player.login
-        newPlayer.position.x = Player.posX
-        newPlayer.position.y = Player.posY
-      }
-
-      this.someoneMoved = (
-        keyCode: string,
-        Player: { login: string; socketID: string; posX: number; posY: number; point: number }
-      ) => {
+      this.someoneMoved = (login: string, posY: number) => {
         const arrayElements: THREE.Mesh[] = scene.children
-        const index = arrayElements.findIndex((element) => element.uuid === Player.login)
-        if (index == -1) {
+        const elementToMove = arrayElements.find((element) => element.uuid === login)
+        if (elementToMove === undefined) {
           return
         }
-        const elementToMove: THREE.Mesh = arrayElements[index]
-        elementToMove.position.x = Player.posX
-        elementToMove.position.y = Player.posY
-      }
-
-      this.someoneDisconnected = (login: string) => {
-        const arrayElements: THREE.Mesh[] = scene.children
-        const index = arrayElements.findIndex((element) => element.uuid === login)
-        if (index == -1) return
-        const elementToDelete: THREE.Mesh = arrayElements[index]
-        scene.remove(elementToDelete)
-      }
-
-      this.movementBall = (posX: number, posY: number) => {
-        ball.position.set(posX, posY, 0)
-        this.socket.emit('movementBall', this.idGame.toString())
+        elementToMove.position.y = posY
       }
 
       setCanvas()
     },
-    joinNormalQueue(): void {
-      this.socket.emit('joinNormalQueue', this.loginPlayer)
+    connect() {
+      this.socket.emit('connectGame', this.login)
+    },
+    joinQueue() {
+      this.socket.emit('joinQueue', this.login)
+    },
+    checkInput(event: KeyboardEvent) {
+      this.socket.emit('playerMovement', event.key)
     }
   }
 }
@@ -209,7 +136,7 @@ export default {
     <body>
       <routerLink to="/">Home</routerLink>
       <h1>Game</h1>
-      <button @click="joinNormalQueue">Join Normal Queue</button>
+      <button @click="joinQueue">Join Normal Queue</button>
       <p ref="scorePlayerOne">Player One: {{ scorePlayerOne }}</p>
       <p ref="scorePlayerTwo">Player Two: {{ scorePlayerTwo }}</p>
     </body>
