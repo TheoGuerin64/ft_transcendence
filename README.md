@@ -11,3 +11,5 @@
   * [PGADMIN_DEFAULT_EMAIL](https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html)
   * [PGADMIN_DEFAULT_PASSWORD](https://www.pgadmin.org/docs/pgadmin4/latest/container_deployment.html)
   * JWT_SECRET (minimum 50 char)
+  * 2FA_PASSWORD
+  * [2FA_SALT](https://en.wikipedia.org/wiki/Salt_(cryptography))
