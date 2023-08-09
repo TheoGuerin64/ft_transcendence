@@ -1,3 +1,4 @@
+import { Globals } from './globals.service';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()

@@ -31,29 +31,7 @@ export default {
       return
     }
     this.connect()
-
-    this.socket.on('findGame', (playerOneLogin: string, playerTwoLogin: string) => {
-      this.socket.emit('joinGameRoom')
-      this.init(playerOneLogin, playerTwoLogin)
-    })
-    this.socket.on('ballMovement', (posX: number, posY: number) => {
-      this.ballMovement(posX, posY)
-    })
-    this.socket.on('someoneMoved', (login: string, posY: number) => {
-      this.someoneMoved(login, posY)
-    })
-    this.socket.on('PlayerOneWinPoint', () => {
-      this.scorePlayerOne++
-    })
-    this.socket.on('PlayerTwoWinPoint', () => {
-      this.scorePlayerTwo++
-    })
-    this.socket.on('PlayerOneWinGame', () => {
-      console.log('player one win !')
-    })
-    this.socket.on('PlayerTwoWinGame', () => {
-      console.log('player two win !')
-    })
+    this.listenMessages()
   },
   beforeUnmount() {},
   methods: {
@@ -120,6 +98,32 @@ export default {
     },
     connect() {
       this.socket.emit('connectGame', this.login)
+    },
+    listenMessages() {
+      this.socket.on('findGame', (playerOneLogin: string, playerTwoLogin: string) => {
+        this.socket.emit('joinGameRoom')
+        this.init(playerOneLogin, playerTwoLogin)
+      })
+      this.socket.on('ballMovement', (posX: number, posY: number) => {
+        this.ballMovement(posX, posY)
+      })
+      this.socket.on('someoneMoved', (login: string, posY: number) => {
+        this.someoneMoved(login, posY)
+      })
+      this.socket.on('PlayerOneWinPoint', () => {
+        this.scorePlayerOne++
+      })
+      this.socket.on('PlayerTwoWinPoint', () => {
+        this.scorePlayerTwo++
+      })
+      this.socket.on('PlayerOneWinGame', () => {
+        this.scorePlayerOne++
+        console.log('player one win !')
+      })
+      this.socket.on('PlayerTwoWinGame', () => {
+        this.scorePlayerTwo++
+        console.log('player two win !')
+      })
     },
     joinQueue() {
       this.socket.emit('joinQueue', this.login)
