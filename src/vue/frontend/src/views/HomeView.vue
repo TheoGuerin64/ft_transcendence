@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios'
-import { store } from '../store'
+import { useStore } from '../store'
 import { io } from 'socket.io-client'
 </script>
 
@@ -28,22 +28,47 @@ async function getUser() {
 
 const messageData = {
   message: '' as string,
-  userName: '' as string | undefined
+  userName: '' as string | undefined,
+  channelName: '' as string
+}
+
+const channelData = {
+  channelName: '' as string,
+  userName: '' as string | undefined,
+  login: '' as string
 }
 
 export default {
   data() {
     return {
-      store,
-      message: '',
+      store: useStore,
+      message: '' as string,
+      channelName: '' as string,
       socket: null as any
     }
   },
   methods: {
     submitNewMessage(): void {
+      if (this.channelName === '') {
+        console.log("You can't send a message without joining a channel")
+        return
+      }
       messageData.message = this.message
       messageData.userName = this.store.user?.name
+      messageData.channelName = this.channelName
       this.socket.emit('message', messageData)
+    },
+    joinChannel(): void {
+      channelData.userName = this.store.user?.name
+      channelData.channelName = this.channelName
+      if (this.store.user?.login === undefined) {
+        console.log("You can't join a channel without being logged in")
+        return
+      }
+      console.log('login: ' + this.store.user?.login)
+      channelData.login = this.store.user?.login
+      console.log(this.store.user?.name + ' joined ' + this.channelName)
+      this.socket.emit('join-channel', channelData)
     }
   },
   async mounted() {
@@ -60,13 +85,18 @@ export default {
       if (msg === '') {
         return
       }
-      link.textContent = userName
-      if (userName === '') {
-        return
+      if (userName !== null) {
+        link.textContent = userName
+        link.href = 'http://localhost:3000/profile/' + userName
+        item.appendChild(link)
       }
-      link.href = 'http://localhost:3000/profile/' + userName
-      item.appendChild(link)
       item.append(msg)
+      messages?.appendChild(item)
+    })
+    this.socket.on('user-joined', function (userName: string) {
+      const messages = document.getElementById('messages')
+      const item = document.createElement('li')
+      item.append(userName + ' has joined the channel')
       messages?.appendChild(item)
     })
   }
@@ -82,8 +112,10 @@ export default {
       <ul id="messages"></ul>
     </div>
     <div id="sendBar">
-      <input id="inputBar" v-model="message" />
-      <button id="sendButton" @click="submitNewMessage">SEND</button>
+      <input id="inputMessage" v-model="message" />
+      <button id="sendMessage" @click="submitNewMessage">SEND</button>
+      <input id="inputChannel" v-model="channelName" />
+      <button id="sendChannel" @click="joinChannel">Join Channel</button>
     </div>
   </main>
 </template>
@@ -128,12 +160,22 @@ export default {
   margin-left: 6%;
 }
 
-#sendButton {
+#sendMessage {
   margin-left: 2%;
 }
 
-#inputBar {
+#inputMessage {
   border-radius: 5px;
   width: 100%;
+}
+
+#sendChannel {
+  margin-left: 2%;
+}
+
+#inputChannel {
+  border-radius: 5px;
+  width: 100%;
+  margin-left: 8%;
 }
 </style>

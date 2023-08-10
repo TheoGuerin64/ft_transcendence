@@ -1,9 +1,9 @@
-import { firstValueFrom } from 'rxjs';
-import { HttpService } from '@nestjs/axios';
-import { Injectable } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { User } from '../user/user.entity';
-import { UserService } from '../user/user.service';
+import { firstValueFrom } from 'rxjs'
+import { HttpService } from '@nestjs/axios'
+import { Injectable } from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
+import { User } from '../user/user.entity'
+import { UserService } from '../user/user.service'
 
 export interface TokenResponse {
   access_token: string;
@@ -45,6 +45,7 @@ export class AuthService {
         login: data['login'],
         name: data['login'],
         avatar: data['image']['versions']['medium'],
+        channels: [],
         ...newToken,
       });
     }

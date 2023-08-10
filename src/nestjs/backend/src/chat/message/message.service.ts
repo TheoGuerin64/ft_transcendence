@@ -10,11 +10,9 @@ export class MessageService {
     private readonly messageModel: Repository<Message>,
   ) {}
 
-  findOne(id: number): Promise<Message> {
-    return this.messageModel.findOne({
-      where: {
-        id,
-      },
-    });
+  create(messageData: DeepPartial<Message>): Message {
+    const message = this.messageModel.create(messageData);
+    this.messageModel.save(message);
+    return message;
   }
 }
