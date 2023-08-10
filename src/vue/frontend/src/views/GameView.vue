@@ -13,6 +13,7 @@ export default {
       socket: null as any,
       scorePlayerOne: 0,
       scorePlayerTwo: 0,
+      inGame: false,
 
       ballMovement: (posX: number, posY: number) => {},
       someoneMoved: (login: string, posY: number) => {},
@@ -31,6 +32,7 @@ export default {
       this.$router.push('/')
       return
     }
+
     this.connect()
     this.listenMessages()
   },
@@ -40,6 +42,7 @@ export default {
   },
   methods: {
     init(playerOneLogin: string, playerTwoLogin: string) {
+      this.inGame = true
       let scene: THREE.Scene
       let camera: THREE.PerspectiveCamera
       let renderer: THREE.WebGLRenderer
@@ -48,11 +51,18 @@ export default {
       const setCanvas = () => {
         scene = new THREE.Scene()
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-        renderer = new THREE.WebGLRenderer({ antialias: true })
-        renderer.domElement.id = 'CanvasGame'
-        renderer.setSize(window.innerWidth, window.innerHeight)
-        document.body.appendChild(renderer.domElement)
+        scene.add(camera)
+        const container = document.getElementById('canva')
+        if (container !== null) {
+          renderer = new THREE.WebGLRenderer({
+            antialias: true,
+            canvas: container
+          })
+        }
+        const pixelRatio = window.devicePixelRatio
+        renderer.setPixelRatio(pixelRatio)
         document.addEventListener('keydown', this.checkInput, false)
+        window.addEventListener('resize', resizeCanva)
         camera.position.z = 5
 
         const geometry2 = new THREE.BoxGeometry(4, 4, 0)
@@ -99,11 +109,30 @@ export default {
       }
 
       this.killCanvas = () => {
-        document.getElementById('CanvasGame')?.remove()
+        document.getElementById('canva')?.remove()
         this.$router.push('/')
         this.socket?.disconnect()
+        this.inGame = false
       }
 
+      const resizeCanva = () => {
+        const canvas = renderer.domElement
+        const pixelRatio = window.devicePixelRatio
+        renderer.setPixelRatio(pixelRatio)
+
+        let width = canvas.clientWidth * pixelRatio
+        let height = canvas.clientHeight * pixelRatio
+        if (window.innerWidth > window.innerHeight) {
+          canvas.style.width = 'auto'
+          canvas.style.height = '100vh'
+          canvas.style.aspectRatio = '1/1'
+        } else {
+          canvas.style.width = '100vw'
+          canvas.style.height = 'auto'
+          canvas.style.aspectRatio = '1/1'
+        }
+        renderer.setSize(width, height, false)
+      }
       setCanvas()
     },
     connect() {
@@ -148,13 +177,13 @@ export default {
 </script>
 
 <template>
-  <html>
-    <body>
-      <routerLink to="/">Home</routerLink>
-      <h1>Game</h1>
-      <button @click="joinQueue">Join Normal Queue</button>
-      <p ref="scorePlayerOne">Player One: {{ scorePlayerOne }}</p>
-      <p ref="scorePlayerTwo">Player Two: {{ scorePlayerTwo }}</p>
-    </body>
-  </html>
+  <routerLink to="/">Home</routerLink>
+  <h1>Game</h1>
+  <div v-if="!inGame">
+    <button @click="joinQueue">Join Normal Queue</button>
+    <p ref="scorePlayerOne">Player One: {{ scorePlayerOne }}</p>
+    <p ref="scorePlayerTwo">Player Two: {{ scorePlayerTwo }}</p>
+  </div>
+
+  <canvas id="canva"> </canvas>
 </template>
