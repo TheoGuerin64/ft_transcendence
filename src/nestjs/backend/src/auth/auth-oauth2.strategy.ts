@@ -1,8 +1,11 @@
-import { AuthService } from './auth.service';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-oauth2';
+import { AuthService } from './auth.service';
 
+/**
+ * Strategy to validate OAuth2 tokens from 42 API
+ */
 @Injectable()
 export class OAuth2Strategy extends PassportStrategy(Strategy) {
   constructor(private readonly authService: AuthService) {
@@ -15,6 +18,9 @@ export class OAuth2Strategy extends PassportStrategy(Strategy) {
     });
   }
 
+  /**
+   * Validate OAuth2 tokens
+   */
   async validate(
     access_token: string,
     refresh_token: string,

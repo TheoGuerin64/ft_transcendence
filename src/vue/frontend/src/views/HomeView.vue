@@ -105,9 +105,9 @@ export default {
 
 <template>
   <main>
-    <a href="http://127.0.0.1:3000/auth/authorize">connect</a>
-    <button @click="signout">Sign Out</button>
-    <button @click="getUser">Get User</button>
+    <div class="mt-3 ml-4">
+      <h1 class="title is-size-1-desktop has-text-dark">Home</h1>
+    </div>
     <div id="chatDisplay">
       <ul id="messages"></ul>
     </div>

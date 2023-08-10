@@ -1,11 +1,11 @@
-import { AuthModule } from './auth/auth.module';
-import { Channel } from './chat/channel.entity';
-import { ChannelModule } from './chat/channel.module';
-import { Message } from './chat/message/message.entity';
-import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user/user.entity';
-import { UserModule } from './user/user.module';
+import { AuthModule } from './auth/auth.module'
+import { Channel } from './chat/channel.entity'
+import { ChannelModule } from './chat/channel.module'
+import { Message } from './chat/message/message.entity'
+import { Module } from '@nestjs/common'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { User } from './user/user.entity'
+import { UserModule } from './user/user.module'
 
 @Module({
   imports: [
