@@ -1,4 +1,12 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Channel } from '../chat/channel.entity'
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryColumn,
+} from 'typeorm';
 
 @Entity()
 export class User {
@@ -16,4 +24,8 @@ export class User {
 
   @Column({ type: 'varchar', length: 100 })
   avatar: string;
+
+  @ManyToMany(() => Channel, (channel) => channel.users)
+  @JoinTable()
+  channels: Channel[];
 }
