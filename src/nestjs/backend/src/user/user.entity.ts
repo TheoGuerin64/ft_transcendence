@@ -16,14 +16,17 @@ export class User {
   @Column({ type: 'varchar', length: 16 })
   name: string;
 
-  @Column({ type: 'char', length: 64 })
-  access_token: string;
-
-  @Column({ type: 'char', length: 64 })
-  refresh_token: string;
-
-  @Column({ type: 'varchar', length: 100 })
+  @Column({ type: 'varchar', length: 3000000 })
   avatar: string;
+
+  @Column({ type: 'char', length: 52, nullable: true, default: null })
+  @Exclude()
+  twofaSecret: string;
+
+  @Expose()
+  get is2faEnabled(): boolean {
+    return this.twofaSecret !== null;
+  }
 
   @ManyToMany(() => Channel, (channel) => channel.users)
   @JoinTable()
