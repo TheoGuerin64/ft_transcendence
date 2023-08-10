@@ -19,10 +19,14 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { FriendshipService } from './friendship/friendship.service';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly friendshipService: FriendshipService,
+  ) {}
 
   /**
    * Get user private informations
@@ -105,5 +109,11 @@ export class UserController {
       this.userService.update(user, toUpdate);
     }
     return toUpdate;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('friends')
+  async getFriends(): Promise<any> {
+    return await this.friendshipService.findFriends('ulayus');
   }
 }
