@@ -20,9 +20,65 @@ export class PongService {
     this.Players.push(newPlayer);
   }
 
+  disconnectPlayer(server: Server, socket: Socket): void {
+    this.eraseFromArray(this.Players, socket);
+    this.eraseFromArray(this.PlayersQueue, socket);
+    this.endGame(server, socket);
+  }
+
+  eraseFromArray(playerArray: Player[], socket: Socket): void {
+    const playerIndex: number = playerArray.findIndex(
+      (element) => element.getSocketID() === socket.id,
+    );
+    if (playerIndex === -1) {
+      return;
+    }
+    playerArray.splice(playerIndex, 1);
+  }
+
+  endGame(server: Server, socket: Socket): void {
+    const gameIndex = this.Games.findIndex(
+      (element) =>
+        element.getPlayerOne().getSocketID() === socket.id ||
+        element.getPlayerTwo().getSocketID() === socket.id,
+    );
+    if (gameIndex === -1) {
+      return;
+    }
+
+    const game = this.Games[gameIndex];
+    if (game.getPlayerOne().getSocketID() === socket.id) {
+      this.emitWinner(
+        server,
+        game.getPlayerTwo(),
+        game.getGameID(),
+        'PlayerTwoWinGame',
+      );
+    } else {
+      this.emitWinner(
+        server,
+        game.getPlayerOne(),
+        game.getGameID(),
+        'PlayerOneWinGame',
+      );
+    }
+    game.setBall(null);
+    this.Games.splice(gameIndex, 1);
+  }
+
+  emitWinner(
+    server: Server,
+    Player: Player,
+    GameID: string,
+    message: string,
+  ): void {
+    Player.setPoint(5);
+    server.in(GameID).emit(message);
+    //emit to the database the result
+  }
   joinQueue(server: Server, login: string): void {
     const player = this.Players.find((element) => element.getLogin() === login);
-    if (player === undefined) {
+    if (player === undefined || this.PlayersQueue.includes(player)) {
       return;
     }
     if (this.PlayersQueue.length < 1) {
@@ -42,7 +98,7 @@ export class PongService {
     server
       .in(playerTwo.getSocketID())
       .emit('findGame', playerOne.getLogin(), playerTwo.getLogin());
-    Ball.ballMovement(server, newGame);
+    setInterval(() => Ball.ballMovement(server, newGame), 15);
   }
 
   joinGameRoom(socket: Socket): void {

@@ -15,7 +15,8 @@ export default {
       scorePlayerTwo: 0,
 
       ballMovement: (posX: number, posY: number) => {},
-      someoneMoved: (login: string, posY: number) => {}
+      someoneMoved: (login: string, posY: number) => {},
+      killCanvas: () => {}
     }
   },
   created() {
@@ -33,7 +34,10 @@ export default {
     this.connect()
     this.listenMessages()
   },
-  beforeUnmount() {},
+  beforeUnmount() {
+    this.socket?.emit('changePage')
+    this.killCanvas()
+  },
   methods: {
     init(playerOneLogin: string, playerTwoLogin: string) {
       let scene: THREE.Scene
@@ -44,7 +48,7 @@ export default {
       const setCanvas = () => {
         scene = new THREE.Scene()
         camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-        renderer = new THREE.WebGLRenderer()
+        renderer = new THREE.WebGLRenderer({ antialias: true })
         renderer.domElement.id = 'CanvasGame'
         renderer.setSize(window.innerWidth, window.innerHeight)
         document.body.appendChild(renderer.domElement)
@@ -94,6 +98,12 @@ export default {
         elementToMove.position.y = posY
       }
 
+      this.killCanvas = () => {
+        document.getElementById('CanvasGame')?.remove()
+        this.$router.push('/')
+        this.socket?.disconnect()
+      }
+
       setCanvas()
     },
     connect() {
@@ -119,10 +129,12 @@ export default {
       this.socket.on('PlayerOneWinGame', () => {
         this.scorePlayerOne++
         console.log('player one win !')
+        this.killCanvas()
       })
       this.socket.on('PlayerTwoWinGame', () => {
         this.scorePlayerTwo++
         console.log('player two win !')
+        this.killCanvas()
       })
     },
     joinQueue() {
