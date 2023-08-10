@@ -60,22 +60,18 @@ export class Ball {
     this.hitSomething = hitSomething;
   }
 
-  static async ballMovement(server: Server, game: Game): Promise<void> {
-    while (true) {
-      await this.sleep(15);
-      this.newBallPosition(server, game);
-      server
-        .in(game.getGameID())
-        .emit(
-          'ballMovement',
-          game.getBall().getPositionX(),
-          game.getBall().getPositionY(),
-        );
+  static ballMovement(server: Server, game: Game): void {
+    if (game.getBall() == null) {
+      return;
     }
-  }
-
-  private static sleep(ms: number) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    this.newBallPosition(server, game);
+    server
+      .in(game.getGameID())
+      .emit(
+        'ballMovement',
+        game.getBall().getPositionX(),
+        game.getBall().getPositionY(),
+      );
   }
 
   private static newBallPosition(server: Server, game: Game): void {
@@ -155,6 +151,7 @@ export class Ball {
         server,
         game.getGameID(),
         game.getPlayerTwo(),
+        game.getBall(),
         'PlayerTwoWinPoint',
         'PlayerTwoWinGame',
       );
@@ -163,6 +160,7 @@ export class Ball {
         server,
         game.getGameID(),
         game.getPlayerOne(),
+        game.getBall(),
         'PlayerOneWinPoint',
         'PlayerOneWinGame',
       );
@@ -173,14 +171,17 @@ export class Ball {
     server: Server,
     gameID: string,
     player: Player,
+    ball: Ball,
     messageWinPoint: string,
     messageWinGame: string,
   ): void {
     player.setPoint(player.getPoint() + 1);
     if (player.getPoint() >= 5) {
       server.in(gameID).emit(messageWinGame);
+      ball = null;
     } else {
       server.in(gameID).emit(messageWinPoint);
     }
+    //emit to the database the result
   }
 }

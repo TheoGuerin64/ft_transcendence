@@ -1,4 +1,6 @@
+import { JwtAuthGuard } from 'src/auth/auth-jwt.guard';
 import { PongService } from './pong.service';
+import { Req, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { WebSocketServer } from '@nestjs/websockets';
 
@@ -20,8 +22,11 @@ export class PongGateway {
   connect(@ConnectedSocket() socket: Socket, @MessageBody() login: string) {
     this.PongService.connectGame(socket, login);
   }
+
+  //@UseGuards(JwtAuthGuard)
   @SubscribeMessage('joinQueue')
-  joinQueue(@MessageBody() login: string) {
+  joinQueue(/*@Req() req: any,*/ @MessageBody() login: string) {
+    //console.log('login:', req.user.login, login);
     this.PongService.joinQueue(this.server, login);
   }
   @SubscribeMessage('joinGameRoom')
@@ -35,6 +40,16 @@ export class PongGateway {
     @MessageBody() keycode: string,
   ) {
     this.PongService.playerMovement(this.server, socket, keycode);
+  }
+
+  @SubscribeMessage('changePage')
+  changePage(@ConnectedSocket() socket: Socket) {
+    this.PongService.disconnectPlayer(this.server, socket);
+  }
+
+  @SubscribeMessage('disconnecting')
+  disconnect(@ConnectedSocket() socket: Socket) {
+    this.PongService.disconnectPlayer(this.server, socket);
   }
 }
 
