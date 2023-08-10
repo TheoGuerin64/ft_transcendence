@@ -1,11 +1,11 @@
-import { Channel } from './channel.entity'
-import { ChannelService } from './channel.service'
-import { JwtAuthGuard } from 'src/auth/auth-jwt.guard'
-import { Message } from './message/message.entity'
-import { MessageService } from './message/message.service'
-import { Server, Socket } from 'socket.io'
-import { UseGuards } from '@nestjs/common'
-import { UserService } from 'src/user/user.service'
+import { Channel } from './channel.entity';
+import { ChannelService } from './channel.service';
+import { JwtAuthGuard } from 'src/auth/auth-jwt.guard';
+import { Message } from './message/message.entity';
+import { MessageService } from './message/message.service';
+import { Server, Socket } from 'socket.io';
+import { UseGuards } from '@nestjs/common';
+import { UserService } from 'src/user/user.service';
 import {
   ConnectedSocket,
   MessageBody,
@@ -54,12 +54,12 @@ export class ChannelGateway {
     client.join(data.channelName);
     console.log('Test console log 2: ', data);
     let user = await this.userService.findOne(data.login);
-    const newChannel = await this.channelService.create({
+    const newChannel = this.channelService.create({
       name: data.channelName,
       users: [user],
       messages: [],
     });
-    await this.userService.update(user, newChannel);
+    this.userService.update(user, newChannel);
     this.server.to(data.channelName).emit('user-joined', data.userName);
   }
 }
