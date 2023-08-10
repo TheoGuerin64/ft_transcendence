@@ -32,8 +32,6 @@ services:
          - pgadmin:/var/lib/pgadmin
         networks:
          - back-end
-        logging:
-          driver: none
         depends_on:
          - postgres
         env_file: ./.env
