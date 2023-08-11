@@ -177,4 +177,23 @@ export class UserController {
       throw new BadRequestException(e.message);
     }
   }
+
+  /**
+   * Is the user a friend
+   * @param login login of the friend
+   * @returns true if the user is a friend
+   */
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Post('friends/isFriend')
+  async postFriendIsFriend(
+    @Req() req: any,
+    @Body() loginDto: LoginDto,
+  ): Promise<boolean> {
+    const friendship = await this.friendshipService.findFriendship(
+      req.user.login,
+      loginDto.login,
+    );
+    return friendship !== null;
+  }
 }
