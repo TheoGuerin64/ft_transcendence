@@ -1,4 +1,6 @@
+import { Req, UseGuards } from '@nestjs/common';
 import { Server } from 'socket.io';
+import { JwtAuthGuard } from './auth/auth-jwt.guard';
 import {
   MessageBody,
   SubscribeMessage,
@@ -11,8 +13,9 @@ export class AppGateway {
   @WebSocketServer()
   server: Server;
 
-  @SubscribeMessage('message')
-  handleMessage(@MessageBody() data: string): void {
-    console.log(data);
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('test')
+  handleMessage(@Req() req: any, @MessageBody() data: string): void {
+    console.log(data, req.user.login);
   }
 }

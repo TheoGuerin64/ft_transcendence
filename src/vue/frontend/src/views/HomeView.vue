@@ -6,7 +6,7 @@ import { socket } from '../socket'
 export default {
   methods: {
     emitTest(): void {
-      socket.emit('message', 'test')
+      socket.emit('test', 'test')
       this.$notify({
         text: 'emit message test',
         type: 'success'
