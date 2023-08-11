@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import FriendList from '@/components/FriendList.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import axios from 'axios'
 import { useStore } from '../store'
-import FriendList from '@/components/FriendList.vue'
 </script>
 
 <script lang="ts">
