@@ -122,6 +122,7 @@ export default {
 
   mounted() {
     this.nameInput = this.store.user!.name
+    this.newAvatar = this.store.user!.avatar
   }
 }
 </script>
