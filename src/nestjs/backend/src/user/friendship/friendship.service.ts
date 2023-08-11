@@ -16,7 +16,7 @@ export class FriendshipService {
    * @param login2 login of the second user
    * @returns friendship between the two users
    */
-  getFriendship(login1: string, login2: string): Promise<Friendship> {
+  findFriendship(login1: string, login2: string): Promise<Friendship | null> {
     return this.friendsModel.findOne({
       relations: ['requester', 'requested'],
       where: [
@@ -60,7 +60,7 @@ export class FriendshipService {
     login: string,
     friendLogin: string,
   ): Promise<void> {
-    const existingFriendship = await this.getFriendship(login, friendLogin);
+    const existingFriendship = await this.findFriendship(login, friendLogin);
     if (existingFriendship) {
       if (existingFriendship.accepted) {
         throw new Error('Friendship already exists');
@@ -84,7 +84,7 @@ export class FriendshipService {
     login: string,
     friendLogin: string,
   ): Promise<void> {
-    const friendship = await this.getFriendship(login, friendLogin);
+    const friendship = await this.findFriendship(login, friendLogin);
     if (!friendship) {
       throw new Error('Friendship request does not exist');
     }
@@ -105,7 +105,7 @@ export class FriendshipService {
    * @param friendLogin login of the friend
    */
   async deleteFriendship(login: string, friendLogin: string): Promise<void> {
-    const friendship = await this.getFriendship(login, friendLogin);
+    const friendship = await this.findFriendship(login, friendLogin);
     if (!friendship) {
       throw new Error('Friendship does not exist');
     }
