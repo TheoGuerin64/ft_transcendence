@@ -1,5 +1,6 @@
 import { User } from '../user.entity';
 import {
+  Check,
   Column,
   Entity,
   JoinColumn,
@@ -9,8 +10,8 @@ import {
 } from 'typeorm';
 
 @Entity()
-@Unique('login', ['requester_login', 'requested_login'])
-@Unique('userc', ['requester', 'requested'])
+@Unique(['requester_login', 'requested_login'])
+@Check('requester_login != requested_login')
 export class Friendship {
   @PrimaryColumn({ type: 'char', length: 8, unique: true })
   requester_login: string;

@@ -54,11 +54,7 @@ export class UserController {
     if (!user) {
       throw new BadRequestException('User not found');
     }
-    return {
-      login: user.login,
-      name: user.name,
-      avatar: user.avatar,
-    };
+    return user.public;
   }
 
   /**
@@ -111,9 +107,74 @@ export class UserController {
     return toUpdate;
   }
 
+  /**
+   * Get user friends
+   * @returns List of friends
+   */
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
   @Get('friends')
-  async getFriends(): Promise<any> {
-    return await this.friendshipService.findFriends('ulayus');
+  async getFriends(@Req() req: any): Promise<any> {
+    return await this.friendshipService.findFriends(req.user.login);
+  }
+
+  /**
+   * Add a friend
+   * @param login login of the friend
+   */
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Post('friends')
+  async postFriend(@Req() req: any, @Body() loginDto: LoginDto): Promise<void> {
+    try {
+      await this.friendshipService.addFriendshipRequest(
+        req.user.login,
+        loginDto.login,
+      );
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+
+  /**
+   * Accept a friend request
+   * @param login login of the friend
+   */
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Post('friends/accept')
+  async postFriendAccept(
+    @Req() req: any,
+    @Body() loginDto: LoginDto,
+  ): Promise<void> {
+    try {
+      await this.friendshipService.acceptFriendshipRequest(
+        req.user.login,
+        loginDto.login,
+      );
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
+  }
+
+  /**
+   * Remove a friend
+   * @param login login of the friend
+   */
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Post('friends/remove')
+  async postFriendRemove(
+    @Req() req: any,
+    @Body() loginDto: LoginDto,
+  ): Promise<void> {
+    try {
+      await this.friendshipService.deleteFriendship(
+        req.user.login,
+        loginDto.login,
+      );
+    } catch (e) {
+      throw new BadRequestException(e.message);
+    }
   }
 }

@@ -9,3 +9,34 @@
 body {
   font-family: 'Libre Franklin', sans-serif;
 }
+
+.box a {
+  color: #4a4a4a;
+}
+
+.box a:hover {
+  color: #4a4a4a;
+}
+
+@keyframes dots {
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
+  }
+  100% {
+    content: '';
+  }
+}
+
+.dots-animation::after {
+  content: '';
+  animation: dots 1.2s infinite;
+}
