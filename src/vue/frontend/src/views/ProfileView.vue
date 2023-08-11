@@ -3,6 +3,7 @@ import UserAvatar from '@/components/UserAvatar.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import axios from 'axios'
 import { useStore } from '../store'
+import FriendList from '@/components/FriendList.vue'
 </script>
 
 <script lang="ts">
@@ -200,6 +201,9 @@ export default {
               </button>
             </div>
           </div>
+        </div>
+        <div class="box">
+          <FriendList />
         </div>
       </div>
     </div>
