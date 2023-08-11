@@ -2,6 +2,7 @@
 import axios from 'axios'
 import { RouterLink } from 'vue-router'
 import { useStore } from '../store'
+import { socket } from '../socket'
 </script>
 
 <script lang="ts">
@@ -43,6 +44,7 @@ export default {
         withCredentials: true
       })
       this.store.setUser(null)
+      socket.disconnect()
     }
   }
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import axios from 'axios'
 import { useStore } from '../store'
+import { socketConnect } from '../socket'
 </script>
 
 <script lang="ts">
@@ -92,6 +93,7 @@ export default {
           throw error
         }
       }
+      socketConnect()
 
       // get user
       const user = await axios.get('http://127.0.0.1:3000/user', {

@@ -21,7 +21,7 @@ import {
 } from '@nestjs/common';
 
 const COOKIES_OPTIONS = {
-  httpOnly: true,
+  httpOnly: false,
   sameSite: 'Lax',
   maxAge: 2592000000,
 };
