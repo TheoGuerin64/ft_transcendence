@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppGateway } from './app.gateway';
 import { AuthModule } from './auth/auth.module';
 import { Friendship } from './user/friendship/friendship.entity';
 import { User } from './user/user.entity';
@@ -21,6 +22,6 @@ import { UserModule } from './user/user.module';
     AuthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [AppGateway],
 })
 export class AppModule {}
