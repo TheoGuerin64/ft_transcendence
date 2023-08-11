@@ -1,5 +1,5 @@
 import { Exclude, Expose } from 'class-transformer';
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, DeepPartial, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class User {
@@ -19,5 +19,11 @@ export class User {
   @Expose()
   get is2faEnabled(): boolean {
     return this.twofaSecret !== null;
+  }
+
+  @Exclude()
+  @Expose()
+  get public(): DeepPartial<User> {
+    return { login: this.login, name: this.name, avatar: this.avatar };
   }
 }
