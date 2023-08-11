@@ -1,5 +1,5 @@
-import { type NavigationGuardNext, type RouteLocationRaw } from 'vue-router'
 import { notify } from '@kyvg/vue3-notification'
+import { type NavigationGuardNext, type RouteLocationRaw } from 'vue-router'
 
 /**
  * Redirect to home if user is not authenticated

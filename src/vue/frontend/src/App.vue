@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import axios from 'axios'
-import { useStore, type UserType } from './store'
 import { RouterView } from 'vue-router'
 import NavMenu from './components/NavMenu.vue'
 import { socketConnect } from './socket'
+import { useStore, type UserType } from './store'
 </script>
 
 <script lang="ts">

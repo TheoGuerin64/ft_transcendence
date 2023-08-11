@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import axios from 'axios'
-import { useStore } from '../store'
 import { socketConnect } from '../socket'
+import { useStore } from '../store'
 </script>
 
 <script lang="ts">
