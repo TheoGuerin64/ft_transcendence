@@ -6,11 +6,9 @@ import {
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
-  Unique,
 } from 'typeorm';
 
 @Entity()
-@Unique(['requester_login', 'requested_login'])
 @Check('requester_login != requested_login')
 export class Friendship {
   @PrimaryColumn({ type: 'char', length: 8, unique: true })
