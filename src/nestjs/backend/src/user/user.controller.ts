@@ -1,8 +1,8 @@
-import { FileInterceptor } from '@nestjs/platform-express';
 import { DeepPartial } from 'typeorm';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/auth-jwt.guard';
-import { User } from './user.entity';
 import { LoginDto, UserDto } from './user.pipe';
+import { User } from './user.entity';
 import { UserService } from './user.service';
 import {
   BadRequestException,
@@ -54,6 +54,7 @@ export class UserController {
       login: user.login,
       name: user.name,
       avatar: user.avatar,
+      channel: user.channel,
     };
   }
 

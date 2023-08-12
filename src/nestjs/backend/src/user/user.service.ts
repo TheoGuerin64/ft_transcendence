@@ -1,6 +1,6 @@
+import { DeepPartial, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
 import { User } from './user.entity';
 
 @Injectable()
@@ -19,6 +19,15 @@ export class UserService {
     const user = this.userModel.create(userData);
     this.userModel.save(user);
     return user;
+  }
+
+  /**
+   * Save a user in the database
+   * @param user User to save
+   * @returns Saved user
+   */
+  save(user: User): Promise<User> {
+    return this.userModel.save(user);
   }
 
   /**

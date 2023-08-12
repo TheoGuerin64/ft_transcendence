@@ -8,6 +8,8 @@ stop:
 
 restart: stop start
 
+re: stop clean start
+
 logs:
 	docker compose logs -f
 

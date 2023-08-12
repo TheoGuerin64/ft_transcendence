@@ -15,4 +15,10 @@ export class MessageService {
     this.messageModel.save(message);
     return message;
   }
+
+  update(message: Message, messageData: DeepPartial<Message>): Message {
+    const updatedMessage = this.messageModel.merge(message, messageData);
+    this.messageModel.save(updatedMessage);
+    return updatedMessage;
+  }
 }

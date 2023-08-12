@@ -1,6 +1,14 @@
 import { Channel } from '../chat/channel.entity';
-import { Column, Entity, JoinTable, ManyToMany, PrimaryColumn } from 'typeorm';
 import { Exclude, Expose } from 'class-transformer';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  OneToOne,
+  PrimaryColumn,
+} from 'typeorm';
 
 @Entity()
 export class User {
@@ -13,9 +21,9 @@ export class User {
   @Column({ type: 'varchar', length: 3000000 })
   avatar: string;
 
-  @ManyToMany(() => Channel, (channel) => channel.users)
-  @JoinTable()
-  channels: Channel[];
+  @ManyToOne(() => Channel, (channel) => channel.users)
+  //@JoinTable()
+  channel: Channel;
 
   @Column({ type: 'char', length: 52, nullable: true, default: null })
   @Exclude()

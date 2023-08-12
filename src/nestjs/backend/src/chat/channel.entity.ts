@@ -1,5 +1,5 @@
-import { Message } from './message/message.entity'
-import { User } from '../user/user.entity'
+import { Message } from './message/message.entity';
+import { User } from '../user/user.entity';
 import {
   Column,
   Entity,
@@ -15,10 +15,10 @@ export class Channel {
   @PrimaryColumn()
   name: string;
 
-  @OneToMany(() => Message, (messages) => messages.channel)
+  @OneToMany(() => Message, (messages) => messages.channel, { cascade: true })
   messages: Message[];
 
-  @ManyToMany(() => User, (user) => user.channels)
-  @JoinTable()
+  @OneToMany(() => User, (user) => user.channel)
+  //@JoinTable()
   users: User[];
 }
