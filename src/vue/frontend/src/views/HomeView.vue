@@ -8,13 +8,14 @@ import { io } from 'socket.io-client'
 const messageData = {
   message: '' as string,
   userName: '' as string | undefined,
-  channelName: '' as string
+  channelName: '' as string | undefined,
+  login: '' as string | undefined
 }
 
 const channelData = {
   channelName: '' as string,
   userName: '' as string | undefined,
-  login: '' as string
+  login: '' as string | undefined
 }
 
 export default {
@@ -35,6 +36,8 @@ export default {
       messageData.message = this.message
       messageData.userName = this.store.user?.name
       messageData.channelName = this.channelName
+      messageData.login = this.store.user?.login
+      console.log('login: ' + this.store.user?.login)
       this.socket.emit('message', messageData)
     },
     joinChannel(): void {
@@ -61,16 +64,16 @@ export default {
       }
       if (userName !== null) {
         link.textContent = userName
-        link.href = 'http://localhost:3000/profile/' + userName
+        link.href = 'http://localhost:8080/profile/' + userName
         item.appendChild(link)
       }
       item.append(msg)
       messages?.appendChild(item)
     })
-    this.socket.on('user-joined', function (userName: string) {
+    this.socket.on('user-joined', function (userName: string, channelName: string) {
       const messages = document.getElementById('messages')
       const item = document.createElement('li')
-      item.append(userName + ' has joined the channel')
+      item.append(userName + ' has joined the channel ', channelName)
       messages?.appendChild(item)
     })
   }
