@@ -1,7 +1,3 @@
-import { Globals } from './globals.service';
-import { Injectable } from '@nestjs/common';
-
-@Injectable()
 export class Player {
   private readonly login: string;
   private readonly socketID: string;
@@ -40,5 +36,9 @@ export class Player {
   }
   setPoint(point: number): void {
     this.point = point;
+  }
+
+  addOnePoint(): void {
+    this.point += 1;
   }
 }

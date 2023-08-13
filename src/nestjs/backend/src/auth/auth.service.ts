@@ -46,6 +46,7 @@ export class AuthService {
         name: data['login'],
         avatar: data['image']['versions']['medium'],
         ...newToken,
+        gameHistory: [],
       });
     }
     return user;

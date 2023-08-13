@@ -1,7 +1,6 @@
-import { Ball } from './ball.service';
-import { Injectable } from '@nestjs/common';
-import { Player } from './player.service';
-@Injectable()
+import { Ball } from './ball.class';
+import { Player } from './player.class';
+
 export class Game {
   private readonly gameID: string;
   private readonly gameType: string;
@@ -9,6 +8,7 @@ export class Game {
   private readonly playerTwo: Player;
   private ball: Ball;
   private id = 0;
+  private intervalID: NodeJS.Timer;
 
   constructor(gameType: string, playerOne: Player, playerTwo: Player) {
     this.id += 1;
@@ -36,8 +36,14 @@ export class Game {
   getBall(): Ball {
     return this.ball;
   }
+  getIntervalID(): NodeJS.Timer {
+    return this.intervalID;
+  }
 
   setBall(ball: Ball): void {
     this.ball = ball;
+  }
+  setIntervalID(intervalID: NodeJS.Timer): void {
+    this.intervalID = intervalID;
   }
 }
