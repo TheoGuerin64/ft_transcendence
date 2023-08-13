@@ -79,6 +79,7 @@ export default {
 
         addNewPlayer(playerOneLogin, -2 - 0.1 / 2)
         addNewPlayer(playerTwoLogin, 2 + 0.1 / 2)
+        //resizeCanva()
         animate()
       }
       const addNewPlayer = (login: string, posX: number) => {
@@ -109,6 +110,7 @@ export default {
       }
 
       this.killCanvas = () => {
+        cancelAnimationFrame(idCanvas)
         document.getElementById('canva')?.remove()
         this.$router.push('/')
         this.socket?.disconnect()
@@ -181,9 +183,10 @@ export default {
   <h1>Game</h1>
   <div v-if="!inGame">
     <button @click="joinQueue">Join Normal Queue</button>
+  </div>
+  <div v-else>
     <p ref="scorePlayerOne">Player One: {{ scorePlayerOne }}</p>
     <p ref="scorePlayerTwo">Player Two: {{ scorePlayerTwo }}</p>
   </div>
-
   <canvas id="canva"> </canvas>
 </template>
