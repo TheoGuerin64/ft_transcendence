@@ -47,25 +47,13 @@ export class PongService {
       const gameFinished = gameService.newPoint(server, game);
       if (gameFinished === true) {
         clearInterval(game.getIntervalID());
-        const playerOneDatabase = await this.userService.findOne(
-          game.getPlayerOne().getLogin(),
-        );
-        const playerTwoDatabase = await this.userService.findOne(
-          game.getPlayerTwo().getLogin(),
-        );
-        this.gameHistoryService.create({
-          id: Number(game.getGameID()),
-          users: [playerOneDatabase, playerTwoDatabase],
-          result: [
-            game.getPlayerOne().getPoint(),
-            game.getPlayerTwo().getPoint(),
-          ],
-        });
-      }
-      if (game.getPlayerOne().getPoint() >= 5) {
-        server.to(game.getGameID()).emit('PlayerOneWinGame');
-      } else if (game.getPlayerTwo().getPoint() >= 5) {
-        server.to(game.getGameID()).emit('PlayerTwoWinGame');
+        await this.saveGameInformations(server, game);
+        gameService.eraseGame(game);
+        if (game.getPlayerOne().getPoint() >= 5) {
+          server.to(game.getGameID()).emit('PlayerOneWinGame');
+        } else if (game.getPlayerTwo().getPoint() >= 5) {
+          server.to(game.getGameID()).emit('PlayerTwoWinGame');
+        }
       }
     }
   }
@@ -87,7 +75,7 @@ export class PongService {
       playerService.playerMovement(server, socket, game, keycode);
     }
   }
-  disconnectPlayer(
+  async disconnectPlayer(
     server: Server,
     socket: Socket,
     playerService: PlayerService,
@@ -102,11 +90,24 @@ export class PongService {
 
     playerService.disconnectPlayer(socket);
     if (game !== undefined) {
+      clearInterval(game.getIntervalID());
       playerService.disconnectSecondPlayer(socket, game);
       gameService.endGame(server, socket, game);
       gameService.eraseGame(game);
-      clearInterval(game.getIntervalID());
-      //request to DB
+      await this.saveGameInformations(server, game);
     }
+  }
+
+  private async saveGameInformations(server: Server, game: Game) {
+    const playerOneDatabase = await this.userService.findOne(
+      game.getPlayerOne().getLogin(),
+    );
+    const playerTwoDatabase = await this.userService.findOne(
+      game.getPlayerTwo().getLogin(),
+    );
+    this.gameHistoryService.create({
+      users: [playerOneDatabase, playerTwoDatabase],
+      result: [game.getPlayerOne().getPoint(), game.getPlayerTwo().getPoint()],
+    });
   }
 }

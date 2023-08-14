@@ -1,9 +1,15 @@
-import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  OneToMany,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from '../../user/user.entity';
 
 @Entity()
 export class GameHistory {
-  @PrimaryColumn({ type: 'int' })
+  @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
 
   @OneToMany(() => GameHistory, (GameHistory) => GameHistory.users)
