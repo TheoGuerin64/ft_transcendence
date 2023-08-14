@@ -5,14 +5,15 @@ import { GameService } from './game.service';
 import { Injectable } from '@nestjs/common';
 import { PlayerService } from './player.service';
 import { Server, Socket } from 'socket.io';
-//import { UserService } from 'src/user/user.service';
+import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class PongService {
   constructor(
     private readonly playerService: PlayerService,
     private readonly gameService: GameService,
-    private readonly gameHistoryService: GameHistoryService, //private readonly userService: UserService,
+    private readonly gameHistoryService: GameHistoryService,
+    private readonly userService: UserService,
   ) {}
 
   joinQueue(
@@ -36,22 +37,35 @@ export class PongService {
     newGame.setIntervalID(intervalID);
   }
 
-  private updateBall(server: Server, gameService: GameService, game: Game) {
+  private async updateBall(
+    server: Server,
+    gameService: GameService,
+    game: Game,
+  ) {
     const result = BallService.ballMovement(server, game);
     if (result === true) {
-      gameService.newPoint(server, game);
-      if (game.getBall() === null) {
+      const gameFinished = gameService.newPoint(server, game);
+      if (gameFinished === true) {
         clearInterval(game.getIntervalID());
-        /*
+        const playerOneDatabase = await this.userService.findOne(
+          game.getPlayerOne().getLogin(),
+        );
+        const playerTwoDatabase = await this.userService.findOne(
+          game.getPlayerTwo().getLogin(),
+        );
         this.gameHistoryService.create({
           id: Number(game.getGameID()),
-          users: [game.getPlayerOne(), game.getPlayerTwo()],
+          users: [playerOneDatabase, playerTwoDatabase],
           result: [
             game.getPlayerOne().getPoint(),
             game.getPlayerTwo().getPoint(),
           ],
         });
-        */
+      }
+      if (game.getPlayerOne().getPoint() >= 5) {
+        server.to(game.getGameID()).emit('PlayerOneWinGame');
+      } else if (game.getPlayerTwo().getPoint() >= 5) {
+        server.to(game.getGameID()).emit('PlayerTwoWinGame');
       }
     }
   }

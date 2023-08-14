@@ -5,8 +5,10 @@ import { Module } from '@nestjs/common';
 import { PlayerService } from './services/player.service';
 import { PongGateway } from './pong.gateway';
 import { PongService } from './services/pong.service';
+import { UserModule } from './../../user/user.module';
+
 @Module({
-  imports: [GameHistoryModule],
+  imports: [GameHistoryModule, UserModule],
   providers: [
     PongGateway,
     PongService,

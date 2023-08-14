@@ -59,8 +59,6 @@ export default {
             canvas: container
           })
         }
-        const pixelRatio = window.devicePixelRatio
-        renderer.setPixelRatio(pixelRatio)
         document.addEventListener('keydown', this.checkInput, false)
         window.addEventListener('resize', resizeCanva)
         camera.position.z = 5
@@ -79,7 +77,7 @@ export default {
 
         addNewPlayer(playerOneLogin, -2 - 0.1 / 2)
         addNewPlayer(playerTwoLogin, 2 + 0.1 / 2)
-        //resizeCanva()
+
         animate()
       }
       const addNewPlayer = (login: string, posX: number) => {
@@ -112,12 +110,24 @@ export default {
       this.killCanvas = () => {
         cancelAnimationFrame(idCanvas)
         document.getElementById('canva')?.remove()
+
+        /*
+        const newDiv = document.createElement('canvas')
+        newDiv.setAttribute('id', 'canva')
+        document.body.appendChild(newDiv)
+        //need to check how to restart the ball
+        */
         this.$router.push('/')
         this.socket?.disconnect()
+        this.scorePlayerOne = 0
+        this.scorePlayerTwo = 0
         this.inGame = false
       }
 
       const resizeCanva = () => {
+        if (renderer === null) {
+          return
+        }
         const canvas = renderer.domElement
         const pixelRatio = window.devicePixelRatio
         renderer.setPixelRatio(pixelRatio)
@@ -159,12 +169,10 @@ export default {
       })
       this.socket.on('PlayerOneWinGame', () => {
         this.scorePlayerOne++
-        console.log('player one win !')
         this.killCanvas()
       })
       this.socket.on('PlayerTwoWinGame', () => {
         this.scorePlayerTwo++
-        console.log('player two win !')
         this.killCanvas()
       })
     },

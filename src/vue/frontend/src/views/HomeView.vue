@@ -21,7 +21,6 @@ export default {
         })
         .then((response) => {
           this.store.setToken(response.data)
-          console.log(response.data)
           axios
             .get('http://127.0.0.1:3000/user/me', {
               withCredentials: true

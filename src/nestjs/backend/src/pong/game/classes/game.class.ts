@@ -7,12 +7,12 @@ export class Game {
   private readonly playerOne: Player;
   private readonly playerTwo: Player;
   private ball: Ball;
-  private id = 0;
+  private static id = 0;
   private intervalID: NodeJS.Timer;
 
   constructor(gameType: string, playerOne: Player, playerTwo: Player) {
-    this.id += 1;
-    this.gameID = this.id.toString();
+    Game.id += 1;
+    this.gameID = Game.id.toString();
     this.gameType = gameType;
     this.playerOne = playerOne;
     this.playerOne.setPoint(0);
