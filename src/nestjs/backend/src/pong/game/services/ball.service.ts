@@ -11,9 +11,6 @@ import {
 @Injectable()
 export class BallService {
   static ballMovement(server: Server, game: Game): boolean {
-    if (game.getBall() == null) {
-      return false;
-    }
     const someoneWinPoint = this.newBallPosition(server, game);
     server
       .in(game.getGameID())

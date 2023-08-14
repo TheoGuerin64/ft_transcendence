@@ -72,7 +72,7 @@ export class GameService {
     return newGame;
   }
 
-  newPoint(server: Server, game: Game) {
+  newPoint(server: Server, game: Game): boolean {
     const ball = game.getBall();
     const playerOne = game.getPlayerOne();
     const playerTwo = game.getPlayerTwo();
@@ -83,16 +83,13 @@ export class GameService {
       playerTwo.addOnePoint();
       server.to(game.getGameID()).emit('PlayerTwoWinPoint');
     }
-    if (playerOne.getPoint() >= 5) {
-      server.to(game.getGameID()).emit('PlayerOneWinGame');
-    } else if (playerTwo.getPoint() >= 5) {
-      server.to(game.getGameID()).emit('PlayerTwoWinGame');
-    }
 
     if (playerOne.getPoint() >= 5 || playerTwo.getPoint() >= 5) {
       game.setBall(null);
+      return true;
     } else {
       game.setBall(new Ball());
+      return false;
     }
   }
 }
