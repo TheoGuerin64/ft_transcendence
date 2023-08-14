@@ -1,8 +1,8 @@
 import { BallService } from './ball.service';
 import { Game } from '../classes/game.class';
-import { GameHistoryService } from 'src/pong/database/gameHistory.service';
 import { GameService } from './game.service';
 import { Injectable } from '@nestjs/common';
+import { MatchPlayedService } from 'src/pong/database/matchPlayed.service';
 import { PlayerService } from './player.service';
 import { Server, Socket } from 'socket.io';
 import { UserService } from 'src/user/user.service';
@@ -12,7 +12,7 @@ export class PongService {
   constructor(
     private readonly playerService: PlayerService,
     private readonly gameService: GameService,
-    private readonly gameHistoryService: GameHistoryService,
+    private readonly matchPlayedService: MatchPlayedService,
     private readonly userService: UserService,
   ) {}
 
@@ -105,7 +105,7 @@ export class PongService {
     const playerTwoDatabase = await this.userService.findOne(
       game.getPlayerTwo().getLogin(),
     );
-    this.gameHistoryService.create({
+    this.matchPlayedService.create({
       users: [playerOneDatabase, playerTwoDatabase],
       result: [game.getPlayerOne().getPoint(), game.getPlayerTwo().getPoint()],
     });
