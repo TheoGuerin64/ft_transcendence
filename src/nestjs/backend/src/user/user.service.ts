@@ -29,9 +29,8 @@ export class UserService {
 
   findOne(login: string): Promise<User> {
     return this.userModel.findOne({
-      where: {
-        login,
-      },
+      where: { login },
+      relations: ['matchPlayed'],
     });
   }
 
