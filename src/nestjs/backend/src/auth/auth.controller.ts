@@ -1,9 +1,10 @@
 import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
+import { User } from 'src/user/user.entity';
 import { UserService } from '../user/user.service';
 import { JwtAuthGuard } from './auth-jwt.guard';
 import { OAuth2AuthGuard } from './auth-oauth2.guard';
-import { VerifyDto } from './auth.pipe';
+import { LengthDto, VerifyDto } from './auth.pipe';
 import { AuthService } from './auth.service';
 import { SignInResponse } from './auth.types';
 import {
@@ -144,5 +145,18 @@ export class AuthController {
       throw new BadRequestException('2FA is not enabled');
     }
     this.userService.update(user, { twofaSecret: null });
+  }
+
+  /**
+   * Add random fake user to database
+   * @returns user
+   */
+  @Get('fake')
+  async getFake(@Body() lengthDto: LengthDto): Promise<User[]> {
+    const users = [];
+    for (let i = 0; i < lengthDto.length; i++) {
+      users.push(await this.authService.addFakeUser());
+    }
+    return users;
   }
 }
