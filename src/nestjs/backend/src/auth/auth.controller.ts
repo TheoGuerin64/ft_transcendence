@@ -152,7 +152,7 @@ export class AuthController {
    * @returns user
    */
   @Post('fake')
-  async getFake(@Body() lengthDto: LengthDto): Promise<User[]> {
+  async postFake(@Body() lengthDto: LengthDto): Promise<User[]> {
     const users = [];
     for (let i = 0; i < lengthDto.length; i++) {
       users.push(await this.authService.addFakeUser());
