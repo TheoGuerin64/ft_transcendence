@@ -1,7 +1,9 @@
 import { AuthModule } from './auth/auth.module';
 import { Channel } from './chat/channel.entity';
 import { ChannelModule } from './chat/channel.module';
-import { Message } from './chat/message/message.entity';
+import { Membership } from './chat/membership.entity';
+import { Message } from './chat/message.entity';
+import { MessageModule } from './chat/message.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/user.entity';
@@ -16,10 +18,11 @@ import { UserModule } from './user/user.module';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_USER,
-      entities: [User, Message, Channel],
+      entities: [User, Message, Channel, Membership],
       synchronize: true,
     }),
     ChannelModule,
+    MessageModule,
     UserModule,
     AuthModule,
   ],

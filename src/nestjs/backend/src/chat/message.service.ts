@@ -16,6 +16,10 @@ export class MessageService {
     return message;
   }
 
+  async save(message: Message): Promise<Message> {
+    return await this.messageModel.save(message);
+  }
+
   update(message: Message, messageData: DeepPartial<Message>): Message {
     const updatedMessage = this.messageModel.merge(message, messageData);
     this.messageModel.save(updatedMessage);

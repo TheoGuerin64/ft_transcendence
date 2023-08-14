@@ -54,7 +54,6 @@ export class UserController {
       login: user.login,
       name: user.name,
       avatar: user.avatar,
-      channel: user.channel,
     };
   }
 
