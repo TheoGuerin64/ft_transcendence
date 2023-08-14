@@ -1,5 +1,5 @@
 import { Column, Entity, JoinTable, OneToMany, PrimaryColumn } from 'typeorm';
-import { GameHistory } from 'src/pong/database/gameHistory.entity';
+import { MatchPlayed } from 'src/pong/database/matchPlayed.entity';
 
 @Entity()
 export class User {
@@ -18,7 +18,7 @@ export class User {
   @Column({ type: 'varchar', length: 100 })
   avatar: string;
 
-  @OneToMany(() => GameHistory, (GameHistory) => GameHistory.users)
+  @OneToMany(() => MatchPlayed, (MatchPlayed) => MatchPlayed.users)
   @JoinTable()
-  gameHistory: GameHistory[];
+  MatchPlayed: MatchPlayed[];
 }
