@@ -151,7 +151,7 @@ export class AuthController {
    * Add random fake user to database
    * @returns user
    */
-  @Get('fake')
+  @Post('fake')
   async getFake(@Body() lengthDto: LengthDto): Promise<User[]> {
     const users = [];
     for (let i = 0; i < lengthDto.length; i++) {
