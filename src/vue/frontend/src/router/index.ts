@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import CallBackView from '../views/CallbackView.vue'
 import HomeView from '../views/HomeView.vue'
 import PathNotFoundView from '../views/PathNotFoundView.vue'
+import ProfileSearchView from '../views/ProfileSearchView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
 import { isAuthenticatedGuard } from './guards'
@@ -26,7 +27,13 @@ const router = createRouter({
       beforeEnter: isAuthenticatedGuard
     },
     {
-      path: '/profile/:login',
+      path: '/profile/search',
+      name: 'search-profile',
+      component: ProfileSearchView,
+      beforeEnter: isAuthenticatedGuard
+    },
+    {
+      path: '/profile/public/:login',
       name: 'public-profile',
       component: PublicProfileView,
       beforeEnter: isAuthenticatedGuard
