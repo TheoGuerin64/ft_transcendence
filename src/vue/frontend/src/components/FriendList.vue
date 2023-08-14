@@ -32,7 +32,10 @@ export default {
 
 <template>
   <div class="is-flex is-flex-direction-column">
-    <h1 class="is-size-3">Friends</h1>
+    <div class="is-flex is-justify-content-space-between is-align-items-center">
+      <h1 class="is-size-3">Friends</h1>
+      <RouterLink to="/profile/search" class="button is-link is-small">Search</RouterLink>
+    </div>
     <div class="is-flex is-flex-direction-column">
       <FriendElement
         v-for="friend in friends"

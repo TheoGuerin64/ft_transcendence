@@ -19,14 +19,10 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { FriendshipService } from './friendship/friendship.service';
 
 @Controller('user')
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly friendshipService: FriendshipService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   /**
    * Get user private informations
@@ -108,92 +104,14 @@ export class UserController {
   }
 
   /**
-   * Get user friends
-   * @returns List of friends
+   * Get user list
+   * @returns List of users
    */
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(ClassSerializerInterceptor)
-  @Get('friends')
-  async getFriends(@Req() req: any): Promise<any> {
-    return await this.friendshipService.findFriends(req.user.login);
-  }
-
-  /**
-   * Add a friend
-   * @param login login of the friend
-   */
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Post('friends')
-  async postFriend(@Req() req: any, @Body() loginDto: LoginDto): Promise<void> {
-    try {
-      await this.friendshipService.addFriendshipRequest(
-        req.user.login,
-        loginDto.login,
-      );
-    } catch (e) {
-      throw new BadRequestException(e.message);
-    }
-  }
-
-  /**
-   * Accept a friend request
-   * @param login login of the friend
-   */
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Post('friends/accept')
-  async postFriendAccept(
-    @Req() req: any,
-    @Body() loginDto: LoginDto,
-  ): Promise<void> {
-    try {
-      await this.friendshipService.acceptFriendshipRequest(
-        req.user.login,
-        loginDto.login,
-      );
-    } catch (e) {
-      throw new BadRequestException(e.message);
-    }
-  }
-
-  /**
-   * Remove a friend
-   * @param login login of the friend
-   */
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Post('friends/remove')
-  async postFriendRemove(
-    @Req() req: any,
-    @Body() loginDto: LoginDto,
-  ): Promise<void> {
-    try {
-      await this.friendshipService.deleteFriendship(
-        req.user.login,
-        loginDto.login,
-      );
-    } catch (e) {
-      throw new BadRequestException(e.message);
-    }
-  }
-
-  /**
-   * Is the user a friend
-   * @param login login of the friend
-   * @returns true if the user is a friend
-   */
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(ClassSerializerInterceptor)
-  @Post('friends/isFriend')
-  async postFriendIsFriend(
-    @Req() req: any,
-    @Body() loginDto: LoginDto,
-  ): Promise<boolean> {
-    const friendship = await this.friendshipService.findFriendship(
-      req.user.login,
-      loginDto.login,
-    );
-    return friendship !== null;
+  @Get('list')
+  async getList(): Promise<DeepPartial<User>[]> {
+    const users = await this.userService.findAll();
+    return users.map((user) => user.public);
   }
 }

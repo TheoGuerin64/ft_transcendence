@@ -12,3 +12,8 @@ export class VerifyDto {
   @Length(6, 6, { message: '2FA token must be 6 characters' })
   twofa_token?: string;
 }
+
+export class LengthDto {
+  @IsNumberString()
+  length: number;
+}
