@@ -102,4 +102,16 @@ export class UserController {
     }
     return toUpdate;
   }
+
+  /**
+   * Get user list
+   * @returns List of users
+   */
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('list')
+  async getList(): Promise<DeepPartial<User>[]> {
+    const users = await this.userService.findAll();
+    return users.map((user) => user.public);
+  }
 }

@@ -45,4 +45,12 @@ export class UserService {
       },
     });
   }
+
+  /**
+   * Find all users
+   * @returns List of users
+   */
+  findAll(): Promise<User[]> {
+    return this.userModel.find();
+  }
 }
