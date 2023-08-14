@@ -49,6 +49,7 @@ export class UserService {
    */
   findOne(login: string): Promise<User> {
     return this.userModel.findOne({
+      relations: ['messages', 'memberships'],
       where: {
         login,
       },

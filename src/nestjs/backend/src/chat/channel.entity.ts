@@ -1,24 +1,26 @@
-import { Message } from './message/message.entity';
-import { User } from '../user/user.entity';
-import {
-  Column,
-  Entity,
-  JoinTable,
-  ManyToMany,
-  OneToMany,
-  PrimaryColumn,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, OneToMany, PrimaryColumn } from 'typeorm';
+import { Membership } from './membership.entity';
+import { Message } from './message.entity';
 
 @Entity()
 export class Channel {
   @PrimaryColumn()
   name: string;
 
-  @OneToMany(() => Message, (messages) => messages.channel, { cascade: true })
+  @Column()
+  isPublic: boolean;
+
+  @Column()
+  isProtected: boolean;
+
+  @Column()
+  password: string;
+
+  @OneToMany(() => Message, (message) => message.channel, { cascade: true })
   messages: Message[];
 
-  @OneToMany(() => User, (user) => user.channel)
-  //@JoinTable()
-  users: User[];
+  @OneToMany(() => Membership, (membership) => membership.channel, {
+    cascade: true,
+  })
+  memberships: Membership[];
 }

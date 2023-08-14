@@ -47,10 +47,21 @@ export default {
         console.log("You can't join a channel without being logged in")
         return
       }
-      console.log('login: ' + this.store.user?.login)
       channelData.login = this.store.user?.login
       console.log(this.store.user?.name + ' joined ' + this.channelName)
       this.socket.emit('join-channel', channelData)
+    },
+    leaveChannel(): void {
+      channelData.userName = this.store.user?.name
+      channelData.channelName = this.channelName
+      if (this.store.user?.login === undefined) {
+        console.log("You can't leave a channel without being logged in")
+        return
+      }
+      channelData.login = this.store.user?.login
+      console.log(this.store.user?.name + ' left ' + this.channelName)
+      this.socket.emit('leave-channel', channelData)
+      this.channelName = ''
     }
   },
   async mounted() {
@@ -76,6 +87,12 @@ export default {
       item.append(userName + ' has joined the channel ', channelName)
       messages?.appendChild(item)
     })
+    this.socket.on('user-left', function (userName: string, channelName: string) {
+      const messages = document.getElementById('messages')
+      const item = document.createElement('li')
+      item.append(userName + ' has left the channel ', channelName)
+      messages?.appendChild(item)
+    })
   }
 }
 </script>
@@ -93,6 +110,7 @@ export default {
       <button id="sendMessage" @click="submitNewMessage">SEND</button>
       <input id="inputChannel" v-model="channelName" />
       <button id="sendChannel" @click="joinChannel">Join Channel</button>
+      <button id="sendChannel" @click="leaveChannel">Leave Channel</button>
     </div>
   </main>
 </template>
@@ -131,7 +149,7 @@ export default {
 }
 
 #sendBar {
-  width: 30%;
+  width: 40%;
   display: flex;
   margin-top: 2%;
   margin-left: 6%;

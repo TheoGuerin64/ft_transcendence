@@ -1,0 +1,30 @@
+import { DeepPartial, Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Membership } from './membership.entity';
+
+@Injectable()
+export class MembershipService {
+  constructor(
+    @InjectRepository(Membership)
+    private readonly membershipModel: Repository<Membership>,
+  ) {}
+
+  create(membershipData: DeepPartial<Membership>): Membership {
+    const membership = this.membershipModel.create(membershipData);
+    this.membershipModel.save(membership);
+    return membership;
+  }
+
+  update(
+    membership: Membership,
+    membershipData: DeepPartial<Membership>,
+  ): Membership {
+    const updatedMembership = this.membershipModel.merge(
+      membership,
+      membershipData,
+    );
+    this.membershipModel.save(updatedMembership);
+    return updatedMembership;
+  }
+}

@@ -1,12 +1,12 @@
+import { createCipheriv, createDecipheriv, scrypt } from 'crypto';
+import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { createCipheriv, createDecipheriv, scrypt } from 'crypto';
-import { firstValueFrom } from 'rxjs';
 import { promisify } from 'util';
+import { TokenResponse } from './auth.types';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
-import { TokenResponse } from './auth.types';
 
 @Injectable()
 export class AuthService {
@@ -48,6 +48,7 @@ export class AuthService {
         login: data['login'],
         name: data['login'],
         avatar: data['image']['versions']['medium'],
+        memberships: [],
       });
     }
     return user;
