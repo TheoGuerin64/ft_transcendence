@@ -119,4 +119,14 @@ export class AuthService {
       avatar: avatar,
     });
   }
+
+  /**
+   * Validate JWT token
+   * @param token JWT token
+   * @returns User
+   */
+  async validateJwt(token: string): Promise<User> {
+    const data = this.jwtService.verify(token);
+    return this.userService.findOne(data['login']);
+  }
 }

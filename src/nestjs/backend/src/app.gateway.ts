@@ -1,21 +1,42 @@
-import { Req, UseGuards } from '@nestjs/common';
-import { Server } from 'socket.io';
-import { JwtAuthGuard } from './auth/auth-jwt.guard';
+import { Server, Socket } from 'socket.io';
+import { AuthService } from './auth/auth.service';
+import { UserStatus } from './user/user.entity';
+import { UserService } from './user/user.service';
 import {
-  MessageBody,
-  SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 
 @WebSocketGateway({ cors: ['http://localhost:8080', 'http://127.0.0.1:8080'] })
 export class AppGateway {
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {}
+
   @WebSocketServer()
   server: Server;
 
-  @UseGuards(JwtAuthGuard)
-  @SubscribeMessage('test')
-  handleMessage(@Req() req: any, @MessageBody() data: string): void {
-    console.log(data, req.user.login);
+  async handleConnection(client: Socket) {
+    const user = await this.authService.validateJwt(
+      client.handshake.auth.token,
+    );
+    if (user) {
+      this.userService.update(user, { status: UserStatus.online });
+    } else {
+      throw new WsException('Invalid token');
+    }
+  }
+
+  async handleDisconnect(client: Socket) {
+    const user = await this.authService.validateJwt(
+      client.handshake.auth.token,
+    );
+    if (user) {
+      this.userService.update(user, { status: UserStatus.offline });
+    } else {
+      throw new WsException('Invalid token');
+    }
   }
 }
