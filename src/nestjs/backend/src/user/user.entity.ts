@@ -1,4 +1,4 @@
-import { Column, Entity, JoinTable, OneToMany, PrimaryColumn } from 'typeorm';
+import { Column, Entity, JoinTable, ManyToMany, PrimaryColumn } from 'typeorm';
 import { MatchPlayed } from 'src/pong/database/matchPlayed.entity';
 
 @Entity()
@@ -18,7 +18,9 @@ export class User {
   @Column({ type: 'varchar', length: 100 })
   avatar: string;
 
-  @OneToMany(() => MatchPlayed, (MatchPlayed) => MatchPlayed.users)
+  @ManyToMany(() => MatchPlayed, (matchPlayed) => matchPlayed.users, {
+    cascade: true,
+  })
   @JoinTable()
-  MatchPlayed: MatchPlayed[];
+  matchPlayed: MatchPlayed[];
 }

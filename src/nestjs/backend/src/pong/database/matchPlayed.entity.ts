@@ -1,12 +1,18 @@
 import { User } from '../../user/user.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class MatchPlayed {
   @PrimaryGeneratedColumn({ type: 'int' })
   id: number;
 
-  @OneToMany(() => MatchPlayed, (MatchPlayed) => MatchPlayed.users)
+  @ManyToMany(() => User, (user) => user.matchPlayed)
   users: User[];
 
   @Column('int', { array: true })
