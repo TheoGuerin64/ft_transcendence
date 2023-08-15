@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { RouterLink } from 'vue-router'
 import UserAvatar from './UserAvatar.vue'
 </script>
 
@@ -26,12 +27,7 @@ import UserAvatar from './UserAvatar.vue'
     </div>
     <div class="dropdown-menu" id="dropdown-menu" role="menu">
       <div class="dropdown-content">
-        <a href="#" class="dropdown-item"> Dropdown item </a>
-        <a class="dropdown-item"> Other dropdown item </a>
-        <a href="#" class="dropdown-item is-active"> Active dropdown item </a>
-        <a href="#" class="dropdown-item"> Other dropdown item </a>
-        <hr class="dropdown-divider" />
-        <a href="#" class="dropdown-item"> With a divider </a>
+        <RouterLink to="/profile" class="dropdown-item">Profile</RouterLink>
       </div>
     </div>
   </div>
