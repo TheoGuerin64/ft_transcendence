@@ -47,7 +47,8 @@ export default {
 
 <template>
   <main>
-    <routerLink to="/Game">Game</routerLink>
+    <routerLink to="/Game">Game</routerLink> |
+    <routerLink to="/MatchHistory">Match History</routerLink>
     <div v-if="store.user">
       <h1>{{ store.user.name }}</h1>
       <img :src="store.user.avatar" alt="User avatar" />

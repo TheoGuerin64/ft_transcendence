@@ -34,6 +34,13 @@ export class UserService {
     });
   }
 
+  find(login: string): Promise<User[]> {
+    return this.userModel.find({
+      where: { login },
+      relations: ['matchPlayed'],
+    });
+  }
+
   getPublicData(user: User): PublicData {
     return { name: user.name, avatar: user.avatar };
   }

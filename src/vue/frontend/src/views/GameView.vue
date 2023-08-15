@@ -182,7 +182,8 @@ export default {
 </script>
 
 <template>
-  <routerLink to="/">Home</routerLink>
+  <routerLink to="/">Home</routerLink> |
+  <routerLink to="/MatchHistory">Match History</routerLink>
   <h1>Game</h1>
   <div v-if="!inGame">
     <button @click="joinQueue">Join Normal Queue</button>
