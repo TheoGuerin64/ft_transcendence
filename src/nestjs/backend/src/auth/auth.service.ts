@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { createCipheriv, createDecipheriv, scrypt } from 'crypto';
-import { firstValueFrom, lastValueFrom } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 import { promisify } from 'util';
 import { User } from '../user/user.entity';
 import { UserService } from '../user/user.service';
@@ -32,7 +32,7 @@ export class AuthService {
       'https://api.intra.42.fr' + endpoint,
       config,
     );
-    return (await firstValueFrom(request)).data;
+    return (await lastValueFrom(request)).data;
   }
 
   /**
