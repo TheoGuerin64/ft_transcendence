@@ -1,8 +1,6 @@
 import { ChannelService } from './channel.service';
-import { MembershipService } from './membership.service';
 import { MessageService } from './message.service';
 import { Server, Socket } from 'socket.io';
-import { UserService } from 'src/user/user.service';
 import {
   ConnectedSocket,
   MessageBody,
@@ -13,7 +11,10 @@ import {
 
 @WebSocketGateway({ cors: true })
 export class ChannelGateway {
-  constructor(private readonly channelService: ChannelService) {}
+  constructor(
+    private readonly channelService: ChannelService,
+    private readonly messageService: MessageService,
+  ) {}
   @WebSocketServer()
   server: Server;
 
@@ -26,7 +27,7 @@ export class ChannelGateway {
     this.channelService.addMessage(data);
     this.server
       .to(data.channelName)
-      .emit('message', data.message, data.userName);
+      .emit('message', data.message, data.username);
   }
   //@UseGuards(JwtAuthGuard)
   @SubscribeMessage('join-channel')
@@ -37,11 +38,27 @@ export class ChannelGateway {
     if (data.channelName === '') {
       return;
     }
-    this.channelService.addMembership(data);
-    client.join(data.channelName);
-    this.server
-      .to(data.channelName)
-      .emit('user-joined', data.userName, data.channelName);
+    let alreadyJoined = { value: false };
+    await this.channelService.addMembership(data, alreadyJoined);
+    const messageHistory = await this.channelService.getMessageHistory(
+      data.channelName,
+    );
+    if (alreadyJoined.value) {
+      console.log('You already joined this channel:', data.login);
+      client.emit('notification', 'You already joined this channel');
+    } else {
+      client.join(data.channelName);
+      if (messageHistory) {
+        for (let i = 0; i < messageHistory.length; i++) {
+          client.emit(
+            'message',
+            messageHistory[i].text,
+            messageHistory[i].user.name,
+          );
+        }
+      }
+      this.server.to(data.channelName).emit('user-joined', data.username);
+    }
   }
 
   @SubscribeMessage('leave-channel')
@@ -51,8 +68,7 @@ export class ChannelGateway {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     client.leave(data.channelName);
-    this.server
-      .to(data.channelName)
-      .emit('user-left', data.userName, data.channelName);
+    await this.channelService.removeMembership(data);
+    this.server.to(data.channelName).emit('user-left', data.username);
   }
 }

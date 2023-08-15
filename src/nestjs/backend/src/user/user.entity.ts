@@ -24,9 +24,7 @@ export class User {
   @Column({ type: 'varchar', length: 3000000 })
   avatar: string;
 
-  @OneToMany(() => Membership, (membership) => membership.user, {
-    cascade: true,
-  })
+  @OneToMany(() => Membership, (membership) => membership.user)
   memberships: Membership[];
 
   @OneToMany(() => Message, (message) => message.user, { cascade: true })

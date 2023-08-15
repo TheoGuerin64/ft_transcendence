@@ -19,8 +19,6 @@ export class Channel {
   @OneToMany(() => Message, (message) => message.channel, { cascade: true })
   messages: Message[];
 
-  @OneToMany(() => Membership, (membership) => membership.channel, {
-    cascade: true,
-  })
+  @OneToMany(() => Membership, (membership) => membership.channel)
   memberships: Membership[];
 }

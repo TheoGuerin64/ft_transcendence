@@ -27,4 +27,15 @@ export class MembershipService {
     this.membershipModel.save(updatedMembership);
     return updatedMembership;
   }
+
+  remove(membership: Membership): Promise<Membership> {
+    return this.membershipModel.remove(membership);
+  }
+
+  findOne(channelName: string, login: string): Promise<Membership> {
+    return this.membershipModel.findOne({
+      relations: ['channel', 'user'],
+      where: { channel: { name: channelName }, user: { login } },
+    });
+  }
 }
