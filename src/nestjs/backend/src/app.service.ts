@@ -9,7 +9,7 @@ export class AppService implements OnApplicationBootstrap {
   async onApplicationBootstrap(): Promise<void> {
     const chris = await this.userService.findOne('ccelaya');
     if (!chris) {
-      this.userService.create({
+      await this.userService.create({
         login: 'ccelaya',
         name: 'Chris',
         status: UserStatus.ONLINE,

@@ -14,14 +14,19 @@ export class FriendshipService {
    * Find friendship between two users
    * @param login1 login of the first user
    * @param login2 login of the second user
+   * @param relation if true, return the friendship with the users
    * @returns friendship between the two users
    */
-  findFriendship(login1: string, login2: string): Promise<Friendship | null> {
+  findFriendship(
+    login1: string,
+    login2: string,
+    relations = false,
+  ): Promise<Friendship | null> {
     return this.friendsModel.findOne({
-      relations: ['requester', 'requested'],
+      relations: relations ? ['requester', 'requested'] : [],
       where: [
-        { requester: { login: login1 }, requested: { login: login2 } },
-        { requester: { login: login2 }, requested: { login: login1 } },
+        { requester_login: login1, requested_login: login2 },
+        { requester_login: login2, requested_login: login1 },
       ],
     });
   }
@@ -95,8 +100,28 @@ export class FriendshipService {
       throw new Error('Friendship already requested');
     }
 
-    friendship.accepted = true;
-    await this.friendsModel.save(friendship);
+    await this.friendsModel.update(
+      {
+        requester_login: friendship.requester_login,
+        requested_login: friendship.requested_login,
+      },
+      { accepted: true },
+    );
+  }
+
+  /**
+   * Is a user friend with another user
+   * @param login login of the user
+   * @param friendLogin login of the friend
+   * @returns true if the user is friend with the other user
+   */
+  isFriends(login1: string, login2: string): Promise<boolean> {
+    return this.friendsModel.exist({
+      where: [
+        { requester_login: login1, requested_login: login2 },
+        { requester_login: login2, requested_login: login1 },
+      ],
+    });
   }
 
   /**
@@ -110,6 +135,6 @@ export class FriendshipService {
       throw new Error('Friendship does not exist');
     }
 
-    await this.friendsModel.delete(friendship);
+    await this.friendsModel.remove(friendship);
   }
 }

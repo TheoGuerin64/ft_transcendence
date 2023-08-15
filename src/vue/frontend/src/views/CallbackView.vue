@@ -100,7 +100,6 @@ export default {
         withCredentials: true
       })
       this.store.setUser(user.data)
-      console.log('User:', user.data)
 
       submit?.classList.remove('is-danger')
       submit?.classList.remove('is-loading')

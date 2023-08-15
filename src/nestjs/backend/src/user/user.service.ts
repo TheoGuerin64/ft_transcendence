@@ -15,9 +15,9 @@ export class UserService {
    * @param userData User data
    * @returns Created user
    */
-  create(userData: DeepPartial<User>): User {
+  async create(userData: DeepPartial<User>): Promise<User> {
     const user = this.userModel.create(userData);
-    this.userModel.save(user);
+    await this.userModel.save(user);
     return user;
   }
 
@@ -27,10 +27,10 @@ export class UserService {
    * @param userData User data
    * @returns Updated user
    */
-  update(user: User, userData: DeepPartial<User>): User {
-    const updatedUser = this.userModel.merge(user, userData);
-    this.userModel.save(updatedUser);
-    return updatedUser;
+  async update(user: User, userData: DeepPartial<User>): Promise<User> {
+    Object.assign(user, userData);
+    await this.userModel.update(user.login, user);
+    return user;
   }
 
   /**

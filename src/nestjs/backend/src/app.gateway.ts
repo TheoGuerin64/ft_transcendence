@@ -23,7 +23,7 @@ export class AppGateway {
       client.handshake.auth.token,
     );
     if (user) {
-      this.userService.update(user, { status: UserStatus.ONLINE });
+      await this.userService.update(user, { status: UserStatus.ONLINE });
     } else {
       throw new WsException('Invalid token');
     }
@@ -34,7 +34,7 @@ export class AppGateway {
       client.handshake.auth.token,
     );
     if (user) {
-      this.userService.update(user, { status: UserStatus.OFFLINE });
+      await this.userService.update(user, { status: UserStatus.OFFLINE });
     } else {
       throw new WsException('Invalid token');
     }
