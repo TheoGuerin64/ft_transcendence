@@ -1,15 +1,19 @@
 <script setup lang="ts">
 import axios from 'axios'
-import { useStore, type UserType } from '../store'
+import { useStore, type UserPublic, UserStatus } from '../store'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import UserAvatar from '@/components/UserAvatar.vue'
 </script>
 
 <script lang="ts">
+/**
+ * Public profile page
+ */
 export default {
   data() {
     return {
       store: useStore,
-      publicUser: null as Partial<UserType> | null,
+      publicUser: null as Partial<UserPublic> | null,
       isFriend: false
     }
   },
@@ -42,6 +46,12 @@ export default {
     }
     this.publicUser = response.data
 
+    // Check if user is self
+    if (this.store.user!.login == this.publicUser!.login) {
+      this.$router.push('/profile')
+      return
+    }
+
     // Check if user is friend
     if (this.store.user!.login != this.$route.params.login) {
       response = await axios.post(
@@ -50,6 +60,23 @@ export default {
         { withCredentials: true }
       )
       this.isFriend = response.data
+    }
+  },
+
+  computed: {
+    /**
+     * Get color of connection status
+     */
+    connectionColor(): string {
+      if (this.publicUser!.status == UserStatus.ONLINE) {
+        return '#33d17a'
+      } else if (this.publicUser!.status == UserStatus.OFFLINE) {
+        return '#ff3860'
+      } else if (this.publicUser!.status == UserStatus.PLAYING) {
+        return '#ffdd57'
+      } else {
+        return '#000000'
+      }
     }
   },
 
@@ -74,6 +101,28 @@ export default {
         }
       }
       this.isFriend = true
+    },
+
+    /**
+     * Remove friend request
+     */
+    async removeFriend(): Promise<void> {
+      try {
+        await axios.post(
+          'http://127.0.0.1:3000/user/friends/remove',
+          { login: this.publicUser!.login },
+          { withCredentials: true }
+        )
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response && error.response.status == 400) {
+          this.$notify({
+            type: 'error',
+            text: error.response.data.message
+          })
+          return
+        }
+      }
+      this.isFriend = false
     }
   }
 }
@@ -81,19 +130,22 @@ export default {
 
 <template>
   <main>
-    <div class="columns is-centered mt-1" v-if="publicUser">
-      <div class="column is-half">
-        <h1 class="title is-size-1-desktop has-text-dark">{{ publicUser.name }}</h1>
-        <div class="box">
-          <UserAvatar :image="publicUser.avatar" :size="400" />
-          <button
-            class="button is-primary is-fullwidth mt-1"
-            v-if="!isFriend && publicUser.login !== store.user!.login"
-            @click="addFriend"
-          >
-            Add friend
-          </button>
+    <div class="is-flex is-flex-direction-column is-align-items-center mt-1" v-if="publicUser">
+      <div class="box">
+        <UserAvatar :image="publicUser.avatar" :size="400" />
+        <div>
+          <h1 class="is-size-3 has-text-weight-bold">{{ publicUser.name }}</h1>
+          <p class="is-size-4">{{ publicUser.login }}</p>
+          <p class="is-size-5" :style="'color: ' + connectionColor">
+            <FontAwesomeIcon :icon="['far', 'circle-dot']" />{{ ' ' + publicUser.status }}
+          </p>
         </div>
+        <button class="button is-primary is-fullwidth mt-1" v-if="!isFriend" @click="addFriend">
+          Add friend
+        </button>
+        <button class="button is-danger is-fullwidth mt-1" v-else @click="removeFriend">
+          Remove friend
+        </button>
       </div>
     </div>
   </main>

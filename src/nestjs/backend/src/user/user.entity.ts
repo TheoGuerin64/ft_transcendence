@@ -1,6 +1,12 @@
 import { Exclude, Expose } from 'class-transformer';
 import { Column, DeepPartial, Entity, PrimaryColumn } from 'typeorm';
 
+export enum UserStatus {
+  ONLINE = 'online',
+  OFFLINE = 'offline',
+  PLAYING = 'playing',
+}
+
 @Entity()
 export class User {
   @PrimaryColumn({ type: 'char', length: 8 })
@@ -8,6 +14,9 @@ export class User {
 
   @Column({ type: 'varchar', length: 16 })
   name: string;
+
+  @Column({ type: 'enum', enum: UserStatus, default: UserStatus.OFFLINE })
+  status: UserStatus;
 
   @Column({ type: 'varchar', length: 3000000 })
   avatar: string;
@@ -24,6 +33,11 @@ export class User {
   @Exclude()
   @Expose()
   get public(): DeepPartial<User> {
-    return { login: this.login, name: this.name, avatar: this.avatar };
+    return {
+      login: this.login,
+      name: this.name,
+      status: this.status,
+      avatar: this.avatar,
+    };
   }
 }
