@@ -50,7 +50,7 @@ export default {
       let ball: THREE.Mesh
       const setCanvas = () => {
         scene = new THREE.Scene()
-        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+        camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000)
         scene.add(camera)
         const container = document.getElementById('canva')
         if (container !== null) {
@@ -109,14 +109,9 @@ export default {
 
       this.killCanvas = () => {
         cancelAnimationFrame(idCanvas)
+        renderer.dispose()
+        renderer.forceContextLoss()
         document.getElementById('canva')?.remove()
-
-        /*
-        const newDiv = document.createElement('canvas')
-        newDiv.setAttribute('id', 'canva')
-        document.body.appendChild(newDiv)
-        //need to check how to restart the ball
-        */
         this.$router.push('/')
         this.socket?.disconnect()
         this.scorePlayerOne = 0
@@ -125,15 +120,10 @@ export default {
       }
 
       const resizeCanva = () => {
-        if (renderer === null) {
-          return
-        }
         const canvas = renderer.domElement
         const pixelRatio = window.devicePixelRatio
         renderer.setPixelRatio(pixelRatio)
 
-        let width = canvas.clientWidth * pixelRatio
-        let height = canvas.clientHeight * pixelRatio
         if (window.innerWidth > window.innerHeight) {
           canvas.style.width = 'auto'
           canvas.style.height = '100vh'
@@ -143,9 +133,14 @@ export default {
           canvas.style.height = 'auto'
           canvas.style.aspectRatio = '1/1'
         }
+        let width = canvas.clientWidth * pixelRatio
+        let height = canvas.clientHeight * pixelRatio
+        camera.aspect = width / height
+        camera.updateProjectionMatrix()
         renderer.setSize(width, height, false)
       }
       setCanvas()
+      resizeCanva()
     },
     connect() {
       this.socket.emit('connectGame', this.login)
@@ -198,3 +193,10 @@ export default {
   </div>
   <canvas id="canva"> </canvas>
 </template>
+
+<style>
+#canva {
+  margin: auto;
+  display: block;
+}
+</style>
