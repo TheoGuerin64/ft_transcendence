@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import axios from 'axios'
 import { RouterView } from 'vue-router'
-import NavMenu from './components/NavMenu.vue'
 import { socketConnect } from './socket'
 import { useStore, type User } from './store'
+import FloatingProfile from './components/FloatingProfile.vue'
 </script>
 
 <script lang="ts">
@@ -49,10 +49,8 @@ export default {
 
 <template>
   <div v-if="store.user !== undefined">
+    <FloatingProfile />
     <notifications position="bottom right" />
-    <header>
-      <NavMenu />
-    </header>
     <RouterView />
   </div>
 </template>
