@@ -1,4 +1,5 @@
 import { Channel } from './channel.entity';
+import { User } from '../user/user.entity';
 import {
   Column,
   Entity,
@@ -6,7 +7,6 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from '../user/user.entity';
 
 @Entity()
 export class Membership {
@@ -23,10 +23,10 @@ export class Membership {
   isMuted: boolean;
 
   @ManyToOne(() => User, (user) => user.memberships)
-  @JoinColumn({ name: 'login' })
+  @JoinColumn()
   user: User;
 
   @ManyToOne(() => Channel, (channel) => channel.memberships)
-  @JoinColumn({ name: 'channelName' })
+  @JoinColumn()
   channel: Channel;
 }

@@ -20,10 +20,10 @@ export class Message {
   createdAt: Date;
 
   @ManyToOne(() => Channel, (channel) => channel.messages)
-  @JoinColumn({ name: 'channelName' })
+  @JoinColumn()
   channel: Channel;
 
   @ManyToOne(() => User, (user) => user.messages)
-  @JoinColumn({ name: 'login' })
+  @JoinColumn()
   user: User;
 }

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import axios from 'axios'
 import { useStore } from '../store'
 import { io } from 'socket.io-client'
 </script>
@@ -7,14 +6,14 @@ import { io } from 'socket.io-client'
 <script lang="ts">
 const messageData = {
   message: '' as string,
-  userName: '' as string | undefined,
+  username: '' as string | undefined,
   channelName: '' as string | undefined,
   login: '' as string | undefined
 }
 
 const channelData = {
   channelName: '' as string,
-  userName: '' as string | undefined,
+  username: '' as string | undefined,
   login: '' as string | undefined
 }
 
@@ -34,14 +33,13 @@ export default {
         return
       }
       messageData.message = this.message
-      messageData.userName = this.store.user?.name
+      messageData.username = this.store.user?.name
       messageData.channelName = this.channelName
       messageData.login = this.store.user?.login
-      console.log('login: ' + this.store.user?.login)
       this.socket.emit('message', messageData)
     },
     joinChannel(): void {
-      channelData.userName = this.store.user?.name
+      channelData.username = this.store.user?.name
       channelData.channelName = this.channelName
       if (this.store.user?.login === undefined) {
         console.log("You can't join a channel without being logged in")
@@ -52,7 +50,7 @@ export default {
       this.socket.emit('join-channel', channelData)
     },
     leaveChannel(): void {
-      channelData.userName = this.store.user?.name
+      channelData.username = this.store.user?.name
       channelData.channelName = this.channelName
       if (this.store.user?.login === undefined) {
         console.log("You can't leave a channel without being logged in")
@@ -66,32 +64,39 @@ export default {
   },
   async mounted() {
     this.socket = io('http://localhost:3000')
-    this.socket.on('message', function (msg: string, userName: string) {
+    this.socket.on('message', function (msg: string, username: string) {
       const messages = document.getElementById('messages')
       const item = document.createElement('li')
       const link = document.createElement('a')
       if (msg === '') {
         return
       }
-      if (userName !== null) {
-        link.textContent = userName
-        link.href = 'http://localhost:8080/profile/' + userName
+      if (username !== null) {
+        link.textContent = username
+        link.href = 'http://localhost:8080/profile/' + username
         item.appendChild(link)
       }
       item.append(msg)
       messages?.appendChild(item)
     })
-    this.socket.on('user-joined', function (userName: string, channelName: string) {
+    this.socket.on('user-joined', (username: string) => {
       const messages = document.getElementById('messages')
       const item = document.createElement('li')
-      item.append(userName + ' has joined the channel ', channelName)
+      item.append(username + ' has joined the channel ', this.channelName)
       messages?.appendChild(item)
     })
-    this.socket.on('user-left', function (userName: string, channelName: string) {
+    this.socket.on('user-left', (username: string) => {
       const messages = document.getElementById('messages')
       const item = document.createElement('li')
-      item.append(userName + ' has left the channel ', channelName)
+      item.append(username + ' has left the channel')
       messages?.appendChild(item)
+    })
+    this.socket.on('notification', (message: string) => {
+      console.log(message)
+      this.$notify({
+        type: 'error',
+        text: message
+      })
     })
   }
 }
