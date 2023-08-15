@@ -85,7 +85,7 @@ export default {
   <div class="is-flex is-justify-content-space-between is-align-items-center mb-2">
     <a class="friend-info is-flex" :href="'/profile/public/' + friend.login">
       <UserAvatar :image="friend.avatar" :size="64" />
-      <div class="is-flex is-flex-direction-column is-justify-content-center ml-3">
+      <div class="friend-info-name is-flex is-flex-direction-column is-justify-content-center ml-3">
         <span class="is-size-5 has-dark-text">{{ friend.name }}</span>
         <span class="is-size-6">{{ friend.login }}</span>
       </div>
@@ -118,5 +118,9 @@ export default {
 
 .pending {
   width: 4.75em;
+}
+
+.friend-info-name {
+  width: 12em;
 }
 </style>
