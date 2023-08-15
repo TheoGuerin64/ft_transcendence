@@ -97,10 +97,9 @@ export class FriendshipController {
     @Req() req: any,
     @Body() loginDto: LoginDto,
   ): Promise<boolean> {
-    const friendship = await this.friendshipService.findFriendship(
+    return await this.friendshipService.isFriends(
       req.user.login,
       loginDto.login,
     );
-    return friendship !== null;
   }
 }

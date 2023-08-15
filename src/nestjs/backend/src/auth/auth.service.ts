@@ -44,7 +44,7 @@ export class AuthService {
     const data = await this.getData(token.access_token, '/v2/me');
     let user = await this.userService.findOne(data['login']);
     if (!user) {
-      user = this.userService.create({
+      user = await this.userService.create({
         login: data['login'],
         name: data['login'],
         avatar: data['image']['versions']['medium'],
@@ -113,7 +113,7 @@ export class AuthService {
     const name = response.data['results'][0]['login']['username'].slice(0, 16);
     const avatar = response.data['results'][0]['picture']['medium'];
 
-    return this.userService.create({
+    return await this.userService.create({
       login: login,
       name: name,
       avatar: avatar,

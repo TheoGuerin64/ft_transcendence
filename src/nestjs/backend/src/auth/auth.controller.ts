@@ -130,7 +130,7 @@ export class AuthController {
     );
     const qr = await toDataURL(otpauthUrl);
 
-    this.userService.update(user, { twofaSecret: secret });
+    await this.userService.update(user, { twofaSecret: secret });
     return qr;
   }
 
@@ -144,7 +144,7 @@ export class AuthController {
     if (!user.twofaSecret) {
       throw new BadRequestException('2FA is not enabled');
     }
-    this.userService.update(user, { twofaSecret: null });
+    await this.userService.update(user, { twofaSecret: null });
   }
 
   /**

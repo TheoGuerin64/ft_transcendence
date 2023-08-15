@@ -72,7 +72,6 @@ export default {
         })
       } catch (error: any) {
         if (axios.isAxiosError(error) && error.response && error.response.status == 400) {
-          console.log(error.response.data.statusCode)
           submit.classList.add('is-danger')
           this.$notify({
             type: 'error',
