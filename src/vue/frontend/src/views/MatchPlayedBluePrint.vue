@@ -1,5 +1,15 @@
-<script>
+<script setup lang="ts">
+import { store } from '../store'
+import UserAvatar from '@/components/UserAvatar.vue'
+</script>
+
+<script lang="ts">
 export default {
+  data() {
+    return {
+      store
+    }
+  },
   props: {
     playerOneLogin: String,
     playerOneScore: Number,
@@ -12,17 +22,17 @@ export default {
 }
 </script>
 <template>
-  <div>
-    {{ playerOneLogin }} {{ playerOneScore }}
-    <img v-bind:src="playerOneAvatar" />
-
-    {{ playerTwoLogin }} {{ playerTwoScore }}
-    <img v-bind:src="playerTwoAvatar" />
+  <div class="box is-flex is-justify-content-space-between">
+    <div>
+      <UserAvatar :size="256" :image="playerOneAvatar" />
+      {{ playerOneLogin }} {{ playerOneScore }}
+    </div>
+    <div>
+      <UserAvatar :size="256" :image="playerTwoAvatar" />
+      {{ playerTwoLogin }} {{ playerTwoScore }}
+    </div>
   </div>
 </template>
 <style>
-img {
-  height: 100px;
-  width: auto;
-}
+@import 'https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css';
 </style>
