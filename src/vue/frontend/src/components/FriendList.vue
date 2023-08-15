@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import axios from 'axios'
-import FriendElement from './FriendElement.vue'
+import FriendItem from './FriendItem.vue'
 </script>
 
 <script lang="ts">
@@ -37,7 +37,7 @@ export default {
       <RouterLink to="/profile/search" class="button is-link is-small">Search</RouterLink>
     </div>
     <div class="is-flex is-flex-direction-column">
-      <FriendElement
+      <FriendItem
         v-for="friend in friends"
         :key="friend.login"
         :friend="friend"

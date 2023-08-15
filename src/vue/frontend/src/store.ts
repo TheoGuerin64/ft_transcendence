@@ -1,11 +1,20 @@
 import { reactive } from 'vue'
 
-export type UserType = {
-  login: string
+export enum UserStatus {
+  ONLINE = 'online',
+  OFFLINE = 'offline',
+  PLAYING = 'playing'
+}
+
+export type User = {
+  login: UserStatus
   name: string
+  status: string
   avatar: string
   is2faEnabled: boolean
 }
+
+export type UserPublic = Pick<User, 'login' | 'name' | 'status' | 'avatar'>
 
 /**
  * Get data from local storage
@@ -25,14 +34,14 @@ function fromLocalStorage(key: string, defaultValue: any): any {
  * Global store
  */
 export const useStore = reactive({
-  user: fromLocalStorage('user', undefined) as UserType | null | undefined,
+  user: fromLocalStorage('user', undefined) as User | null | undefined,
   isConnecting: fromLocalStorage('isConnecting', false),
 
   /**
    * Set user
    * @param user user to set
    */
-  setUser(user: UserType | null) {
+  setUser(user: User | null) {
     this.user = user
     localStorage.setItem('user', JSON.stringify(user))
   },
@@ -41,7 +50,7 @@ export const useStore = reactive({
    * Update user
    * @param data partial user data to update
    */
-  updateUser(data: Partial<UserType>) {
+  updateUser(data: Partial<User>) {
     if (!this.user) {
       throw new Error('User is not logged in')
     }
