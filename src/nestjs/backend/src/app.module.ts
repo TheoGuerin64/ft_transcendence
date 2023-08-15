@@ -1,4 +1,5 @@
 import { AuthModule } from './auth/auth.module';
+import { MatchHistoryModule } from './matchHistory/matchHistory.module';
 import { MatchPlayed } from './pong/database/matchPlayed.entity';
 import { MatchPlayedModule } from './pong/database/matchPlayed.module';
 import { Module } from '@nestjs/common';
@@ -23,6 +24,7 @@ import { UserModule } from './user/user.module';
     AuthModule,
     PongModule,
     MatchPlayedModule,
+    MatchHistoryModule,
   ],
   controllers: [],
   providers: [],
