@@ -97,12 +97,12 @@ export default {
       Pending
     </p>
     <div>
-      <button class="button is-danger is-pulled-right" @click="removeFriend">
+      <button class="button is-danger is-outlined is-pulled-right" @click="removeFriend">
         {{ buttonText }}
       </button>
       <button
         v-if="!friend.sender && !friend.accepted"
-        class="button is-success is-pulled-right"
+        class="button is-success is-outlined is-pulled-right"
         @click="acceptFriend"
       >
         Accept
