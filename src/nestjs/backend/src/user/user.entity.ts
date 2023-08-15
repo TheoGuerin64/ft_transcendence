@@ -33,6 +33,11 @@ export class User {
   @Exclude()
   @Expose()
   get public(): DeepPartial<User> {
-    return { login: this.login, name: this.name, avatar: this.avatar };
+    return {
+      login: this.login,
+      name: this.name,
+      status: this.status,
+      avatar: this.avatar,
+    };
   }
 }
