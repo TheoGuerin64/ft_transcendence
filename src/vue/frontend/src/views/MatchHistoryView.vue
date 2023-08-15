@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import axios from 'axios'
+import axios, { type AxiosResponse } from 'axios'
 import MatchPlayedBluePrint from './MatchPlayedBluePrint.vue'
 </script>
 <script lang="ts">
@@ -30,23 +30,27 @@ export default {
           withCredentials: true
         })
         .then((response) => {
-          for (let x = 0; x < response.data.length; x++) {
-            const match = {} as Match
-            match.result = response.data[x].result
-            match.users = []
-            match.id = response.data[x].id
-            const userOne = {} as User
-            userOne.login = response.data[x].users[0].login
-            userOne.avatar = response.data[x].users[0].avatar
-            match.users.push(userOne)
-            const userTwo = {} as User
-            userTwo.login = response.data[x].users[1].login
-            userTwo.avatar = response.data[x].users[1].avatar
-            match.users.push(userTwo)
-            this.matches.push(match)
-          }
+          this.parseResponse(response)
           this.findMatches = true
         })
+    },
+
+    parseResponse(response: AxiosResponse) {
+      for (let x = 0; x < response.data.length; x++) {
+        const match = {} as Match
+        match.result = response.data[x].result
+        match.users = []
+        match.id = response.data[x].id
+        const userOne = {} as User
+        userOne.login = response.data[x].users[0].login
+        userOne.avatar = response.data[x].users[0].avatar
+        match.users.push(userOne)
+        const userTwo = {} as User
+        userTwo.login = response.data[x].users[1].login
+        userTwo.avatar = response.data[x].users[1].avatar
+        match.users.push(userTwo)
+        this.matches.push(match)
+      }
     }
   }
 }
