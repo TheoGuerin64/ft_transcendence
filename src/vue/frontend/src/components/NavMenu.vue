@@ -3,6 +3,7 @@ import axios from 'axios'
 import { RouterLink } from 'vue-router'
 import { socket } from '../socket'
 import { useStore } from '../store'
+import UserAvatar from './UserAvatar.vue'
 </script>
 
 <script lang="ts">
@@ -70,9 +71,15 @@ export default {
         <a v-if="store.user && !store.isConnecting" class="navbar-item" @click="signOut"
           >Sign Out</a
         >
-        <RouterLink v-if="store.user && !store.isConnecting" to="/profile" class="navbar-item">{{
-          store.user.name
-        }}</RouterLink>
+        <RouterLink
+          v-if="store.user && !store.isConnecting"
+          to="/profile"
+          class="navbar-item is-flex is-flex-direction-row"
+          style="padding: 0"
+        >
+          <span class="px-2">{{ store.user.name }}</span>
+          <UserAvatar :image="store.user.avatar" :size="52" />
+        </RouterLink>
       </div>
     </div>
   </nav>
