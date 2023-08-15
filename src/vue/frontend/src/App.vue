@@ -3,7 +3,7 @@ import axios from 'axios'
 import { RouterView } from 'vue-router'
 import NavMenu from './components/NavMenu.vue'
 import { socketConnect } from './socket'
-import { useStore, type UserType } from './store'
+import { useStore, type User } from './store'
 </script>
 
 <script lang="ts">
@@ -18,7 +18,7 @@ export default {
     /**
      * Get the current user from the backend.
      */
-    async getUser(): Promise<UserType | null> {
+    async getUser(): Promise<User | null> {
       try {
         const response = await axios.get('http://127.0.0.1:3000/user')
         return response.data
