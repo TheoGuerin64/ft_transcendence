@@ -1,4 +1,5 @@
 import CallBackView from '../views/CallbackView.vue'
+import ChatView from '../views/ChatView.vue'
 import HomeView from '../views/HomeView.vue'
 import PathNotFoundView from '../views/PathNotFoundView.vue'
 import ProfileView from '../views/ProfileView.vue'
@@ -18,6 +19,11 @@ const router = createRouter({
       path: '/callback',
       name: 'callback',
       component: CallBackView
+    },
+    {
+      path: '/chat',
+      name: 'chat',
+      component: ChatView
     },
     {
       path: '/profile',

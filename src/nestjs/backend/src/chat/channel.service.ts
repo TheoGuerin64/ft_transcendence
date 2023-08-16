@@ -19,14 +19,13 @@ export class ChannelService {
 
   create(channelData: Required<Channel>): Channel {
     const channel = this.channelModel.create(channelData);
-    this.channelModel.save(channel);
     return channel;
   }
 
   async addMessage(data: any) {
     const channel = await this.findOne(data.channelName);
     const message = this.messageService.create({
-      text: data.message,
+      text: data.content,
       createdAt: new Date(),
     });
     const user = await this.userService.findOne(data.login);

@@ -16,7 +16,7 @@ export class Channel {
   @Column()
   password: string;
 
-  @OneToMany(() => Message, (message) => message.channel, { cascade: true })
+  @OneToMany(() => Message, (message) => message.channel)
   messages: Message[];
 
   @OneToMany(() => Membership, (membership) => membership.channel)
