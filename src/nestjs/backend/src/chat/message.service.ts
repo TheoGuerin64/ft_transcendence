@@ -12,7 +12,6 @@ export class MessageService {
 
   create(messageData: DeepPartial<Message>): Message {
     const message = this.messageModel.create(messageData);
-    this.messageModel.save(message);
     return message;
   }
 
