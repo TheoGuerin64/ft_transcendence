@@ -56,7 +56,7 @@ export default {
 
 <template>
   <button id="sendChannel" class="button mt-3 is-link is-outlined" @click="joinChannel">
-    Join Channel
+    Join Channel 'test'
   </button>
   <button id="sendChannel" class="button mt-3 is-link is-outlined" @click="leaveChannel">
     Leave Channel
