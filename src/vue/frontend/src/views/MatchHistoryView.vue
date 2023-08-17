@@ -1,17 +1,10 @@
 <script setup lang="ts">
 import axios, { type AxiosResponse } from 'axios'
 import MatchPlayedBluePrint from './MatchPlayedBluePrint.vue'
+import MatchesStatistics from './MatchesStatisticsView.vue'
+import type { Match, User } from '../interface'
 </script>
 <script lang="ts">
-interface User {
-  login: string
-  avatar: string
-}
-interface Match {
-  users: User[]
-  result: number[]
-  id: number
-}
 export default {
   data() {
     return {
@@ -60,17 +53,15 @@ export default {
   <routerLink to="/Game">Game</routerLink>
   <p>Match History</p>
 
-  <div v-if="findMatches">
-    <div v-for="match in matches" :key="match.id">
-      <MatchPlayedBluePrint
-        :playerOneLogin="match.users[0].login"
-        :playerOneScore="match.result[0]"
-        :playerOneAvatar="match.users[0].avatar"
-        :playerTwoLogin="match.users[1].login"
-        :playerTwoScore="match.result[1]"
-        :playerTwoAvatar="match.users[1].avatar"
-      />
-      <br />
-    </div>
+  <div v-if="findMatches" id="history">
+    <MatchesStatistics :Matches="matches" />
+    <MatchPlayedBluePrint :Matches="matches" />
   </div>
 </template>
+
+<style>
+#history {
+  height: 85vh;
+  overflow: auto;
+}
+</style>
