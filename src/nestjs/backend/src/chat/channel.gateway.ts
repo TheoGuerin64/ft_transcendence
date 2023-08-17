@@ -58,6 +58,7 @@ export class ChannelGateway {
             'message',
             messageHistory[i].text,
             messageHistory[i].user.name,
+            messageHistory[i].user.avatar,
           );
         }
       }
