@@ -1,3 +1,4 @@
+import { io } from 'socket.io-client'
 import { reactive } from 'vue'
 
 export type UserType = {
@@ -27,6 +28,7 @@ function fromLocalStorage(key: string, defaultValue: any): any {
 export const useStore = reactive({
   user: fromLocalStorage('user', undefined) as UserType | null | undefined,
   isConnecting: fromLocalStorage('isConnecting', false),
+  socket: io('http://localhost:3000') as any,
 
   /**
    * Set user
