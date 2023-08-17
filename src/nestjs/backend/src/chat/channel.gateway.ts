@@ -27,7 +27,7 @@ export class ChannelGateway {
     this.channelService.addMessage(data);
     this.server
       .to(data.channelName)
-      .emit('message', data.message, data.username);
+      .emit('message', data.content, data.username, data.avatar);
   }
   //@UseGuards(JwtAuthGuard)
   @SubscribeMessage('join-channel')
@@ -57,7 +57,9 @@ export class ChannelGateway {
           );
         }
       }
-      this.server.to(data.channelName).emit('user-joined', data.username);
+      this.server
+        .to(data.channelName)
+        .emit('user-joined', data.username, data.avatar);
     }
   }
 
