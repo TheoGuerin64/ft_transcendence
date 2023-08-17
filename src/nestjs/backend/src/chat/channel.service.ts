@@ -22,6 +22,20 @@ export class ChannelService {
     return channel;
   }
 
+  async checkConnection(data: any, client: any): Promise<void> {
+    const user = await this.userService.findOne(data.login);
+    if (!user) {
+      return;
+    }
+    const channel = await this.findOne(data.channelName);
+    if (
+      channel &&
+      (await this.membershipService.findOne(channel.name, user.login))
+    ) {
+      client.join(data.channelName);
+    }
+  }
+
   async addMessage(data: any) {
     const channel = await this.findOne(data.channelName);
     const message = this.messageService.create({

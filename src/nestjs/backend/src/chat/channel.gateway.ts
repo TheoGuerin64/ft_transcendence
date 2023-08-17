@@ -20,10 +20,14 @@ export class ChannelGateway {
 
   //@UseGuards(JwtAuthGuard)
   @SubscribeMessage('message')
-  async handleMessage(@MessageBody() data: any): Promise<void> {
+  async handleMessage(
+    @MessageBody() data: any,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
     if (data.channelName === '') {
       return;
     }
+    await this.channelService.checkConnection(data, client);
     this.channelService.addMessage(data);
     this.server
       .to(data.channelName)

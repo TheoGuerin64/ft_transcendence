@@ -34,10 +34,7 @@ export default {
   async mounted() {
     this.channelName = this.$route.params.channelId as string
     this.socket = this.store.socket
-    console.log('socket', this.socket)
     this.socket.on('message', (msg: string, username: string, avatar: string) => {
-      console.log('message', msg)
-      console.log('socket', this.socket)
       this.Messages.push({
         id: this.id++,
         data: {
@@ -66,7 +63,6 @@ export default {
       })
     })
     this.socket.on('notification', (message: string) => {
-      console.log(message)
       this.$notify({
         type: 'error',
         text: message
@@ -80,7 +76,6 @@ export default {
       messageData.avatar = this.store.user?.avatar
       messageData.channelName = this.channelName
       messageData.login = this.store.user?.login
-      console.log('message', messageData)
       this.socket.emit('message', messageData)
     }
   }
