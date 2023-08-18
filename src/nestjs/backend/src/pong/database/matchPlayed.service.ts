@@ -9,7 +9,6 @@ export class MatchPlayedService {
   constructor(
     @InjectRepository(MatchPlayed)
     private readonly MatchPlayedModel: Repository<MatchPlayed>,
-    private readonly userService: UserService,
   ) {}
 
   create(MatchPlayedData: DeepPartial<MatchPlayed>): MatchPlayed {

@@ -1,17 +1,22 @@
 <script setup lang="ts">
 import { store } from '../store'
 import type { Match, User } from '../interface'
+import axios, { type AxiosResponse } from 'axios'
 </script>
 
 <script lang="ts">
+interface statistics {
+  nbWin: number
+  nbLose: number
+  winRate: number
+  elo: number
+  ladder: number
+}
 export default {
   data() {
     return {
       store,
-      nbWin: 0,
-      nbLose: 0,
-      percentageWin: 0,
-      elo: 50
+      userStats: {} as statistics
     }
   },
   props: {
@@ -19,45 +24,25 @@ export default {
   },
 
   mounted() {
-    this.parseData()
+    this.findPlayerStat()
   },
   methods: {
-    parseData() {
-      this.calculateWinLose()
+    findPlayerStat() {
+      axios
+        .get('http://127.0.0.1:3000/MatchStatistics', {
+          withCredentials: true
+        })
+        .then((response) => {
+          this.parseData(response)
+        })
     },
-    calculateWinLose() {
-      if (this.Matches === undefined) {
-        return
-      }
-      for (const match of this.Matches) {
-        let player = this.findPlayer(match)
-        if (this.userWon(match, player)) {
-          this.nbWin++
-        } else {
-          this.nbLose++
-        }
-        let secondPlayer
-        if (player == 0) {
-          secondPlayer = 1
-        } else {
-          secondPlayer = 0
-        }
-        this.elo += match.result[player] - match.result[secondPlayer]
-      }
-      this.percentageWin = Math.round((this.nbWin / (this.nbWin + this.nbLose)) * 100)
-    },
-    findPlayer(match: Match): number {
-      if (this.store.user?.name === match.users[0].login?.trimEnd()) {
-        return 0
-      } else {
-        return 1
-      }
-    },
-    userWon(match: Match, player: number): boolean {
-      if (match.result[player] === 5) {
-        return true
-      } else {
-        return false
+    parseData(response: AxiosResponse) {
+      this.userStats = {
+        nbWin: response.data.nbWin,
+        nbLose: response.data.nbLose,
+        winRate: response.data.winRate,
+        elo: response.data.elo,
+        ladder: response.data.ladder
       }
     }
   }
@@ -65,9 +50,11 @@ export default {
 </script>
 <template>
   <p>
-    Win : {{ nbWin }}, Lose : {{ nbLose }}, percentage of win : {{ percentageWin }}%, elo
-    {{ elo }}
+    win : {{ userStats.nbWin }} | lose : {{ userStats.nbLose }} | winrate: {{ userStats.winRate }}%
   </p>
+  <p>elo : {{ userStats.elo }}</p>
+  <p v-if="userStats.ladder !== -1">rank :{{ userStats.ladder }}</p>
+  <p v-else>rank : unranked</p>
 </template>
 <style>
 @import 'https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css';

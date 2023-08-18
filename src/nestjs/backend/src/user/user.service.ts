@@ -2,6 +2,7 @@ import { DeepPartial, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
+import { UserStatsService } from 'src/userStats/userStats.service';
 
 export interface PublicData {
   name: string;
@@ -13,10 +14,12 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userModel: Repository<User>,
+    private readonly userStatsService: UserStatsService,
   ) {}
 
-  create(userData: Required<User>): User {
-    const user = this.userModel.create(userData);
+  async create(userData: DeepPartial<User>): Promise<User> {
+    const user = await this.userModel.create(userData);
+    user.stats = await this.userStatsService.init();
     this.userModel.save(user);
     return user;
   }

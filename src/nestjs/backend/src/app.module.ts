@@ -7,6 +7,8 @@ import { PongModule } from './pong/game/pong.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
+import { UserStats } from './userStats/userStats.entity';
+import { userStatsModule } from './userStats/userStats.module';
 
 @Module({
   imports: [
@@ -17,7 +19,7 @@ import { UserModule } from './user/user.module';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_USER,
-      entities: [User, MatchPlayed],
+      entities: [User, MatchPlayed, UserStats],
       synchronize: true,
     }),
     UserModule,
@@ -25,6 +27,7 @@ import { UserModule } from './user/user.module';
     PongModule,
     MatchPlayedModule,
     MatchHistoryModule,
+    userStatsModule,
   ],
   controllers: [],
   providers: [],

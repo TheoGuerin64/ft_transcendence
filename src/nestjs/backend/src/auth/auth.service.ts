@@ -41,7 +41,7 @@ export class AuthService {
     if (user) {
       user = this.userService.update(user, newToken);
     } else {
-      user = this.userService.create({
+      user = await this.userService.create({
         login: data['login'],
         name: data['login'],
         avatar: data['image']['versions']['medium'],
