@@ -9,6 +9,7 @@ import { PlayerService } from './player.service';
 import { Server, Socket } from 'socket.io';
 import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
+import { UserStatsService } from 'src/userStats/userStats.service';
 
 @Injectable()
 export class PongService {
@@ -17,6 +18,7 @@ export class PongService {
     private readonly gameService: GameService,
     private readonly matchPlayedService: MatchPlayedService,
     private readonly userService: UserService,
+    private readonly userStatsService: UserStatsService,
   ) {}
 
   joinQueue(
@@ -112,5 +114,10 @@ export class PongService {
       users: [playerOneDatabase, playerTwoDatabase],
       result: [game.getPlayerOne().getPoint(), game.getPlayerTwo().getPoint()],
     });
+    await this.userStatsService.updateStats(
+      playerOneDatabase,
+      playerTwoDatabase,
+      game,
+    );
   }
 }

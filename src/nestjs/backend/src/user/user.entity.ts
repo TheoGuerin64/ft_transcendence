@@ -1,10 +1,24 @@
-import { Column, Entity, JoinTable, ManyToMany, PrimaryColumn } from 'typeorm';
 import { MatchPlayed } from 'src/pong/database/matchPlayed.entity';
+import { UserStats } from '../userStats/userStats.entity';
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  OneToOne,
+  PrimaryColumn,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class User {
-  @PrimaryColumn({ type: 'char', length: 8 })
+  @PrimaryColumn()
   login: string;
+
+  @OneToOne(() => UserStats, (userStats) => userStats.user)
+  @JoinColumn()
+  stats: UserStats;
 
   @Column({ type: 'varchar', length: 16 })
   name: string;
