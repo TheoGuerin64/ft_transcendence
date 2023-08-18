@@ -1,3 +1,4 @@
+import { channel } from 'diagnostics_channel';
 import { ChannelService } from './channel.service';
 import { MessageService } from './message.service';
 import { Server, Socket } from 'socket.io';
@@ -51,21 +52,19 @@ export class ChannelGateway {
       console.log('You already joined this channel:', data.login);
       client.emit('notification', 'You already joined this channel');
     } else {
-      client.join(data.channelName);
-      if (messageHistory) {
-        for (let i = 0; i < messageHistory.length; i++) {
-          client.emit(
-            'message',
-            messageHistory[i].text,
-            messageHistory[i].user.name,
-            messageHistory[i].user.avatar,
-          );
-        }
-      }
+      await this.channelService.sendHistory(data, client);
       this.server
         .to(data.channelName)
         .emit('user-joined', data.username, data.avatar);
     }
+  }
+
+  @SubscribeMessage('send-history')
+  async sendHistoryMessage(
+    @MessageBody() channelName: string,
+    @ConnectedSocket() client: any,
+  ): Promise<void> {
+    await this.channelService.sendHistory(channelName, client);
   }
 
   @SubscribeMessage('leave-channel')
@@ -76,6 +75,8 @@ export class ChannelGateway {
   ): Promise<void> {
     client.leave(data.channelName);
     await this.channelService.removeMembership(data);
-    this.server.to(data.channelName).emit('user-left', data.username);
+    this.server
+      .to(data.channelName)
+      .emit('user-left', data.username, data.avatar);
   }
 }

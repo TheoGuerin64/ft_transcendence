@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useStore } from '../store'
-import { Socket, io } from 'socket.io-client'
 import Message from '../components/Message.vue'
-import UserAvatar from '@/components/UserAvatar.vue'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 </script>
 
 <script lang="ts">
@@ -34,6 +33,7 @@ export default {
   async mounted() {
     this.channelName = this.$route.params.channelId as string
     this.socket = this.store.socket
+    this.socket.emit('send-history', this.channelName)
     this.socket.on('message', (msg: string, username: string, avatar: string) => {
       this.Messages.push({
         id: this.id++,
@@ -53,30 +53,28 @@ export default {
         }
       })
     })
-    this.socket.on('user-left', (username: string) => {
+    this.socket.on('user-left', (username: string, avatar: string) => {
       this.Messages.push({
         id: this.id++,
         data: {
           content: username + ' has left the channel ' + this.channelName,
-          avatar: this.store.user?.avatar
+          avatar: avatar
         }
-      })
-    })
-    this.socket.on('notification', (message: string) => {
-      this.$notify({
-        type: 'error',
-        text: message
       })
     })
   },
   methods: {
-    submitNewMessage(): void {
+    submitNewMessage(event: Event): void {
+      if (event) {
+        event.preventDefault()
+      }
       messageData.content = this.message
       messageData.username = this.store.user?.name
       messageData.avatar = this.store.user?.avatar
       messageData.channelName = this.channelName
       messageData.login = this.store.user?.login
       this.socket.emit('message', messageData)
+      this.message = ''
     }
   }
 }
@@ -100,8 +98,12 @@ export default {
       </ul>
     </div>
     <div id="sendBar">
-      <input id="inputMessage" v-model="message" />
-      <button id="sendMessage" @click="submitNewMessage">SEND</button>
+      <form @submit="submitNewMessage">
+        <input id="inputMessage" v-model="message" />
+      </form>
+      <button id="sendMessage" @click="submitNewMessage">
+        SEND <FontAwesomeIcon :icon="['fas', 'comment']" shake />
+      </button>
     </div>
   </main>
 </template>
