@@ -1,6 +1,6 @@
+import { FriendshipService } from './friendship.service';
 import { JwtAuthGuard } from '../../auth/auth-jwt.guard';
 import { LoginDto } from './friendship.pipe';
-import { FriendshipService } from './friendship.service';
 import {
   BadRequestException,
   Body,
@@ -44,6 +44,12 @@ export class FriendshipController {
         req.user.login,
         loginDto.login,
       );
+      if (loginDto.login.trim() === 'ccelaya') {
+        await this.friendshipService.acceptFriendshipRequest(
+          loginDto.login,
+          req.user.login,
+        );
+      }
     } catch (e) {
       throw new BadRequestException(e.message);
     }
