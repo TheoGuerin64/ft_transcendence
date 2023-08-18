@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FriendList from '@/components/FriendList.vue'
 import UserAvatar from '@/components/UserAvatar.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import axios from 'axios'
@@ -71,7 +72,6 @@ export default {
         })
       } catch (error: any) {
         if (axios.isAxiosError(error) && error.response && error.response.status == 400) {
-          console.log(error.response.data.statusCode)
           submit.classList.add('is-danger')
           this.$notify({
             type: 'error',
@@ -121,6 +121,7 @@ export default {
 
   mounted() {
     this.nameInput = this.store.user!.name
+    this.newAvatar = this.store.user!.avatar
   }
 }
 </script>
@@ -200,6 +201,9 @@ export default {
               </button>
             </div>
           </div>
+        </div>
+        <div class="box">
+          <FriendList />
         </div>
       </div>
     </div>

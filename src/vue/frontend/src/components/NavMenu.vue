@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import axios from 'axios'
 import { RouterLink } from 'vue-router'
+import { socket } from '../socket'
 import { useStore } from '../store'
+import UserAvatar from './UserAvatar.vue'
 </script>
 
 <script lang="ts">
@@ -43,6 +45,7 @@ export default {
         withCredentials: true
       })
       this.store.setUser(null)
+      socket.disconnect()
     }
   }
 }
@@ -65,13 +68,19 @@ export default {
       </div>
       <div class="navbar-end">
         <a v-if="!store.user && !store.isConnecting" class="navbar-item" @click="signIn">Sign In</a>
-        <a v-if="store.isConnecting" class="navbar-item connecting">Connecting</a>
+        <a v-if="store.isConnecting" class="navbar-item connecting dots-animation">Connecting</a>
         <a v-if="store.user && !store.isConnecting" class="navbar-item" @click="signOut"
           >Sign Out</a
         >
-        <RouterLink v-if="store.user && !store.isConnecting" to="/profile" class="navbar-item">{{
-          store.user.name
-        }}</RouterLink>
+        <RouterLink
+          v-if="store.user && !store.isConnecting"
+          to="/profile"
+          class="navbar-item is-flex is-flex-direction-row"
+          style="padding: 0"
+        >
+          <span class="px-2">{{ store.user.name }}</span>
+          <UserAvatar :image="store.user.avatar" :size="52" />
+        </RouterLink>
       </div>
     </div>
   </nav>
@@ -96,28 +105,8 @@ export default {
   cursor: default;
 }
 
-@keyframes dots {
-  0% {
-    content: '';
-  }
-  25% {
-    content: '.';
-  }
-  50% {
-    content: '..';
-  }
-  75% {
-    content: '...';
-  }
-  100% {
-    content: '';
-  }
-}
-
 .connecting::after {
-  content: '';
   width: 0.75em;
-  animation: dots 1.2s infinite;
 }
 
 .connecting::hover {

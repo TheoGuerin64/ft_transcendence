@@ -1,7 +1,3 @@
-<script setup lang="ts">
-import { useStore } from '../store'
-</script>
-
 <script lang="ts">
 /**
  * User avatar component (crop the image to a square)
@@ -18,12 +14,6 @@ export default {
       type: String,
       default: null
     }
-  },
-
-  data() {
-    return {
-      store: useStore
-    }
   }
 }
 </script>
@@ -31,7 +21,7 @@ export default {
 <template>
   <div
     :style="{
-      backgroundImage: `url(${image || store.user!.avatar})`,
+      backgroundImage: `url(${image || '/loading.gif'})`,
       width: `${size}px`,
       height: `${size}px`
     }"

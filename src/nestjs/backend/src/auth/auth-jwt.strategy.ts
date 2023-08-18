@@ -13,6 +13,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         JwtStrategy.extractJWT,
+        JwtStrategy.extractJWTFromSocketAuth,
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
@@ -35,5 +36,17 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       return req.cookies.token;
     }
     return null;
+  }
+
+  /**
+   * Extract JWT from socket.io auth handshake
+   */
+  static extractJWTFromSocketAuth(req: any): string | null {
+    if (!req.handshake || !req.handshake.auth) return null;
+    const token = req.handshake.auth.token as string | null;
+    if (!token || token.length == 0) {
+      return null;
+    }
+    return token;
   }
 }

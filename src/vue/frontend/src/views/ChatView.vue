@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { notify } from '@kyvg/vue3-notification'
 import { useStore } from '../store'
+import { socket } from '@/socket'
 </script>
 
 <script lang="ts">
@@ -14,8 +16,7 @@ export default {
   data() {
     return {
       store: useStore,
-      channelName: 'test' as string,
-      socket: null as any
+      channelName: 'test' as string
     }
   },
   methods: {
@@ -26,7 +27,7 @@ export default {
       channelData.channelName = this.channelName
       channelData.login = this.store.user?.login
       console.log(this.store.user?.name + ' joined ' + this.channelName)
-      this.socket.emit('join-channel', channelData)
+      socket.emit('join-channel', channelData)
       this.$router.push('/chat/' + this.channelName)
     },
     leaveChannel(): void {
@@ -36,12 +37,10 @@ export default {
       channelData.channelName = this.channelName
       channelData.login = this.store.user?.login
       console.log(this.store.user?.name + ' left ' + this.channelName)
-      this.socket.emit('leave-channel', channelData)
+      socket.emit('leave-channel', channelData)
     }
   },
-  async mounted() {
-    this.socket = this.store.socket
-  }
+  async mounted() {}
 }
 </script>
 

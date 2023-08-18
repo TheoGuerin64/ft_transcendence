@@ -1,11 +1,12 @@
 import { authenticator } from 'otplib';
-import { toDataURL } from 'qrcode';
-import { UserService } from '../user/user.service';
-import { JwtAuthGuard } from './auth-jwt.guard';
-import { OAuth2AuthGuard } from './auth-oauth2.guard';
-import { VerifyDto } from './auth.pipe';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './auth-jwt.guard';
+import { LengthDto, VerifyDto } from './auth.pipe';
+import { OAuth2AuthGuard } from './auth-oauth2.guard';
 import { SignInResponse } from './auth.types';
+import { toDataURL } from 'qrcode';
+import { User } from 'src/user/user.entity';
+import { UserService } from '../user/user.service';
 import {
   BadRequestException,
   Body,
@@ -21,7 +22,7 @@ import {
 } from '@nestjs/common';
 
 const COOKIES_OPTIONS = {
-  httpOnly: true,
+  httpOnly: false,
   sameSite: 'Lax',
   maxAge: 2592000000,
 };
@@ -129,7 +130,8 @@ export class AuthController {
     );
     const qr = await toDataURL(otpauthUrl);
 
-    this.userService.update(user, { twofaSecret: secret });
+    user.twofaSecret = secret;
+    await this.userService.save(user);
     return qr;
   }
 
@@ -143,6 +145,20 @@ export class AuthController {
     if (!user.twofaSecret) {
       throw new BadRequestException('2FA is not enabled');
     }
-    this.userService.update(user, { twofaSecret: null });
+    user.twofaSecret = null;
+    await this.userService.save(user);
+  }
+
+  /**
+   * Add random fake user to database
+   * @returns user
+   */
+  @Post('fake')
+  async postFake(@Body() lengthDto: LengthDto): Promise<User[]> {
+    const users = [];
+    for (let i = 0; i < lengthDto.length; i++) {
+      users.push(await this.authService.addFakeUser());
+    }
+    return users;
   }
 }

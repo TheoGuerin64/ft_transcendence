@@ -36,13 +36,13 @@ export class ChannelService {
     }
   }
 
-  async addMessage(data: any) {
-    const channel = await this.findOne(data.channelName);
+  async addMessage(content: string, channelName: string, login: string) {
+    const channel = await this.findOne(channelName);
     const message = this.messageService.create({
-      text: data.content,
+      text: content,
       createdAt: new Date(),
     });
-    const user = await this.userService.findOne(data.login);
+    const user = await this.userService.findOne(login);
     if (!user) {
       return;
     }
@@ -62,25 +62,21 @@ export class ChannelService {
     await this.channelModel.save(channel);
   }
 
-  async addMembership(
-    data: any,
-    alreadyJoined: { value: boolean },
-  ): Promise<void> {
-    const user = await this.userService.findOne(data.login);
+  async addMembership(channelName: string, login: string): Promise<boolean> {
+    const user = await this.userService.findOne(login);
     if (!user) {
       return;
     }
-    let channel = await this.findOne(data.channelName);
+    let channel = await this.findOne(channelName);
     if (
       channel &&
       (await this.membershipService.findOne(channel.name, user.login))
     ) {
-      alreadyJoined.value = true;
-      return;
+      return true;
     }
     if (!channel) {
       channel = this.create({
-        name: data.channelName,
+        name: channelName,
         messages: [],
         memberships: [],
         isProtected: false,
@@ -105,9 +101,10 @@ export class ChannelService {
     channel.memberships.push(membership);
     await this.channelModel.save(channel);
     await this.userService.save(user);
+    return false;
   }
 
-  async removeMembership(data: any): Promise<void> {
+  async removeMembership(data: any): Promise<boolean> {
     const user = await this.userService.findOne(data.login);
     if (!user) {
       return;
@@ -121,9 +118,10 @@ export class ChannelService {
       user.login,
     );
     if (!membership) {
-      return;
+      return true;
     }
     await this.membershipService.remove(membership);
+    return false;
   }
 
   async getMessageHistory(channelName: string): Promise<any> {
@@ -138,8 +136,9 @@ export class ChannelService {
         client.emit(
           'message',
           messageHistory[i].text,
-          messageHistory[i].user?.name,
-          messageHistory[i].user?.avatar,
+          messageHistory[i].user!.name,
+          messageHistory[i].user!.avatar,
+          messageHistory[i].user!.login,
         );
       }
     }
