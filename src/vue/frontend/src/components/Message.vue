@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import axios from 'axios'
-import { RouterLink } from 'vue-router'
-import { useStore } from '../store'
 import UserAvatar from './UserAvatar.vue'
 </script>
 
@@ -15,7 +12,9 @@ export default {
     content: String
   },
   data() {
-    return {}
+    return {
+      profile: 'http://127.0.0.1:8080/profile/public/' + this.login
+    }
   }
 }
 </script>
@@ -23,7 +22,7 @@ export default {
 <template>
   <div id="messages" class="box is-large columns mb-2 mt-2 is-flex-grow-1">
     <div class="column is-narrow is-flex is-flex-direction-column is-justify-content-center">
-      <UserAvatar :image="avatar" :size="40" class="round-image" />
+      <a :href="profile"><UserAvatar :image="avatar" :size="40" class="round-image" /></a>
     </div>
     <div
       class="column is-flex is-flex-direction-column is-justify-content-center is-flex-wrap-wrap"

@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { lastValueFrom } from 'rxjs';
 import { promisify } from 'util';
 import { TokenResponse } from './auth.types';
 import { User } from '../user/user.entity';
@@ -32,7 +33,7 @@ export class AuthService {
       'https://api.intra.42.fr' + endpoint,
       config,
     );
-    return (await firstValueFrom(request)).data;
+    return (await lastValueFrom(request)).data;
   }
 
   /**
@@ -44,11 +45,12 @@ export class AuthService {
     const data = await this.getData(token.access_token, '/v2/me');
     let user = await this.userService.findOne(data['login']);
     if (!user) {
-      user = this.userService.create({
+      user = await this.userService.create({
         login: data['login'],
         name: data['login'],
         avatar: data['image']['versions']['medium'],
         memberships: [],
+        messages: [],
       });
     }
     return user;
@@ -96,5 +98,38 @@ export class AuthService {
       decipher.final(),
     ]);
     return buffer.toString('utf-8');
+  }
+
+  /**
+   * Add fake user
+   * @returns Fake user
+   */
+  async addFakeUser(): Promise<User> {
+    const response = await lastValueFrom(
+      this.httpService.get('https://randomuser.me/api/'),
+    );
+
+    const login = (
+      response.data['results'][0]['name']['last'][0] +
+      response.data['results'][0]['name']['first'].replace(/ /g, '').slice(0, 7)
+    ).toLowerCase();
+    const name = response.data['results'][0]['login']['username'].slice(0, 16);
+    const avatar = response.data['results'][0]['picture']['medium'];
+
+    return await this.userService.create({
+      login: login,
+      name: name,
+      avatar: avatar,
+    });
+  }
+
+  /**
+   * Validate JWT token
+   * @param token JWT token
+   * @returns User
+   */
+  async validateJwt(token: string): Promise<User> {
+    const data = this.jwtService.verify(token);
+    return this.userService.findOne(data['login']);
   }
 }

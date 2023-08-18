@@ -4,6 +4,7 @@ import { Membership } from '../chat/membership.entity';
 import { Message } from 'src/chat/message.entity';
 import {
   Column,
+  DeepPartial,
   Entity,
   JoinTable,
   ManyToMany,
@@ -13,6 +14,12 @@ import {
   PrimaryColumn,
 } from 'typeorm';
 
+export enum UserStatus {
+  ONLINE = 'online',
+  OFFLINE = 'offline',
+  PLAYING = 'playing',
+}
+
 @Entity()
 export class User {
   @PrimaryColumn({ type: 'char', length: 8 })
@@ -21,13 +28,16 @@ export class User {
   @Column({ type: 'varchar', length: 16 })
   name: string;
 
+  @Column({ type: 'enum', enum: UserStatus, default: UserStatus.OFFLINE })
+  status: UserStatus;
+
   @Column({ type: 'varchar', length: 3000000 })
   avatar: string;
 
   @OneToMany(() => Membership, (membership) => membership.user)
   memberships: Membership[];
 
-  @OneToMany(() => Message, (message) => message.user, { cascade: true })
+  @OneToMany(() => Message, (message) => message.user)
   messages: Message[];
 
   @Column({ type: 'char', length: 52, nullable: true, default: null })
@@ -37,5 +47,16 @@ export class User {
   @Expose()
   get is2faEnabled(): boolean {
     return this.twofaSecret !== null;
+  }
+
+  @Exclude()
+  @Expose()
+  get public(): DeepPartial<User> {
+    return {
+      login: this.login,
+      name: this.name,
+      status: this.status,
+      avatar: this.avatar,
+    };
   }
 }

@@ -50,11 +50,7 @@ export class UserController {
     if (!user) {
       throw new BadRequestException('User not found');
     }
-    return {
-      login: user.login,
-      name: user.name,
-      avatar: user.avatar,
-    };
+    return user.public;
   }
 
   /**
@@ -102,8 +98,21 @@ export class UserController {
     // Upate user if there is something to update
     if (Object.keys(toUpdate).length > 0) {
       const user = await this.userService.findOne(req.user.login);
-      this.userService.update(user, toUpdate);
+      Object.assign(user, toUpdate);
+      await this.userService.save(user);
     }
     return toUpdate;
+  }
+
+  /**
+   * Get user list
+   * @returns List of users
+   */
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(ClassSerializerInterceptor)
+  @Get('list')
+  async getList(): Promise<DeepPartial<User>[]> {
+    const users = await this.userService.findAll();
+    return users.map((user) => user.public);
   }
 }

@@ -2,6 +2,7 @@
 import { useStore } from '../store'
 import Message from '../components/Message.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { state, socket } from '@/socket'
 </script>
 
 <script lang="ts">
@@ -20,48 +21,17 @@ export default {
   data() {
     return {
       store: useStore,
-      Messages: [] as Array<{
-        id: number
-        data: any
-      }>,
-      message: '' as string,
-      channelName: '' as string,
-      id: 0,
-      socket: null as any
+      state: state,
+      message: '' as string
     }
   },
   async mounted() {
-    this.channelName = this.$route.params.channelId as string
-    this.socket = this.store.socket
-    this.socket.emit('send-history', this.channelName)
-    this.socket.on('message', (msg: string, username: string, avatar: string) => {
-      this.Messages.push({
-        id: this.id++,
-        data: {
-          content: msg,
-          username: username,
-          avatar: avatar
-        }
-      })
-    })
-    this.socket.on('user-joined', (username: string, avatar: string) => {
-      this.Messages.push({
-        id: this.id++,
-        data: {
-          content: username + ' has joined the channel ' + this.channelName,
-          avatar: avatar
-        }
-      })
-    })
-    this.socket.on('user-left', (username: string, avatar: string) => {
-      this.Messages.push({
-        id: this.id++,
-        data: {
-          content: username + ' has left the channel ' + this.channelName,
-          avatar: avatar
-        }
-      })
-    })
+    const data = {
+      login: this.store.user!.login,
+      channelName: this.$route.params.channelId
+    }
+    this.state.channelName = this.$route.params.channelId as string
+    socket.emit('send-history', data)
   },
   methods: {
     submitNewMessage(event: Event): void {
@@ -69,11 +39,15 @@ export default {
         event.preventDefault()
       }
       messageData.content = this.message
-      messageData.username = this.store.user?.name
-      messageData.avatar = this.store.user?.avatar
-      messageData.channelName = this.channelName
-      messageData.login = this.store.user?.login
-      this.socket.emit('message', messageData)
+      messageData.username = this.store.user!.name
+      messageData.avatar = this.store.user!.avatar
+      messageData.channelName = this.state.channelName
+      messageData.login = this.store.user!.login
+      try {
+        socket.emit('message', messageData)
+      } catch (error) {
+        console.log(error)
+      }
       this.message = ''
     }
   }
@@ -87,7 +61,7 @@ export default {
     </div>
     <div id="chatDisplay">
       <ul>
-        <li v-for="message in Messages" :key="message.id">
+        <li v-for="message in state.Messages" :key="message.id">
           <Message
             :username="message.data.username"
             :content="message.data.content"
@@ -99,10 +73,10 @@ export default {
     </div>
     <div id="sendBar">
       <form @submit="submitNewMessage">
-        <input id="inputMessage" v-model="message" />
+        <input class="input" id="inputMessage" v-model="message" />
       </form>
-      <button id="sendMessage" @click="submitNewMessage">
-        SEND <FontAwesomeIcon :icon="['fas', 'comment']" shake />
+      <button class="button is-success" id="sendMessage" @click="submitNewMessage">
+        <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
       </button>
     </div>
   </main>
@@ -141,11 +115,6 @@ export default {
 
 #sendMessage {
   margin-left: 2%;
-}
-
-#inputMessage {
-  border-radius: 5px;
-  width: 100%;
 }
 
 #sendChannel {

@@ -1,7 +1,9 @@
-import { channel } from 'diagnostics_channel';
 import { ChannelService } from './channel.service';
-import { MessageService } from './message.service';
+import { JwtAuthGuard } from '../auth/auth-jwt.guard';
+import { MessageDto } from './channel.pipe';
+import { Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import { UserService } from 'src/user/user.service';
 import {
   ConnectedSocket,
   MessageBody,
@@ -14,57 +16,69 @@ import {
 export class ChannelGateway {
   constructor(
     private readonly channelService: ChannelService,
-    private readonly messageService: MessageService,
+    private readonly userService: UserService,
   ) {}
   @WebSocketServer()
   server: Server;
 
-  //@UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
+  @UsePipes(new ValidationPipe())
   @SubscribeMessage('message')
   async handleMessage(
-    @MessageBody() data: any,
-    @ConnectedSocket() client: Socket,
+    @MessageBody() messageDto: MessageDto,
+    @Req() req: any,
   ): Promise<void> {
-    if (data.channelName === '') {
+    if (messageDto.channelName === '') {
       return;
     }
-    await this.channelService.checkConnection(data, client);
-    this.channelService.addMessage(data);
+    this.channelService.addMessage(
+      messageDto.content,
+      messageDto.channelName,
+      req.user.login,
+    );
+    const user = await this.userService.findOne(req.user.login);
     this.server
-      .to(data.channelName)
-      .emit('message', data.content, data.username, data.avatar);
+      .to(messageDto.channelName)
+      .emit('message', messageDto.content, user.name, user.avatar);
   }
-  //@UseGuards(JwtAuthGuard)
+
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('join-channel')
   async joinChannel(
-    @MessageBody() data: any,
+    @MessageBody() messageDto: MessageDto,
     @ConnectedSocket() client: Socket,
+    @Req() req: any,
   ): Promise<void> {
-    if (data.channelName === '') {
+    if (messageDto.channelName === '') {
       return;
     }
-    let alreadyJoined = { value: false };
-    await this.channelService.addMembership(data, alreadyJoined);
     const messageHistory = await this.channelService.getMessageHistory(
-      data.channelName,
+      messageDto.channelName,
     );
-    if (alreadyJoined.value) {
-      console.log('You already joined this channel:', data.login);
-      client.emit('notification', 'You already joined this channel');
+    if (
+      await this.channelService.addMembership(
+        messageDto.channelName,
+        req.user.login,
+      )
+    ) {
+      client.emit('error', 'You already joined this channel');
     } else {
-      await this.channelService.sendHistory(data, client);
+      await this.channelService.sendHistory(messageDto.channelName, client);
+      const user = await this.userService.findOne(req.user.login);
       this.server
-        .to(data.channelName)
-        .emit('user-joined', data.username, data.avatar);
+        .to(messageDto.channelName)
+        .emit('user-joined', user.name, user.avatar);
+      client.emit('success', 'You joined the channel');
     }
   }
 
   @SubscribeMessage('send-history')
   async sendHistoryMessage(
-    @MessageBody() channelName: string,
+    @MessageBody() data: any,
     @ConnectedSocket() client: any,
   ): Promise<void> {
-    await this.channelService.sendHistory(channelName, client);
+    await this.channelService.checkConnection(data, client);
+    await this.channelService.sendHistory(data.channelName, client);
   }
 
   @SubscribeMessage('leave-channel')
@@ -74,9 +88,14 @@ export class ChannelGateway {
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
     client.leave(data.channelName);
-    await this.channelService.removeMembership(data);
-    this.server
-      .to(data.channelName)
-      .emit('user-left', data.username, data.avatar);
+
+    if (await this.channelService.removeMembership(data)) {
+      client.emit('error', 'You already left this channel');
+    } else {
+      this.server
+        .to(data.channelName)
+        .emit('user-left', data.username, data.avatar);
+      client.emit('success', 'You left the channel');
+    }
   }
 }

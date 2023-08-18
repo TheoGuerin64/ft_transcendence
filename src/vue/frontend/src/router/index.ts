@@ -3,6 +3,7 @@ import ChannelView from '../views/ChannelView.vue'
 import ChatView from '../views/ChatView.vue'
 import HomeView from '../views/HomeView.vue'
 import PathNotFoundView from '../views/PathNotFoundView.vue'
+import ProfileSearchView from '../views/ProfileSearchView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
@@ -24,7 +25,8 @@ const router = createRouter({
     {
       path: '/chat',
       name: 'chat',
-      component: ChatView
+      component: ChatView,
+      beforeEnter: isAuthenticatedGuard
     },
     {
       path: '/profile',
@@ -33,7 +35,13 @@ const router = createRouter({
       beforeEnter: isAuthenticatedGuard
     },
     {
-      path: '/profile/:login',
+      path: '/profile/search',
+      name: 'search-profile',
+      component: ProfileSearchView,
+      beforeEnter: isAuthenticatedGuard
+    },
+    {
+      path: '/profile/public/:login',
       name: 'public-profile',
       component: PublicProfileView,
       beforeEnter: isAuthenticatedGuard
@@ -41,7 +49,8 @@ const router = createRouter({
     {
       path: '/chat/:channelId',
       name: 'chat-channel',
-      component: ChannelView
+      component: ChannelView,
+      beforeEnter: isAuthenticatedGuard
     },
     {
       path: '/:pathMatch(.*)*',
