@@ -120,12 +120,29 @@ export class ChannelService {
       channel.name,
       user.login,
     );
+    if (!membership) {
+      return;
+    }
     await this.membershipService.remove(membership);
   }
 
   async getMessageHistory(channelName: string): Promise<any> {
     const channel = await this.findOne(channelName);
     return channel?.messages;
+  }
+
+  async sendHistory(channelName: string, client: any): Promise<void> {
+    const messageHistory = await this.getMessageHistory(channelName);
+    if (messageHistory) {
+      for (let i = 0; i < messageHistory.length; i++) {
+        client.emit(
+          'message',
+          messageHistory[i].text,
+          messageHistory[i].user?.name,
+          messageHistory[i].user?.avatar,
+        );
+      }
+    }
   }
 
   async save(channel: Channel): Promise<Channel> {

@@ -24,10 +24,6 @@ export default {
       channelData.username = this.store.user?.name
       channelData.avatar = this.store.user?.avatar
       channelData.channelName = this.channelName
-      if (this.store.user?.login === undefined) {
-        console.log("You can't join a channel without being logged in")
-        return
-      }
       channelData.login = this.store.user?.login
       console.log(this.store.user?.name + ' joined ' + this.channelName)
       this.socket.emit('join-channel', channelData)
@@ -38,14 +34,9 @@ export default {
       channelData.username = this.store.user?.name
       channelData.avatar = this.store.user?.avatar
       channelData.channelName = this.channelName
-      if (this.store.user?.login === undefined) {
-        console.log("You can't leave a channel without being logged in")
-        return
-      }
       channelData.login = this.store.user?.login
       console.log(this.store.user?.name + ' left ' + this.channelName)
       this.socket.emit('leave-channel', channelData)
-      this.channelName = ''
     }
   },
   async mounted() {
