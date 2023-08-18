@@ -8,7 +8,6 @@ import {
   ManyToMany,
   OneToOne,
   PrimaryColumn,
-  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()

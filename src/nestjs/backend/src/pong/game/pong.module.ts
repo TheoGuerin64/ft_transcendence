@@ -7,7 +7,6 @@ import { PongGateway } from './pong.gateway';
 import { PongService } from './services/pong.service';
 import { UserModule } from './../../user/user.module';
 import { userStatsModule } from 'src/userStats/userStats.module';
-import { UserStatsService } from 'src/userStats/userStats.service';
 
 @Module({
   imports: [MatchPlayedModule, UserModule, userStatsModule],

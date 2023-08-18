@@ -1,9 +1,7 @@
-import { DeepPartial, Repository } from 'typeorm';
 import { Game } from '../pong/game/classes/game.class';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MatchPlayed } from 'src/pong/database/matchPlayed.entity';
-import { MatchPlayedService } from 'src/pong/database/matchPlayed.service';
+import { Repository } from 'typeorm';
 import { User } from 'src/user/user.entity';
 import { UserStats } from './userStats.entity';
 

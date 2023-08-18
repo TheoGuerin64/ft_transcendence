@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { store } from '../store'
-import type { Match, User } from '../interface'
+import type { Match } from '../interface'
 import axios, { type AxiosResponse } from 'axios'
 </script>
 
