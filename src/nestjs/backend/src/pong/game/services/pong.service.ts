@@ -1,13 +1,10 @@
 import { BallService } from './ball.service';
-import { DataSource } from 'typeorm';
 import { Game } from '../classes/game.class';
 import { GameService } from './game.service';
 import { Injectable } from '@nestjs/common';
-import { MatchPlayed } from 'src/pong/database/matchPlayed.entity';
 import { MatchPlayedService } from 'src/pong/database/matchPlayed.service';
 import { PlayerService } from './player.service';
 import { Server, Socket } from 'socket.io';
-import { User } from 'src/user/user.entity';
 import { UserService } from 'src/user/user.service';
 import { UserStatsService } from 'src/userStats/userStats.service';
 
