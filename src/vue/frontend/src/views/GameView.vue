@@ -212,7 +212,10 @@ export default {
       <p>Player Two: {{ scorePlayerTwo }}</p>
     </div>
     <div v-else-if="gameEnded" class="box">
-      <p>the winner is {{ winner }} ! The score is {{ scorePlayerOne }} - {{ scorePlayerTwo }}</p>
+      <p v-if="winner === 'surrender'">the other player left the game, you won by forfeit</p>
+      <p v-else>
+        the winner is {{ winner }} ! The score is {{ scorePlayerOne }} - {{ scorePlayerTwo }}
+      </p>
       <button @click="returnLobby" class="button mx-3 is-light">return to lobby</button>
     </div>
     <div v-else>
