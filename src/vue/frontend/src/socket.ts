@@ -24,6 +24,7 @@ socket.on('connect', () => {
 socket.on('disconnect', () => {
   state.connected = false
 })
+
 socket.on('message', (msg: string, username: string, avatar: string, login: string) => {
   state.Messages.push({
     id: state.id++,

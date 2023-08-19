@@ -9,3 +9,13 @@ export class MessageDto {
   @MinLength(1)
   channelName: string;
 }
+
+export class ChannelDto {
+  @IsString()
+  @MinLength(1)
+  name: string;
+
+  @IsString()
+  @MinLength(1)
+  role: string;
+}
