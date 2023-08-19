@@ -6,7 +6,6 @@ import { Server } from 'socket.io';
 import {
   collisionBallCentralCube,
   collisionBallMapBorder,
-  cubeBorder,
   IncreaseBallSpeed,
   playerHeight,
 } from '../globals';
@@ -53,28 +52,23 @@ export class BallService {
     }
 
     if (game.getGameType() === 'custom') {
-      this.checkCentralCube(ball, newPosX, newPosY);
-    } else {
-      ball.setPositionX(newPosX);
-      ball.setPositionY(newPosY);
+      this.checkCentralCube(ball, { x: newPosX, y: newPosY });
     }
+    ball.setPositionX(newPosX);
+    ball.setPositionY(newPosY);
 
     return someoneWinPoint;
   }
 
   private static checkCentralCube(
     ball: Ball,
-    newPosX: number,
-    newPosY: number,
+    newPos: { x: number; y: number },
   ) {
-    if (this.ballHitCube(newPosX, newPosY)) {
+    if (this.ballHitCube(newPos.x, newPos.y)) {
       this.updateDirection(ball);
-      newPosX = this.adaptNewPosition(newPosX, collisionBallCentralCube);
-      newPosY = this.adaptNewPosition(newPosY, collisionBallCentralCube);
+      newPos.x = this.adaptNewPosition(newPos.x, collisionBallCentralCube);
+      newPos.y = this.adaptNewPosition(newPos.y, collisionBallCentralCube);
     }
-
-    ball.setPositionX(newPosX);
-    ball.setPositionY(newPosY);
   }
 
   private static ballHitPaddle(

@@ -14,4 +14,3 @@ export const centralCubePosition = { x: 0, y: 0 };
 export const centralCubeRadius = 0.5;
 export const collisionBallCentralCube =
   centralCubePosition.x + centralCubeRadius + ballRadius / 2;
-export const cubeBorder = centralCubePosition.x + centralCubeRadius;
