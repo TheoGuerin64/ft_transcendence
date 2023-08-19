@@ -80,5 +80,6 @@ export class UserStatsService {
     for (let x = 0; x < stats.length; x++) {
       stats[x].ladder = x + 1;
     }
+    await this.userStatsModel.save(stats);
   }
 }

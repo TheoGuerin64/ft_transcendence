@@ -14,6 +14,7 @@ export default {
       scorePlayerOne: 0,
       scorePlayerTwo: 0,
       inGame: false,
+      inQueue: false,
 
       ballMovement: (posX: number, posY: number) => {},
       someoneMoved: (login: string, posY: number) => {},
@@ -43,6 +44,7 @@ export default {
   methods: {
     init(playerOneLogin: string, playerTwoLogin: string) {
       this.inGame = true
+      this.inQueue = false
       let scene: THREE.Scene
       let camera: THREE.PerspectiveCamera
       let renderer: THREE.WebGLRenderer
@@ -117,6 +119,7 @@ export default {
         this.scorePlayerOne = 0
         this.scorePlayerTwo = 0
         this.inGame = false
+        this.inQueue = false
       }
 
       const resizeCanva = () => {
@@ -173,6 +176,7 @@ export default {
     },
     joinQueue() {
       this.socket.emit('joinQueue', this.login)
+      this.inQueue = true
     },
     checkInput(event: KeyboardEvent) {
       this.socket.emit('playerMovement', event.key)
@@ -184,20 +188,55 @@ export default {
 <template>
   <routerLink to="/">Home</routerLink> |
   <routerLink to="/MatchHistory">Match History</routerLink>
-  <h1>Game</h1>
-  <div v-if="!inGame">
-    <button @click="joinQueue">Join Normal Queue</button>
+  <h1 class="title is-1 has-text-centered">Game</h1>
+  <div class="has-text-centered">
+    <div v-if="!inQueue && !inGame">
+      <button @click="joinQueue" class="button mx-3 is-light">Join Normal Queue</button>
+      <button @click="joinQueue" class="button mx-3 is-light">Join Custom Queue</button>
+    </div>
+    <div v-if="inQueue">
+      <p>currently in queue, please wait</p>
+      <div class="lds-dual-ring"></div>
+    </div>
+    <div
+      v-else-if="inGame"
+      class="column is-flex is-half is-offset-one-quarter is-justify-content-space-between"
+    >
+      <p>Player One: {{ scorePlayerOne }}</p>
+      <p>Player Two: {{ scorePlayerTwo }}</p>
+    </div>
+    <canvas id="canva"> </canvas>
   </div>
-  <div v-else>
-    <p ref="scorePlayerOne">Player One: {{ scorePlayerOne }}</p>
-    <p ref="scorePlayerTwo">Player Two: {{ scorePlayerTwo }}</p>
-  </div>
-  <canvas id="canva"> </canvas>
 </template>
 
 <style>
 #canva {
   margin: auto;
   display: block;
+}
+
+.lds-dual-ring {
+  display: inline-block;
+  width: 80px;
+  height: 80px;
+}
+.lds-dual-ring:after {
+  content: ' ';
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 8px;
+  border-radius: 50%;
+  border: 6px solid #000;
+  border-color: #000 transparent #000 transparent;
+  animation: lds-dual-ring 1.2s linear infinite;
+}
+@keyframes lds-dual-ring {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 </style>
