@@ -23,12 +23,14 @@ export default {
     }
   },
   async mounted() {
-    const data = {
-      login: this.store.user!.login,
-      name: this.$route.params.channelId
-    }
+    const data = { name: this.$route.params.channelId }
+    this.state.Messages = []
+    // const isFirstLoad = sessionStorage.getItem('isFirstLoad')
     this.state.channelName = this.$route.params.channelId as string
+    console.log('Channel name: ' + this.state.channelName)
+    // if (isFirstLoad === null) {
     socket.emit('send-history', data)
+    // }
   },
   methods: {
     submitNewMessage(event: Event): void {
@@ -37,8 +39,14 @@ export default {
       }
       messageData.content = this.message
       messageData.channelName = this.state.channelName
+      console.log('channel name: ' + messageData.channelName)
       socket.emit('message', messageData)
       this.message = ''
+    },
+    leaveChannel(): void {
+      const data = { name: this.$route.params.channelId }
+      socket.emit('leave-channel', data)
+      this.$router.push('/chat')
     }
   }
 }
@@ -67,6 +75,9 @@ export default {
       </form>
       <button class="button is-success" id="sendMessage" @click="submitNewMessage">
         <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
+      </button>
+      <button class="button is-danger" id="leaveChannel" @click="leaveChannel">
+        Leave Channel
       </button>
     </div>
   </main>
@@ -115,5 +126,9 @@ export default {
   border-radius: 5px;
   width: 100%;
   margin-left: 8%;
+}
+
+#leaveChannel {
+  margin-left: 3%;
 }
 </style>

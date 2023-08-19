@@ -10,7 +10,7 @@ export const state = reactive({
     data: any
   }>,
   channelName: '' as string,
-  id: 0
+  idMessage: 0
 })
 
 export const socket = io('http://localhost:3000', {
@@ -27,7 +27,7 @@ socket.on('disconnect', () => {
 
 socket.on('message', (msg: string, username: string, avatar: string, login: string) => {
   state.Messages.push({
-    id: state.id++,
+    id: state.idMessage++,
     data: {
       content: msg,
       login: login,
@@ -38,7 +38,7 @@ socket.on('message', (msg: string, username: string, avatar: string, login: stri
 })
 socket.on('user-joined', (username: string, avatar: string) => {
   state.Messages.push({
-    id: state.id++,
+    id: state.idMessage++,
     data: {
       content: username + ' has joined the channel ' + state.channelName,
       avatar: avatar
@@ -47,7 +47,7 @@ socket.on('user-joined', (username: string, avatar: string) => {
 })
 socket.on('user-left', (username: string, avatar: string) => {
   state.Messages.push({
-    id: state.id++,
+    id: state.idMessage++,
     data: {
       content: username + ' has left the channel ' + state.channelName,
       avatar: avatar
