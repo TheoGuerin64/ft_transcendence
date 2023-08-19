@@ -84,6 +84,14 @@ export class GameService {
       server.to(game.getGameID()).emit('PlayerTwoWinPoint');
     }
 
+    playerOne.setPosY(0);
+    playerTwo.setPosY(0);
+    server
+      .to(game.getGameID())
+      .emit('someoneMoved', playerOne.getLogin(), playerOne.getPosY());
+    server
+      .to(game.getGameID())
+      .emit('someoneMoved', playerTwo.getLogin(), playerTwo.getPosY());
     if (playerOne.getPoint() >= 5 || playerTwo.getPoint() >= 5) {
       game.setBall(null);
       return true;
