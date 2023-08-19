@@ -2,17 +2,20 @@
 import { store } from '../store'
 import UserAvatar from '@/components/UserAvatar.vue'
 import type { Match, User } from '../interface'
+import axios, { type AxiosResponse } from 'axios'
 </script>
 
 <script lang="ts">
 export default {
   data() {
     return {
-      store
+      store,
+      Matches: [] as Match[],
+      findMatches: false
     }
   },
-  props: {
-    Matches: { type: Object as () => Match[] }
+  created() {
+    this.findMatchPlayed()
   },
   methods: {
     userWon(match: Match): string {
@@ -23,6 +26,35 @@ export default {
         return 'box column is-flex is-three-fifths is-offset-one-fifth is-justify-content-space-between has-background-success'
       } else {
         return 'box column is-flex is-three-fifths is-offset-one-fifth is-justify-content-space-between has-background-danger'
+      }
+    },
+    findMatchPlayed() {
+      this.findMatches = false
+      axios
+        .get('http://127.0.0.1:3000/MatchHistory', {
+          withCredentials: true
+        })
+        .then((response) => {
+          this.parseResponse(response)
+          this.findMatches = true
+        })
+    },
+
+    parseResponse(response: AxiosResponse) {
+      for (let x = 0; x < response.data.length; x++) {
+        const match = {} as Match
+        match.result = response.data[x].result
+        match.users = []
+        match.id = response.data[x].id
+        const userOne = {} as User
+        userOne.login = response.data[x].users[0].login
+        userOne.avatar = response.data[x].users[0].avatar
+        match.users.push(userOne)
+        const userTwo = {} as User
+        userTwo.login = response.data[x].users[1].login
+        userTwo.avatar = response.data[x].users[1].avatar
+        match.users.push(userTwo)
+        this.Matches.push(match)
       }
     }
   }

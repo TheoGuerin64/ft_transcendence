@@ -1,48 +1,46 @@
 <script setup lang="ts">
 import axios, { type AxiosResponse } from 'axios'
-import MatchPlayedBluePrint from './MatchPlayedBluePrint.vue'
+import MatchPlayed from './MatchPlayedView.vue'
 import MatchesStatistics from './MatchesStatisticsView.vue'
 import type { Match, User } from '../interface'
 </script>
 <script lang="ts">
+export interface statistics {
+  nbWin: number
+  nbLose: number
+  winRate: number
+  elo: number
+  ladder: number
+}
 export default {
   data() {
     return {
-      matches: [] as Match[],
-      findMatches: false
+      userStats: {} as statistics,
+      axiosEnded: false
     }
   },
-  created() {
-    this.findMatchPlayed()
+  mounted() {
+    this.findPlayerStat()
   },
   methods: {
-    findMatchPlayed() {
-      this.findMatches = false
+    findPlayerStat() {
+      this.axiosEnded = false
       axios
-        .get('http://127.0.0.1:3000/MatchHistory', {
+        .get('http://127.0.0.1:3000/MatchStatistics', {
           withCredentials: true
         })
         .then((response) => {
-          this.parseResponse(response)
-          this.findMatches = true
+          this.parseData(response)
+          this.axiosEnded = true
         })
     },
-
-    parseResponse(response: AxiosResponse) {
-      for (let x = 0; x < response.data.length; x++) {
-        const match = {} as Match
-        match.result = response.data[x].result
-        match.users = []
-        match.id = response.data[x].id
-        const userOne = {} as User
-        userOne.login = response.data[x].users[0].login
-        userOne.avatar = response.data[x].users[0].avatar
-        match.users.push(userOne)
-        const userTwo = {} as User
-        userTwo.login = response.data[x].users[1].login
-        userTwo.avatar = response.data[x].users[1].avatar
-        match.users.push(userTwo)
-        this.matches.push(match)
+    parseData(response: AxiosResponse) {
+      this.userStats = {
+        nbWin: response.data.nbWin,
+        nbLose: response.data.nbLose,
+        winRate: response.data.winRate,
+        elo: response.data.elo,
+        ladder: response.data.ladder
       }
     }
   }
@@ -51,17 +49,19 @@ export default {
 <template>
   <routerLink to="/">Home</routerLink> |
   <routerLink to="/Game">Game</routerLink>
-  <p>Match History</p>
-
-  <div v-if="findMatches" id="history">
-    <MatchesStatistics :Matches="matches" />
-    <MatchPlayedBluePrint :Matches="matches" />
+  <h1 class="title is-1 has-text-centered">Match History</h1>
+  <div v-if="axiosEnded && userStats.ladder !== -1">
+    <MatchesStatistics :userStats="userStats" />
+    <div id="history">
+      <MatchPlayed />
+    </div>
   </div>
+  <div v-else><p>no match played for the moment</p></div>
 </template>
 
 <style>
 #history {
-  height: 85vh;
+  height: 60vh;
   overflow: auto;
 }
 </style>
