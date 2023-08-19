@@ -1,9 +1,12 @@
+import { Ball } from '../classes/ball.class';
 import { Game } from '../classes/game.class';
 import { Injectable } from '@nestjs/common';
 import { Player } from '../classes/player.class';
 import { Server } from 'socket.io';
 import {
+  collisionBallCentralCube,
   collisionBallMapBorder,
+  cubeBorder,
   IncreaseBallSpeed,
   playerHeight,
 } from '../globals';
@@ -34,7 +37,7 @@ export class BallService {
       newPosY >= collisionBallMapBorder
     ) {
       ball.setDirectionY(-ball.getDirectionY());
-      newPosY = this.adaptNewPosition(newPosY);
+      newPosY = this.adaptNewPosition(newPosY, collisionBallMapBorder);
     }
     if (
       newPosX <= -collisionBallMapBorder ||
@@ -43,15 +46,35 @@ export class BallService {
       if (this.ballHitPaddle(newPosX, newPosY, game)) {
         ball.setDirectionX(-ball.getDirectionX());
         ball.setSpeed(ball.getSpeed() + IncreaseBallSpeed);
-        newPosX = this.adaptNewPosition(newPosX);
+        newPosX = this.adaptNewPosition(newPosX, collisionBallMapBorder);
       } else {
         someoneWinPoint = true;
       }
     }
 
+    if (game.getGameType() === 'custom') {
+      this.checkCentralCube(ball, newPosX, newPosY);
+    } else {
+      ball.setPositionX(newPosX);
+      ball.setPositionY(newPosY);
+    }
+
+    return someoneWinPoint;
+  }
+
+  private static checkCentralCube(
+    ball: Ball,
+    newPosX: number,
+    newPosY: number,
+  ) {
+    if (this.ballHitCube(newPosX, newPosY)) {
+      this.updateDirection(ball);
+      newPosX = this.adaptNewPosition(newPosX, collisionBallCentralCube);
+      newPosY = this.adaptNewPosition(newPosY, collisionBallCentralCube);
+    }
+
     ball.setPositionX(newPosX);
     ball.setPositionY(newPosY);
-    return someoneWinPoint;
   }
 
   private static ballHitPaddle(
@@ -60,10 +83,13 @@ export class BallService {
     game: Game,
   ): boolean {
     if (
-      (newPosX <= -collisionBallMapBorder &&
-        this.ballAtPlayerHeight(newPosY, game.getPlayerOne())) ||
-      (newPosX >= collisionBallMapBorder &&
-        this.ballAtPlayerHeight(newPosY, game.getPlayerTwo()))
+      newPosX <= -collisionBallMapBorder &&
+      this.ballAtPlayerHeight(newPosY, game.getPlayerOne())
+    ) {
+      return true;
+    } else if (
+      newPosX >= collisionBallMapBorder &&
+      this.ballAtPlayerHeight(newPosY, game.getPlayerTwo())
     ) {
       return true;
     } else {
@@ -82,12 +108,40 @@ export class BallService {
     }
   }
 
-  private static adaptNewPosition(newPos: number): number {
-    if (newPos <= -collisionBallMapBorder) {
-      newPos = -collisionBallMapBorder;
-    } else if (newPos >= collisionBallMapBorder) {
-      newPos = collisionBallMapBorder;
+  private static ballHitCube(newPosX: number, newPosY: number): boolean {
+    if (
+      newPosX >= -collisionBallCentralCube &&
+      newPosX <= collisionBallCentralCube &&
+      newPosY >= -collisionBallCentralCube &&
+      newPosY <= collisionBallCentralCube
+    ) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  private static adaptNewPosition(
+    newPos: number,
+    entityCollide: number,
+  ): number {
+    if (newPos <= -entityCollide) {
+      newPos = -entityCollide;
+    } else if (newPos >= entityCollide) {
+      newPos = entityCollide;
     }
     return newPos;
+  }
+
+  private static updateDirection(ball: Ball) {
+    if (ball.getPositionX() <= -collisionBallCentralCube) {
+      ball.setDirectionX(-Math.abs(ball.getDirectionX()));
+    } else if (ball.getPositionX() >= collisionBallCentralCube) {
+      ball.setDirectionX(Math.abs(ball.getDirectionX()));
+    }
+    if (ball.getPositionY() <= -collisionBallCentralCube) {
+      ball.setDirectionY(-Math.abs(ball.getDirectionY()));
+    } else if (ball.getPositionY() >= collisionBallCentralCube) {
+      ball.setDirectionY(Math.abs(ball.getDirectionY()));
+    }
   }
 }

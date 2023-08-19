@@ -8,13 +8,20 @@ import { Server, Socket } from 'socket.io';
 export class PlayerService {
   private readonly players: Player[] = [];
   private readonly normalQueue: Player[] = [];
+  private readonly customQueue: Player[] = [];
 
   getPlayers(): Player[] {
     return this.players;
   }
 
-  getNormalQueue(): Player[] {
-    return this.normalQueue;
+  getQueue(queueType: string): Player[] {
+    if (queueType === 'normal') {
+      return this.normalQueue;
+    } else if (queueType === 'custom') {
+      return this.customQueue;
+    } else {
+      return null;
+    }
   }
 
   connectGame(socket: Socket, login: string): void {
@@ -29,12 +36,14 @@ export class PlayerService {
   disconnectPlayer(socket: Socket): void {
     this.eraseFromArray(this.players, socket.id);
     this.eraseFromArray(this.normalQueue, socket.id);
+    this.eraseFromArray(this.customQueue, socket.id);
   }
 
   disconnectSecondPlayer(socket: Socket, game: Game): void {
     const socketID = this.findSecondPlayerSocketID(socket, game);
     this.eraseFromArray(this.players, socketID);
     this.eraseFromArray(this.normalQueue, socketID);
+    this.eraseFromArray(this.customQueue, socketID);
   }
 
   findSecondPlayerSocketID(socket: Socket, game: Game): string {
@@ -57,13 +66,20 @@ export class PlayerService {
     playerArray.splice(playerIndex, 1);
   }
 
-  joinQueue(server: Server, login: string): number {
+  joinQueue(server: Server, login: string, queueType: string): number {
     const player = this.players.find((element) => element.getLogin() === login);
     if (player === undefined || this.normalQueue.includes(player)) {
       return -1;
     }
-    this.normalQueue.push(player);
-    return this.normalQueue.length;
+    if (queueType === 'normal') {
+      this.normalQueue.push(player);
+      return this.normalQueue.length;
+    } else if (queueType === 'custom') {
+      this.customQueue.push(player);
+      return this.customQueue.length;
+    } else {
+      return -1;
+    }
   }
 
   playerMovement(

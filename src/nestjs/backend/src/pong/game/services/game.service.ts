@@ -60,15 +60,20 @@ export class GameService {
     }
   }
 
-  startGame(server: Server, playerOne: Player, playerTwo: Player): Game {
-    const newGame = new Game('game', playerOne, playerTwo);
+  startGame(
+    server: Server,
+    playerOne: Player,
+    playerTwo: Player,
+    gameType: string,
+  ): Game {
+    const newGame = new Game(gameType, playerOne, playerTwo);
     this.games.push(newGame);
     server
       .in(playerOne.getSocketID())
-      .emit('findGame', playerOne.getLogin(), playerTwo.getLogin());
+      .emit('findGame', playerOne.getLogin(), playerTwo.getLogin(), gameType);
     server
       .in(playerTwo.getSocketID())
-      .emit('findGame', playerOne.getLogin(), playerTwo.getLogin());
+      .emit('findGame', playerOne.getLogin(), playerTwo.getLogin(), gameType);
     return newGame;
   }
 
@@ -96,7 +101,7 @@ export class GameService {
       game.setBall(null);
       return true;
     } else {
-      game.setBall(new Ball());
+      game.setBall(new Ball(game.getGameType()));
       return false;
     }
   }

@@ -8,14 +8,18 @@ export class Ball {
   private positionY: number;
   private hitSomething: boolean;
 
-  constructor() {
+  constructor(gameType: string) {
     this.speed = ballBaseSpeed;
     this.directionX = Math.random() * (1 - -1) + -1;
     this.directionY = Math.random() * (0.5 - -0.5) + -0.5;
-    this.directionX = 1;
-    this.directionY = 0;
+    this.directionX = 0.5;
+    this.directionY = 1;
     this.positionX = 0;
-    this.positionY = 0;
+    if (gameType === 'normal') {
+      this.positionY = 0;
+    } else if (gameType === 'custom') {
+      this.positionY = 1.5;
+    }
     this.hitSomething = false;
   }
 
