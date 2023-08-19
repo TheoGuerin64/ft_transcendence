@@ -1,15 +1,23 @@
+import { ChannelDto, MessageDto } from './channel.pipe';
 import { ChannelService } from './channel.service';
 import { JwtAuthGuard } from '../auth/auth-jwt.guard';
-import { MessageDto } from './channel.pipe';
-import { Req, UseGuards, UsePipes, ValidationPipe } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { UserService } from 'src/user/user.service';
+import { validate } from 'class-validator';
+import {
+  BadRequestException,
+  Req,
+  UseGuards,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
+  WsException,
 } from '@nestjs/websockets';
 
 @WebSocketGateway({ cors: true })
@@ -22,80 +30,134 @@ export class ChannelGateway {
   server: Server;
 
   @UseGuards(JwtAuthGuard)
-  @UsePipes(new ValidationPipe())
   @SubscribeMessage('message')
   async handleMessage(
     @MessageBody() messageDto: MessageDto,
+    @ConnectedSocket() client: Socket,
     @Req() req: any,
   ): Promise<void> {
-    if (messageDto.channelName === '') {
-      return;
+    try {
+      await this.channelService.checkConnection(
+        messageDto.channelName,
+        req.user?.login,
+        client,
+      );
+      this.channelService.addMessage(
+        messageDto.content,
+        messageDto.channelName,
+        req.user.login,
+      );
+      const user = await this.userService.findOne(req.user.login);
+      console.log('message', messageDto.content);
+      this.server
+        .to(messageDto.channelName)
+        .emit(
+          'message',
+          messageDto.content,
+          user.name,
+          user.avatar,
+          user.login,
+        );
+    } catch (error) {
+      console.log(error);
     }
-    this.channelService.addMessage(
-      messageDto.content,
-      messageDto.channelName,
-      req.user.login,
-    );
-    const user = await this.userService.findOne(req.user.login);
-    this.server
-      .to(messageDto.channelName)
-      .emit('message', messageDto.content, user.name, user.avatar);
   }
 
   @UseGuards(JwtAuthGuard)
   @SubscribeMessage('join-channel')
   async joinChannel(
-    @MessageBody() messageDto: MessageDto,
+    @MessageBody() channelDto: ChannelDto,
     @ConnectedSocket() client: Socket,
     @Req() req: any,
   ): Promise<void> {
-    if (messageDto.channelName === '') {
-      return;
-    }
-    const messageHistory = await this.channelService.getMessageHistory(
-      messageDto.channelName,
-    );
-    if (
-      await this.channelService.addMembership(
-        messageDto.channelName,
-        req.user.login,
-      )
-    ) {
-      client.emit('error', 'You already joined this channel');
-    } else {
-      await this.channelService.sendHistory(messageDto.channelName, client);
-      const user = await this.userService.findOne(req.user.login);
-      this.server
-        .to(messageDto.channelName)
-        .emit('user-joined', user.name, user.avatar);
-      client.emit('success', 'You joined the channel');
+    try {
+      if (
+        !(await this.channelService.addMembership(
+          channelDto.name,
+          req.user.login,
+          'member',
+        ))
+      ) {
+        await this.channelService.sendHistory(channelDto.name, client);
+        const user = await this.userService.findOne(req.user.login);
+        this.server
+          .to(channelDto.name)
+          .emit('user-joined', user.name, user.avatar);
+        client.emit('success', 'You joined the channel');
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('send-history')
   async sendHistoryMessage(
-    @MessageBody() data: any,
-    @ConnectedSocket() client: any,
+    @MessageBody() channelDto: ChannelDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
   ): Promise<void> {
-    await this.channelService.checkConnection(data, client);
-    await this.channelService.sendHistory(data.channelName, client);
+    try {
+      await this.channelService.checkConnection(
+        channelDto.name,
+        req.user.login,
+        client,
+      );
+      await this.channelService.sendHistory(channelDto.name, client);
+    } catch (error) {
+      console.log(error);
+    }
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('leave-channel')
   async leaveChannel(
-    @MessageBody()
-    data: any,
+    @MessageBody() channelDto: ChannelDto,
     @ConnectedSocket() client: Socket,
+    @Req() req: any,
   ): Promise<void> {
-    client.leave(data.channelName);
+    try {
+      client.leave(channelDto.name);
+      if (
+        await this.channelService.removeMembership(
+          channelDto.name,
+          req.user.login,
+        )
+      ) {
+        client.emit('error', 'You already left this channel');
+      } else {
+        const user = await this.userService.findOne(req.user.login);
+        this.server
+          .to(channelDto.name)
+          .emit('user-left', user.name, user.avatar);
+        client.emit('success', 'You left the channel');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
 
-    if (await this.channelService.removeMembership(data)) {
-      client.emit('error', 'You already left this channel');
-    } else {
-      this.server
-        .to(data.channelName)
-        .emit('user-left', data.username, data.avatar);
-      client.emit('success', 'You left the channel');
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('create-channel')
+  async createChannel(
+    @MessageBody() channelDto: ChannelDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      const errors = await validate(channelDto);
+      if (errors.length > 0) {
+        throw new BadRequestException(errors);
+      }
+      if (
+        await this.channelService.createChannel(channelDto.name, req.user.login)
+      ) {
+        client.emit('error', 'This channel already exists');
+      } else {
+        client.emit('success', 'Channel created');
+      }
+    } catch (error) {
+      console.log(error);
     }
   }
 }

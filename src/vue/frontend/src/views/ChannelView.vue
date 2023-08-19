@@ -8,10 +8,7 @@ import { state, socket } from '@/socket'
 <script lang="ts">
 const messageData = {
   content: '' as string,
-  username: '' as string | undefined,
-  avatar: '' as string | undefined,
-  channelName: '' as string | undefined,
-  login: '' as string | undefined
+  channelName: '' as string | undefined
 }
 
 export default {
@@ -28,7 +25,7 @@ export default {
   async mounted() {
     const data = {
       login: this.store.user!.login,
-      channelName: this.$route.params.channelId
+      name: this.$route.params.channelId
     }
     this.state.channelName = this.$route.params.channelId as string
     socket.emit('send-history', data)
@@ -39,15 +36,8 @@ export default {
         event.preventDefault()
       }
       messageData.content = this.message
-      messageData.username = this.store.user!.name
-      messageData.avatar = this.store.user!.avatar
       messageData.channelName = this.state.channelName
-      messageData.login = this.store.user!.login
-      try {
-        socket.emit('message', messageData)
-      } catch (error) {
-        console.log(error)
-      }
+      socket.emit('message', messageData)
       this.message = ''
     }
   }

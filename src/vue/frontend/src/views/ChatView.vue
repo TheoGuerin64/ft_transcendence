@@ -1,43 +1,32 @@
 <script setup lang="ts">
 import { notify } from '@kyvg/vue3-notification'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useStore } from '../store'
 import { socket } from '@/socket'
 </script>
 
 <script lang="ts">
-const channelData = {
-  channelName: '' as string,
-  username: '' as string | undefined,
-  avatar: '' as string | undefined,
-  login: '' as string | undefined
-}
-
 export default {
   data() {
     return {
       store: useStore,
-      channelName: 'test' as string
+      showDialog: false,
+      channelData: {
+        name: '' as string | undefined
+      }
     }
   },
   methods: {
     joinChannel(): void {
-      console.log('Joining channel ' + this.channelName)
-      channelData.username = this.store.user?.name
-      channelData.avatar = this.store.user?.avatar
-      channelData.channelName = this.channelName
-      channelData.login = this.store.user?.login
-      console.log(this.store.user?.name + ' joined ' + this.channelName)
-      socket.emit('join-channel', channelData)
-      this.$router.push('/chat/' + this.channelName)
+      socket.emit('join-channel', this.channelData)
+      this.$router.push('/chat/' + this.channelData.name)
     },
     leaveChannel(): void {
-      console.log('Leaving channel ' + this.channelName)
-      channelData.username = this.store.user?.name
-      channelData.avatar = this.store.user?.avatar
-      channelData.channelName = this.channelName
-      channelData.login = this.store.user?.login
-      console.log(this.store.user?.name + ' left ' + this.channelName)
-      socket.emit('leave-channel', channelData)
+      socket.emit('leave-channel', this.channelData)
+    },
+    createChannel(): void {
+      socket.emit('create-channel', this.channelData)
+      this.showDialog = false
     }
   },
   async mounted() {}
@@ -45,10 +34,43 @@ export default {
 </script>
 
 <template>
-  <button id="sendChannel" class="button mt-3 is-link is-outlined" @click="joinChannel">
-    Join Channel 'test'
-  </button>
-  <button id="sendChannel" class="button mt-3 is-link is-outlined" @click="leaveChannel">
-    Leave Channel
-  </button>
+  <div v-if="!showDialog" id="createChannel">
+    <button class="button mt-3 is-link is-outlined" @click="showDialog = !showDialog">
+      Create Channel
+    </button>
+  </div>
+  <div v-if="showDialog" id="dialogBox">
+    <div id="inputChannel">
+      <form @submit="createChannel">
+        <input class="input" v-model="channelData.name" placeholder="Channel name" />
+      </form>
+      <button id="submitButton" class="button is-success" @click="createChannel">
+        <FontAwesomeIcon :icon="['far', 'square-plus']" size="lg" />
+      </button>
+    </div>
+    <button id="sendChannel" class="button mt-3 is-link is-outlined" @click="joinChannel">
+      Join Channel
+    </button>
+    <button id="sendChannel" class="button mt-3 is-link is-outlined" @click="leaveChannel">
+      Leave Channel
+    </button>
+  </div>
 </template>
+
+<style>
+#inputChannel,
+#sendChannel {
+  display: flex;
+  margin-top: 30px;
+  margin-left: 30px;
+}
+
+#submitButton {
+  margin-left: 0.5%;
+}
+
+#createChannel {
+  margin-left: 30px;
+  margin-top: 20px;
+}
+</style>
