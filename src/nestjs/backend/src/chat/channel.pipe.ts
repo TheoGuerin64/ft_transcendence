@@ -14,8 +14,4 @@ export class ChannelDto {
   @IsString()
   @MinLength(1)
   name: string;
-
-  @IsString()
-  @MinLength(1)
-  role: string;
 }

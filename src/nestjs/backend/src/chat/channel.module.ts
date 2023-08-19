@@ -1,4 +1,5 @@
 import { Channel } from './channel.entity';
+import { ChannelController } from './channel.controller';
 import { ChannelGateway } from './channel.gateway';
 import { ChannelService } from './channel.service';
 import { MembershipModule } from './membership.module';
@@ -14,6 +15,7 @@ import { UserModule } from 'src/user/user.module';
     UserModule,
     MembershipModule,
   ],
+  controllers: [ChannelController],
   providers: [ChannelService, ChannelGateway],
   exports: [ChannelService],
 })

@@ -32,7 +32,11 @@ export class ChannelService {
     }
   }
 
-  async addMessage(content: string, channelName: string, login: string) {
+  async addMessage(
+    content: string,
+    channelName: string,
+    login: string,
+  ): Promise<void> {
     const channel = await this.findOne(channelName);
     const message = this.messageService.create({
       text: content,
@@ -65,7 +69,7 @@ export class ChannelService {
   ): Promise<boolean> {
     const user = await this.userService.findOne(login);
     if (!user) {
-      return;
+      return true;
     }
     let channel = await this.findOne(channelName);
     if (
@@ -97,11 +101,11 @@ export class ChannelService {
   async removeMembership(channelName: string, login: string): Promise<boolean> {
     const user = await this.userService.findOne(login);
     if (!user) {
-      return;
+      return true;
     }
     let channel = await this.findOne(channelName);
     if (!channel) {
-      return;
+      return true;
     }
     const membership = await this.membershipService.findOne(
       channel.name,
@@ -168,5 +172,9 @@ export class ChannelService {
         name,
       },
     });
+  }
+
+  findAll(): Promise<Channel[]> {
+    return this.channelModel.find();
   }
 }

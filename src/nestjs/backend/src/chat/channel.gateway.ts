@@ -1,6 +1,7 @@
 import { ChannelDto, MessageDto } from './channel.pipe';
 import { ChannelService } from './channel.service';
 import { JwtAuthGuard } from '../auth/auth-jwt.guard';
+import { MembershipService } from './membership.service';
 import { Server, Socket } from 'socket.io';
 import { UserService } from 'src/user/user.service';
 import { validate } from 'class-validator';
@@ -25,6 +26,7 @@ export class ChannelGateway {
   constructor(
     private readonly channelService: ChannelService,
     private readonly userService: UserService,
+    private readonly membershipService: MembershipService,
   ) {}
   @WebSocketServer()
   server: Server;
@@ -37,6 +39,15 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
+      if (
+        !(await this.membershipService.findOne(
+          messageDto.channelName,
+          req.user.login,
+        ))
+      ) {
+        client.emit('error', 'You are not a member of this channel');
+        return;
+      }
       await this.channelService.checkConnection(
         messageDto.channelName,
         req.user?.login,
@@ -48,7 +59,6 @@ export class ChannelGateway {
         req.user.login,
       );
       const user = await this.userService.findOne(req.user.login);
-      console.log('message', messageDto.content);
       this.server
         .to(messageDto.channelName)
         .emit(
