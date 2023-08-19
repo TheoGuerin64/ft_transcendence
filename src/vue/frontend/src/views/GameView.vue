@@ -15,6 +15,8 @@ export default {
       scorePlayerTwo: 0,
       inGame: false,
       inQueue: false,
+      gameEnded: false,
+      winner: '',
 
       ballMovement: (posX: number, posY: number) => {},
       someoneMoved: (login: string, posY: number) => {},
@@ -114,10 +116,10 @@ export default {
         renderer.dispose()
         renderer.forceContextLoss()
         document.getElementById('canva')?.remove()
-        this.$router.push('/')
-        this.socket?.disconnect()
-        this.scorePlayerOne = 0
-        this.scorePlayerTwo = 0
+        const newCanvas = document.createElement('canvas')
+        newCanvas.id = 'canva'
+        document.body.appendChild(newCanvas)
+        this.gameEnded = false
         this.inGame = false
         this.inQueue = false
       }
@@ -165,13 +167,15 @@ export default {
       this.socket.on('PlayerTwoWinPoint', () => {
         this.scorePlayerTwo++
       })
-      this.socket.on('PlayerOneWinGame', () => {
-        this.scorePlayerOne++
+      this.socket.on('PlayerOneWinGame', (login: string) => {
         this.killCanvas()
+        this.gameEnded = true
+        this.winner = login
       })
-      this.socket.on('PlayerTwoWinGame', () => {
-        this.scorePlayerTwo++
+      this.socket.on('PlayerTwoWinGame', (login: string) => {
         this.killCanvas()
+        this.gameEnded = true
+        this.winner = login
       })
     },
     joinQueue() {
@@ -180,6 +184,12 @@ export default {
     },
     checkInput(event: KeyboardEvent) {
       this.socket.emit('playerMovement', event.key)
+    },
+    returnLobby() {
+      this.gameEnded = false
+      this.winner = ''
+      this.scorePlayerOne = 0
+      this.scorePlayerTwo = 0
     }
   }
 }
@@ -190,10 +200,6 @@ export default {
   <routerLink to="/MatchHistory">Match History</routerLink>
   <h1 class="title is-1 has-text-centered">Game</h1>
   <div class="has-text-centered">
-    <div v-if="!inQueue && !inGame">
-      <button @click="joinQueue" class="button mx-3 is-light">Join Normal Queue</button>
-      <button @click="joinQueue" class="button mx-3 is-light">Join Custom Queue</button>
-    </div>
     <div v-if="inQueue">
       <p>currently in queue, please wait</p>
       <div class="lds-dual-ring"></div>
@@ -204,6 +210,14 @@ export default {
     >
       <p>Player One: {{ scorePlayerOne }}</p>
       <p>Player Two: {{ scorePlayerTwo }}</p>
+    </div>
+    <div v-else-if="gameEnded" class="box">
+      <p>the winner is {{ winner }} ! The score is {{ scorePlayerOne }} - {{ scorePlayerTwo }}</p>
+      <button @click="returnLobby" class="button mx-3 is-light">return to lobby</button>
+    </div>
+    <div v-else>
+      <button @click="joinQueue" class="button mx-3 is-light">Join Normal Queue</button>
+      <button @click="joinQueue" class="button mx-3 is-light">Join Custom Queue</button>
     </div>
     <canvas id="canva"> </canvas>
   </div>

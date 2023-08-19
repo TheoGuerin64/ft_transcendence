@@ -52,9 +52,13 @@ export class PongService {
         await this.saveGameInformations(server, game);
         gameService.eraseGame(game);
         if (game.getPlayerOne().getPoint() >= 5) {
-          server.to(game.getGameID()).emit('PlayerOneWinGame');
+          server
+            .to(game.getGameID())
+            .emit('PlayerOneWinGame', game.getPlayerOne().getLogin());
         } else if (game.getPlayerTwo().getPoint() >= 5) {
-          server.to(game.getGameID()).emit('PlayerTwoWinGame');
+          server
+            .to(game.getGameID())
+            .emit('PlayerTwoWinGame', game.getPlayerTwo().getLogin());
         }
       }
     }
