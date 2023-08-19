@@ -44,7 +44,7 @@ export default {
     this.killCanvas()
   },
   methods: {
-    init(playerOneLogin: string, playerTwoLogin: string) {
+    init(playerOneLogin: string, playerTwoLogin: string, gameType: string) {
       this.inGame = true
       this.inQueue = false
       let scene: THREE.Scene
@@ -67,16 +67,25 @@ export default {
         window.addEventListener('resize', resizeCanva)
         camera.position.z = 5
 
-        const geometry2 = new THREE.BoxGeometry(4, 4, 0)
-        const material2 = new THREE.MeshBasicMaterial({ color: 0xffffff })
-        const plane = new THREE.Mesh(geometry2, material2)
-        plane.position.set(0, 0, 0)
-        scene.add(plane)
+        const backgroundGeometry = new THREE.BoxGeometry(4, 4, 0)
+        const backgroundMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
+        const background = new THREE.Mesh(backgroundGeometry, backgroundMaterial)
+        background.position.set(0, 0, 0)
+        scene.add(background)
 
         const geometry = new THREE.BoxGeometry(0.15, 0.15, 0)
         const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
         ball = new THREE.Mesh(geometry, material)
         ball.position.set(0, 0, 0)
+
+        if (gameType === 'custom') {
+          const centralCubeGeometry = new THREE.BoxGeometry(1, 1, 0)
+          const centralCubeMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff })
+          const centralCube = new THREE.Mesh(centralCubeGeometry, centralCubeMaterial)
+          centralCube.position.set(0, 0, 0)
+          ball.position.y = 1.5
+          scene.add(centralCube)
+        }
         scene.add(ball)
 
         addNewPlayer(playerOneLogin, -2 - 0.1 / 2)
@@ -90,8 +99,7 @@ export default {
         const newPlayer = new THREE.Mesh(geometry, material)
         scene.add(newPlayer)
         newPlayer.uuid = login
-        newPlayer.position.x = posX
-        newPlayer.position.y = 0
+        newPlayer.position.set(posX, 0, 0)
       }
       const animate = () => {
         idCanvas = requestAnimationFrame(animate)
@@ -151,10 +159,13 @@ export default {
       this.socket.emit('connectGame', this.login)
     },
     listenMessages() {
-      this.socket.on('findGame', (playerOneLogin: string, playerTwoLogin: string) => {
-        this.socket.emit('joinGameRoom')
-        this.init(playerOneLogin, playerTwoLogin)
-      })
+      this.socket.on(
+        'findGame',
+        (playerOneLogin: string, playerTwoLogin: string, gameType: string) => {
+          this.socket.emit('joinGameRoom')
+          this.init(playerOneLogin, playerTwoLogin, gameType)
+        }
+      )
       this.socket.on('ballMovement', (posX: number, posY: number) => {
         this.ballMovement(posX, posY)
       })
@@ -178,10 +189,16 @@ export default {
         this.winner = login
       })
     },
-    joinQueue() {
-      this.socket.emit('joinQueue', this.login)
-      this.inQueue = true
+    joinQueue(queueType: string) {
+      if (queueType === 'normal') {
+        this.socket.emit('joinNormalQueue', this.login)
+        this.inQueue = true
+      } else if (queueType === 'custom') {
+        this.socket.emit('joinCustomQueue', this.login)
+        this.inQueue = true
+      }
     },
+
     checkInput(event: KeyboardEvent) {
       this.socket.emit('playerMovement', event.key)
     },
@@ -219,8 +236,8 @@ export default {
       <button @click="returnLobby" class="button mx-3 is-light">return to lobby</button>
     </div>
     <div v-else>
-      <button @click="joinQueue" class="button mx-3 is-light">Join Normal Queue</button>
-      <button @click="joinQueue" class="button mx-3 is-light">Join Custom Queue</button>
+      <button @click="joinQueue('normal')" class="button mx-3 is-light">Join Normal Queue</button>
+      <button @click="joinQueue('custom')" class="button mx-3 is-light">Join Custom Queue</button>
     </div>
     <canvas id="canva"> </canvas>
   </div>

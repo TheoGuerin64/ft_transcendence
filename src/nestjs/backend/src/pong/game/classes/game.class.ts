@@ -18,7 +18,7 @@ export class Game {
     this.playerOne.setPoint(0);
     this.playerTwo = playerTwo;
     this.playerTwo.setPoint(0);
-    this.ball = new Ball();
+    this.ball = new Ball(gameType);
   }
 
   getGameID(): string {

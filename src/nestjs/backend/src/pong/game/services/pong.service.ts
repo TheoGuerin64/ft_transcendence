@@ -23,15 +23,24 @@ export class PongService {
     playerService: PlayerService,
     gameService: GameService,
     login: string,
+    queueType: string,
   ): void {
-    const nbPlayersInQueue = playerService.joinQueue(server, login);
+    const nbPlayersInQueue = playerService.joinQueue(server, login, queueType);
     if (nbPlayersInQueue < 2) {
       return;
     }
-    const normalQueue = playerService.getNormalQueue();
-    const playerTwo = normalQueue.pop();
-    const playerOne = normalQueue.pop();
-    const newGame = gameService.startGame(server, playerOne, playerTwo);
+    const queue = playerService.getQueue(queueType);
+    if (queue === null) {
+      return;
+    }
+    const playerTwo = queue.pop();
+    const playerOne = queue.pop();
+    const newGame = gameService.startGame(
+      server,
+      playerOne,
+      playerTwo,
+      queueType,
+    );
     const intervalID = setInterval(
       () => this.updateBall(server, gameService, newGame),
       15,

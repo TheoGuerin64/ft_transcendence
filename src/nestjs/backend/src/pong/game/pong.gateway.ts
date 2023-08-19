@@ -29,13 +29,25 @@ export class PongGateway {
     this.playerService.connectGame(socket, login);
   }
 
-  @SubscribeMessage('joinQueue')
-  joinQueue(@MessageBody() login: string) {
+  @SubscribeMessage('joinNormalQueue')
+  joinNormalQueue(@MessageBody() login: string) {
     this.pongService.joinQueue(
       this.server,
       this.playerService,
       this.gameService,
       login,
+      'normal',
+    );
+  }
+
+  @SubscribeMessage('joinCustomQueue')
+  joinCustomQueue(@MessageBody() login: string) {
+    this.pongService.joinQueue(
+      this.server,
+      this.playerService,
+      this.gameService,
+      login,
+      'custom',
     );
   }
 
