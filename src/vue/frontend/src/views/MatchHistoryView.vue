@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import axios, { type AxiosResponse } from 'axios'
 import MatchPlayed from './MatchPlayedView.vue'
-import MatchesStatistics from './MatchesStatisticsView.vue'
+import MatchesStatistics from './MatchStatisticsView.vue'
 import type { Match, User } from '../interface'
 </script>
 <script lang="ts">
