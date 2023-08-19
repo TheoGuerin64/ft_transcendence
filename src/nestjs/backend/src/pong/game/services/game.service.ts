@@ -42,7 +42,7 @@ export class GameService {
   ): void {
     playerDisconnected.setPoint(0);
     PlayerConnected.setPoint(5);
-    server.in(gameID).emit(message);
+    server.in(gameID).emit(message, 'surrender');
   }
 
   eraseGame(game: Game): void {
