@@ -1,8 +1,10 @@
 import { BallService } from './services/ball.service';
 import { Game } from './classes/game.class';
 import { GameService } from './services/game.service';
+import { JwtAuthGuard } from 'src/auth/auth-jwt.guard';
 import { PlayerService } from './services/player.service';
 import { PongService } from './services/pong.service';
+import { Req, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { WebSocketServer } from '@nestjs/websockets';
 
@@ -24,29 +26,32 @@ export class PongGateway {
     private readonly pongService: PongService,
   ) {}
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('connectGame')
-  connect(@ConnectedSocket() socket: Socket, @MessageBody() login: string) {
-    this.playerService.connectGame(socket, login);
+  connect(@ConnectedSocket() socket: Socket, @Req() req: any) {
+    this.playerService.connectGame(socket, req.user.login);
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('joinNormalQueue')
-  joinNormalQueue(@MessageBody() login: string) {
+  joinNormalQueue(@Req() req: any) {
     this.pongService.joinQueue(
       this.server,
       this.playerService,
       this.gameService,
-      login,
+      req.user.login,
       'normal',
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('joinCustomQueue')
-  joinCustomQueue(@MessageBody() login: string) {
+  joinCustomQueue(@Req() req: any) {
     this.pongService.joinQueue(
       this.server,
       this.playerService,
       this.gameService,
-      login,
+      req.user.login,
       'custom',
     );
   }
@@ -90,5 +95,3 @@ export class PongGateway {
     );
   }
 }
-
-//reset3
