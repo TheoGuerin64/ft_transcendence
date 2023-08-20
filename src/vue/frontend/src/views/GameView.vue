@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useStore } from '../store'
-import * as THREE from 'three'
 import { io } from 'socket.io-client'
-import { socket } from '@/socket'
+import * as THREE from 'three'
+import { socket, state } from '@/socket'
 </script>
 
 <script lang="ts">
@@ -11,13 +11,6 @@ export default {
     return {
       useStore,
       login: useStore.user?.name,
-      socket: null as any,
-      scorePlayerOne: 0,
-      scorePlayerTwo: 0,
-      inGame: false,
-      inQueue: false,
-      gameEnded: false,
-      winner: '',
 
       ballMovement: (posX: number, posY: number) => {},
       someoneMoved: (login: string, posY: number) => {},
@@ -29,7 +22,6 @@ export default {
       this.$router.push('/')
       return
     }
-    this.socket = socket
   },
   mounted() {
     if (this.useStore.user === undefined) {
@@ -38,16 +30,15 @@ export default {
     }
 
     this.connect()
-    this.listenMessages()
   },
   beforeUnmount() {
-    this.socket?.emit('changePage')
+    socket?.emit('changePage')
     this.killCanvas()
   },
   methods: {
     init(playerOneLogin: string, playerTwoLogin: string, gameType: string) {
-      this.inGame = true
-      this.inQueue = false
+      state.gameParam.inGame = true
+      state.gameParam.inQueue = false
       let scene: THREE.Scene
       let camera: THREE.PerspectiveCamera
       let renderer: THREE.WebGLRenderer
@@ -128,9 +119,9 @@ export default {
         const newCanvas = document.createElement('canvas')
         newCanvas.id = 'canva'
         document.body.appendChild(newCanvas)
-        this.gameEnded = false
-        this.inGame = false
-        this.inQueue = false
+        state.gameParam.gameEnded = false
+        state.gameParam.inGame = false
+        state.gameParam.inQueue = false
       }
 
       const resizeCanva = () => {
@@ -157,57 +148,41 @@ export default {
       resizeCanva()
     },
     connect() {
-      this.socket.emit('connectGame', this.login)
-    },
-    listenMessages() {
-      this.socket.on(
-        'findGame',
-        (playerOneLogin: string, playerTwoLogin: string, gameType: string) => {
-          this.socket.emit('joinGameRoom')
-          this.init(playerOneLogin, playerTwoLogin, gameType)
-        }
-      )
-      this.socket.on('ballMovement', (posX: number, posY: number) => {
-        this.ballMovement(posX, posY)
-      })
-      this.socket.on('someoneMoved', (login: string, posY: number) => {
-        this.someoneMoved(login, posY)
-      })
-      this.socket.on('PlayerOneWinPoint', () => {
-        this.scorePlayerOne++
-      })
-      this.socket.on('PlayerTwoWinPoint', () => {
-        this.scorePlayerTwo++
-      })
-      this.socket.on('PlayerOneWinGame', (login: string) => {
-        this.killCanvas()
-        this.gameEnded = true
-        this.winner = login
-      })
-      this.socket.on('PlayerTwoWinGame', (login: string) => {
-        this.killCanvas()
-        this.gameEnded = true
-        this.winner = login
-      })
+      socket.emit('connectGame', this.login)
     },
     joinQueue(queueType: string) {
       if (queueType === 'normal') {
-        this.socket.emit('joinNormalQueue', this.login)
-        this.inQueue = true
+        socket.emit('joinNormalQueue', this.login)
       } else if (queueType === 'custom') {
-        this.socket.emit('joinCustomQueue', this.login)
-        this.inQueue = true
+        socket.emit('joinCustomQueue', this.login)
       }
+      state.gameParam.inQueue = true
     },
 
     checkInput(event: KeyboardEvent) {
-      this.socket.emit('playerMovement', event.key)
+      socket.emit('playerMovement', event.key)
     },
     returnLobby() {
-      this.gameEnded = false
-      this.winner = ''
-      this.scorePlayerOne = 0
-      this.scorePlayerTwo = 0
+      state.gameParam.gameEnded = false
+      state.gameParam.winner = ''
+      state.gameParam.scorePlayerOne = 0
+      state.gameParam.scorePlayerTwo = 0
+    },
+    incrementPlayerOneScore() {
+      state.gameParam.scorePlayerOne++
+    },
+    incrementPlayerTwoScore() {
+      state.gameParam.scorePlayerTwo++
+    },
+    PlayerOneWinGame(login: string) {
+      this.killCanvas()
+      state.gameParam.gameEnded = true
+      state.gameParam.winner = login
+    },
+    PlayerTwoWinGame(login: string) {
+      this.killCanvas()
+      state.gameParam.gameEnded = true
+      state.gameParam.winner = login
     }
   }
 }
@@ -216,21 +191,24 @@ export default {
 <template>
   <h1 class="title is-1 has-text-centered">Game</h1>
   <div class="has-text-centered">
-    <div v-if="inQueue">
+    <div v-if="state.gameParam.inQueue">
       <p>currently in queue, please wait</p>
       <div class="lds-dual-ring"></div>
     </div>
     <div
-      v-else-if="inGame"
+      v-else-if="state.gameParam.inGame"
       class="column is-flex is-half is-offset-one-quarter is-justify-content-space-between"
     >
-      <p>Player One: {{ scorePlayerOne }}</p>
-      <p>Player Two: {{ scorePlayerTwo }}</p>
+      <p>Player One: {{ state.gameParam.scorePlayerOne }}</p>
+      <p>Player Two: {{ state.gameParam.scorePlayerTwo }}</p>
     </div>
-    <div v-else-if="gameEnded" class="box">
-      <p v-if="winner === 'surrender'">the other player left the game, you won by forfeit</p>
+    <div v-else-if="state.gameParam.gameEnded" class="box">
+      <p v-if="state.gameParam.winner === 'surrender'">
+        the other player left the game, you won by forfeit
+      </p>
       <p v-else>
-        the winner is {{ winner }} ! The score is {{ scorePlayerOne }} - {{ scorePlayerTwo }}
+        the winner is {{ state.gameParam.winner }} ! The score is
+        {{ state.gameParam.scorePlayerOne }} - {{ state.gameParam.scorePlayerTwo }}
       </p>
       <button @click="returnLobby" class="button mx-3 is-light">return to lobby</button>
     </div>
