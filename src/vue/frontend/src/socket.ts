@@ -73,6 +73,7 @@ socket.on('user-left', (username: string, avatar: string, login: string) => {
       }
     }
   })
+  routerInstance.push('/chat')
 })
 
 socket.on('success', (msg: string) => {
