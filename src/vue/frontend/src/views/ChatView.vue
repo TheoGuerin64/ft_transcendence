@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Channel from '../components/Channel.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useStore } from '../store'
 import { socket, state } from '@/socket'
@@ -13,6 +12,7 @@ interface Channel {
   name: string
   isPublic: boolean
   isProtected: boolean
+  promptPassword: boolean
 }
 
 export default {
@@ -22,6 +22,7 @@ export default {
       state: state,
       showDialog: false as boolean,
       protectedDialog: false as boolean,
+      showContextMenu: false as boolean,
       placeholder: 'Public Channel Name' as string,
       channelData: {
         name: '' as string | undefined,
@@ -35,6 +36,14 @@ export default {
     }
   },
   methods: {
+    handleContextMenu(e: any): void {
+      e.preventDefault()
+      const menu = document.createElement('div')
+      document.appendChild(menu)
+      this.showContextMenu = true
+      console.log('x', e.clientX)
+      console.log('y', e.clientY)
+    },
     submitPassword(): void {
       this.protectedDialog = false
       this.channelData.password = this.password
@@ -45,9 +54,6 @@ export default {
       this.channelData.name = channel.name
       this.channelData.isPublic = channel.isPublic
       this.channelData.isProtected = channel.isProtected
-      if (channel.isProtected) {
-        this.password = window.prompt('Enter Password') as string
-      }
       this.channelData.password = this.password
       socket.emit('join-channel', this.channelData)
     },
@@ -81,12 +87,49 @@ export default {
       <nav class="panel column is-10" id="channelPanel">
         <p class="panel-heading">Channels</p>
         <div v-for="channel in Channels" :key="channel.id">
-          <a @click="joinChannel(channel)" class="panel-block">
+          <div v-if="channel.isProtected" id="protectedDialog">
+            <a class="panel-block" @contextmenu="handleContextMenu($event)">
+              <div v-if="showContextMenu"></div>
+              <!-- <ChannelContextMenu :display="showContextMenu" ref="menu">
+                <ul>
+                  <li>Manage channel</li>
+                  <li>Join channel</li>
+                  <li>Leave channel</li>
+                </ul>
+              </ChannelContextMenu> -->
+              <span class="panel-icon">
+                <FontAwesomeIcon :icon="['fas', 'key']" />
+              </span>
+              {{ channel.name }}
+            </a>
+            <button
+              v-if="!channel.promptPassword"
+              class="button is-info ml-3"
+              id="protectedButton"
+              @click="channel.promptPassword = !channel.promptPassword"
+            >
+              Join
+            </button>
+            <div id="passwordInput">
+              <input
+                v-if="channel.promptPassword"
+                class="input"
+                v-model="password"
+                placeholder="********"
+                type="password"
+              />
+              <button
+                v-if="channel.promptPassword"
+                class="button is-success ml-1"
+                @click="joinChannel(channel)"
+              >
+                <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
+              </button>
+            </div>
+          </div>
+          <a v-if="!channel.isProtected" @click="joinChannel(channel)" class="panel-block">
             <span v-if="channel.isPublic" class="panel-icon">
               <FontAwesomeIcon :icon="['fas', 'hashtag']" />
-            </span>
-            <span v-else-if="channel.isProtected" class="panel-icon">
-              <FontAwesomeIcon :icon="['fas', 'key']" />
             </span>
             <span v-else class="panel-icon">
               <FontAwesomeIcon :icon="['fas', 'lock']" />
@@ -152,5 +195,9 @@ export default {
   margin-left: 0.5%;
   display: flex;
   width: 30%;
+}
+
+#protectedDialog {
+  display: flex;
 }
 </style>
