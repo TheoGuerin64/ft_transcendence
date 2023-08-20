@@ -159,9 +159,7 @@ export class ChannelGateway {
       if (errors.length > 0) {
         throw new BadRequestException(errors);
       }
-      if (
-        await this.channelService.createChannel(channelDto.name, req.user.login)
-      ) {
+      if (await this.channelService.createChannel(channelDto, req.user.login)) {
         client.emit('error', 'This channel already exists');
       } else {
         client.emit('success', 'Channel created');

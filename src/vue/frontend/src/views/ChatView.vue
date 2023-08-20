@@ -19,16 +19,28 @@ export default {
     return {
       store: useStore,
       state: state,
-      showDialog: false,
+      showDialog: false as boolean,
+      protectedDialog: false as boolean,
+      placeholder: 'Public Channel Name' as string,
       channelData: {
-        name: '' as string | undefined
+        name: '' as string | undefined,
+        isPublic: true as boolean,
+        isProtected: false as boolean,
+        password: '' as string | undefined
       },
       Channels: [] as Channel[],
+      password: '' as string,
       axiosEnded: false,
       id: 0 as number
     }
   },
   methods: {
+    submitPassword(): void {
+      this.protectedDialog = false
+      this.channelData.password = this.password
+      this.channelData.isProtected = true
+      this.channelData.isPublic = false
+    },
     joinChannel(channelName: string): void {
       console.log('Joining channel: ' + channelName)
       this.state.Messages = []
@@ -36,6 +48,7 @@ export default {
       this.$router.push('/chat/' + channelName)
     },
     createChannel(): void {
+      console.log('Creating channel: ' + this.channelData.isPublic, this.channelData.isProtected)
       socket.emit('create-channel', this.channelData)
       this.showDialog = false
     },
@@ -62,58 +75,80 @@ export default {
 
 <template>
   <div v-if="!showDialog">
-    <button class="button mt-3 is-link is-outlined" @click="showDialog = !showDialog">
-      Create Channel
-    </button>
+    <div class="columns is-centered mt-6">
+      <nav class="panel column is-10" id="channelPanel">
+        <p class="panel-heading">Channels</p>
+        <div v-for="channel in Channels" :key="channel.id">
+          <a @click="joinChannel(channel.name)" class="panel-block">
+            <span v-if="channel.isPublic" class="panel-icon">
+              <FontAwesomeIcon :icon="['fas', 'hashtag']" />
+            </span>
+            <span v-else-if="channel.isProtected" class="panel-icon">
+              <FontAwesomeIcon :icon="['fas', 'key']" />
+            </span>
+            <span v-else class="panel-icon">
+              <FontAwesomeIcon :icon="['fas', 'lock']" />
+            </span>
+            {{ channel.name }}
+          </a>
+        </div>
+      </nav>
+    </div>
+    <div class="columns is-centered mt-6">
+      <button class="button mt-3 is-link is-outlined" @click="showDialog = !showDialog">
+        Create Channel
+      </button>
+    </div>
   </div>
-  <nav v-if="!showDialog" class="panel">
-    <p class="panel-heading">Channels</p>
-    <p class="panel-tabs">
-      <a class="is-active">All</a>
-      <a>Public</a>
-      <a>Protected</a>
-      <a>Private</a>
-    </p>
-    <li v-for="channel in Channels" :key="channel.id">
-      <a @click="joinChannel(channel.name)" class="panel-block">
-        <span class="panel-icon">
-          <i class="fa-solid fa-hashtag" aria-hidden="true"></i>
-        </span>
-        {{ channel.name }}
-        <!-- <Channel
-          :name="channel.name"
-          :isPublic="channel.isPublic"
-          :isProtected="channel.isProtected"
-        /> -->
-      </a>
-    </li>
-  </nav>
   <div v-if="showDialog" id="dialogBox">
     <div id="inputChannel">
       <form @submit="createChannel">
-        <input class="input" v-model="channelData.name" placeholder="Channel name" />
+        <input class="input" v-model="channelData.name" :placeholder="placeholder" />
       </form>
-      <button id="submitButton" class="button is-success" @click="createChannel">
+      <button class="button is-success ml-1" @click="createChannel">
         <FontAwesomeIcon :icon="['far', 'square-plus']" size="lg" />
+      </button>
+      <button
+        class="button is-info ml-2"
+        @click="(channelData.isPublic = true), (placeholder = 'Public Channel Name')"
+      >
+        Public
+      </button>
+      <button
+        v-if="!protectedDialog"
+        class="button is-info ml-2"
+        @click="(protectedDialog = !protectedDialog), (placeholder = 'Protected Channel Name')"
+      >
+        Protected
+      </button>
+      <div v-if="protectedDialog" id="passwordInput">
+        <input class="input" v-model="password" placeholder="********" type="password" />
+        <button class="button is-warning ml-1" @click="submitPassword">
+          <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
+        </button>
+      </div>
+      <button
+        class="button is-info ml-2"
+        @click="
+          (channelData.isPublic = !channelData.isPublic), (placeholder = 'Private Channel Name')
+        "
+      >
+        Private
       </button>
     </div>
   </div>
 </template>
 
 <style>
-#inputChannel,
-#sendChannel {
+#inputChannel {
   display: flex;
   margin-top: 30px;
   margin-left: 30px;
 }
 
-#submitButton {
+#passwordInput {
   margin-left: 0.5%;
-}
-
-#createChannel {
-  margin-left: 30px;
-  margin-top: 20px;
+  display: flex;
+  width: 30%;
 }
 </style>

@@ -138,20 +138,20 @@ export class ChannelService {
     }
   }
 
-  async createChannel(channelName: string, login: string): Promise<boolean> {
-    if (await this.findOne(channelName)) {
+  async createChannel(channel: any, login: string): Promise<boolean> {
+    if (await this.findOne(channel.name)) {
       return true;
     }
-    const channel = this.create({
-      name: channelName,
+    const newChannel = this.create({
+      name: channel.name,
       messages: [],
       memberships: [],
-      isProtected: false,
-      isPublic: true,
-      password: '',
+      isProtected: channel.isProtected,
+      isPublic: channel.isPublic,
+      password: channel.password,
     });
     await this.save(channel);
-    await this.addMembership(channelName, login, 'owner');
+    await this.addMembership(channel.name, login, 'owner');
     return false;
   }
 
