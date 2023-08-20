@@ -66,7 +66,6 @@ export default {
     leaveChannel(): void {
       const data = { name: this.$route.params.channelId }
       socket.emit('leave-channel', data)
-      this.$router.push('/chat')
     }
   },
   async mounted() {

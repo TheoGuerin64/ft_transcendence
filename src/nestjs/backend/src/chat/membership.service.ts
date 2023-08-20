@@ -1,3 +1,4 @@
+import { async } from 'rxjs';
 import { DeepPartial, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -28,8 +29,12 @@ export class MembershipService {
     return updatedMembership;
   }
 
-  remove(membership: Membership): Promise<Membership> {
-    return this.membershipModel.remove(membership);
+  async save(membership: Membership): Promise<Membership> {
+    return await this.membershipModel.save(membership);
+  }
+
+  async remove(membership: Membership): Promise<Membership> {
+    return await this.membershipModel.remove(membership);
   }
 
   findOne(channelName: string, login: string): Promise<Membership> {

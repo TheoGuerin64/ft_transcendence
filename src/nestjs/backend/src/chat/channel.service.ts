@@ -7,6 +7,7 @@ import { MembershipService } from './membership.service';
 import { MessageService } from './message.service';
 import { Server } from 'socket.io';
 import { Socket } from 'dgram';
+import { User } from 'src/user/user.entity';
 import { UserService } from '../user/user.service';
 
 @Injectable()
@@ -106,7 +107,11 @@ export class ChannelService {
     return false;
   }
 
-  async removeMembership(channelName: string, login: string): Promise<boolean> {
+  async removeMembership(
+    channelName: string,
+    login: string,
+    client: any,
+  ): Promise<boolean> {
     const user = await this.userService.findOne(login);
     if (!user) {
       return true;
@@ -122,7 +127,25 @@ export class ChannelService {
     if (!membership) {
       return true;
     }
-    await this.membershipService.remove(membership);
+    if (membership.role === 'owner') {
+      const users = (await this.userService.findAll()) as User[];
+      await this.membershipService.remove(membership);
+      for (let i = 0; i < users.length; i++) {
+        const newMembership = await this.membershipService.findOne(
+          channel.name,
+          users[i].login,
+        );
+        if (newMembership) {
+          newMembership.role = 'owner';
+          await this.membershipService.save(newMembership);
+          return false;
+        }
+      }
+      await this.removeChannel(channel.name, client);
+      client.emit('success', 'Channel removed');
+    } else {
+      await this.membershipService.remove(membership);
+    }
     return false;
   }
 
@@ -146,6 +169,14 @@ export class ChannelService {
     await this.save(channel);
     await this.addMembership(channel.name, login, 'owner', null);
     return false;
+  }
+
+  async removeChannel(channelName: string, client: any): Promise<void> {
+    const users = (await this.userService.findAll()) as User[];
+    for (let i = 0; i < users.length; i++) {
+      await this.removeMembership(channelName, users[i].login, client);
+    }
+    await this.channelModel.remove(await this.findOne(channelName));
   }
 
   async save(channel: Channel): Promise<Channel> {

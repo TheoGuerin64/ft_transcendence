@@ -1,3 +1,4 @@
+import { async } from 'rxjs';
 import { ChannelDto, MessageDto } from './channel.pipe';
 import { ChannelService } from './channel.service';
 import { JwtAuthGuard } from '../auth/auth-jwt.guard';
@@ -115,16 +116,17 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
-      client.leave(channelDto.name);
       if (
         await this.channelService.removeMembership(
           channelDto.name,
           req.user.login,
+          client,
         )
       ) {
         client.emit('error', 'You already left this channel');
       } else {
         const user = await this.userService.findOne(req.user.login);
+        client.leave(channelDto.name);
         this.server
           .to(channelDto.name)
           .emit('user-left', user.name, user.avatar, user.login);
@@ -176,6 +178,29 @@ export class ChannelGateway {
         req.user?.login,
         client,
       );
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('remove-channel')
+  async removeChannel(
+    @MessageBody() channelDto: ChannelDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      const membership = await this.membershipService.findOne(
+        channelDto.name,
+        req.user.login,
+      );
+      if (membership?.role !== 'owner') {
+        client.emit('error', 'You are not the owner of this channel');
+        return;
+      }
+      await this.channelService.removeChannel(channelDto.name, client);
+      client.emit('success', 'Channel removed');
     } catch (error) {
       console.log(error);
     }
