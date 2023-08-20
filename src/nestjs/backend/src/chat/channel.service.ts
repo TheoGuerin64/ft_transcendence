@@ -39,7 +39,7 @@ export class ChannelService {
   ): Promise<void> {
     const channel = await this.findOne(channelName);
     const message = this.messageService.create({
-      text: content,
+      content: content,
       createdAt: new Date(),
     });
     const user = await this.userService.findOne(login);
@@ -121,21 +121,6 @@ export class ChannelService {
   async getMessageHistory(channelName: string): Promise<any> {
     const channel = await this.findOne(channelName);
     return channel.messages;
-  }
-
-  async sendHistory(channelName: string, client: any): Promise<void> {
-    const messageHistory = await this.getMessageHistory(channelName);
-    if (messageHistory) {
-      for (let i = 0; i < messageHistory.length; i++) {
-        client.emit(
-          'message',
-          messageHistory[i].text,
-          messageHistory[i].user!.name,
-          messageHistory[i].user!.avatar,
-          messageHistory[i].user!.login,
-        );
-      }
-    }
   }
 
   async createChannel(channel: any, login: string): Promise<boolean> {

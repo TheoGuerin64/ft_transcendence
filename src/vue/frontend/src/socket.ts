@@ -30,27 +30,37 @@ socket.on('message', (msg: string, username: string, avatar: string, login: stri
     id: state.idMessage++,
     data: {
       content: msg,
-      login: login,
-      username: username,
-      avatar: avatar
+      user: {
+        username: username,
+        avatar: avatar,
+        login: login
+      }
     }
   })
 })
-socket.on('user-joined', (username: string, avatar: string) => {
+socket.on('user-joined', (username: string, avatar: string, login: string) => {
   state.Messages.push({
     id: state.idMessage++,
     data: {
       content: username + ' has joined the channel ' + state.channelName,
-      avatar: avatar
+      user: {
+        username: username,
+        avatar: avatar,
+        login: login
+      }
     }
   })
 })
-socket.on('user-left', (username: string, avatar: string) => {
+socket.on('user-left', (username: string, avatar: string, login: string) => {
   state.Messages.push({
     id: state.idMessage++,
     data: {
       content: username + ' has left the channel ' + state.channelName,
-      avatar: avatar
+      user: {
+        username: username,
+        avatar: avatar,
+        login: login
+      }
     }
   })
 })
