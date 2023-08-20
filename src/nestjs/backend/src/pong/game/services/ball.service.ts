@@ -21,6 +21,7 @@ export class BallService {
         game.getBall().getPositionX(),
         game.getBall().getPositionY(),
       );
+    server.in(game.getGameID()).emit('message');
     return someoneWinPoint;
   }
 
