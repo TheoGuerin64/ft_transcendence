@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { store } from '../store'
+import { useStore } from '../store'
 import * as THREE from 'three'
 import { io } from 'socket.io-client'
+import { socket } from '@/socket'
 </script>
 
 <script lang="ts">
 export default {
   data() {
     return {
-      store,
-      login: store.user?.name,
+      useStore,
+      login: useStore.user?.name,
       socket: null as any,
       scorePlayerOne: 0,
       scorePlayerTwo: 0,
@@ -24,14 +25,14 @@ export default {
     }
   },
   created() {
-    if (this.store.user === undefined) {
+    if (this.useStore.user === undefined) {
       this.$router.push('/')
       return
     }
-    this.socket = io('http://localhost:3000')
+    this.socket = socket
   },
   mounted() {
-    if (this.store.user === undefined) {
+    if (this.useStore.user === undefined) {
       this.$router.push('/')
       return
     }
@@ -213,8 +214,6 @@ export default {
 </script>
 
 <template>
-  <routerLink to="/">Home</routerLink> |
-  <routerLink to="/MatchHistory">Match History</routerLink>
   <h1 class="title is-1 has-text-centered">Game</h1>
   <div class="has-text-centered">
     <div v-if="inQueue">

@@ -1,14 +1,19 @@
-import { AuthModule } from './auth/auth.module';
-import { MatchHistoryModule } from './matchHistory/matchHistory.module';
-import { MatchPlayed } from './pong/database/matchPlayed.entity';
-import { MatchPlayedModule } from './pong/database/matchPlayed.module';
-import { Module } from '@nestjs/common';
-import { PongModule } from './pong/game/pong.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { User } from './user/user.entity';
-import { UserModule } from './user/user.module';
-import { UserStats } from './userStats/userStats.entity';
-import { userStatsModule } from './userStats/userStats.module';
+import { AppGateway } from './app.gateway'
+import { AppService } from './app.service'
+import { AuthModule } from './auth/auth.module'
+import { Friendship } from './user/friendship/friendship.entity'
+import { LoggerMiddleware } from './logger.middleware'
+import { MatchHistoryModule } from './matchHistory/matchHistory.module'
+import { MatchPlayed } from './pong/database/matchPlayed.entity'
+import { MatchPlayedModule } from './pong/database/matchPlayed.module'
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
+import { PongModule } from './pong/game/pong.module'
+import { TypeOrmModule } from '@nestjs/typeorm'
+import { User } from './user/user.entity'
+import { UserModule } from './user/user.module'
+import { UserStats } from './userStats/userStats.entity'
+import { userStatsModule } from './userStats/userStats.module'
+
 
 @Module({
   imports: [
@@ -19,7 +24,7 @@ import { userStatsModule } from './userStats/userStats.module';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_USER,
-      entities: [User, MatchPlayed, UserStats],
+      entities: [User, MatchPlayed, UserStats, Friendship],
       synchronize: true,
     }),
     UserModule,
@@ -30,6 +35,10 @@ import { userStatsModule } from './userStats/userStats.module';
     userStatsModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [AppService, AppGateway],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

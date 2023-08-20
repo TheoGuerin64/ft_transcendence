@@ -1,11 +1,11 @@
+import { HttpModule } from '@nestjs/axios';
+import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
+import { UserModule } from '../user/user.module';
+import { JwtStrategy } from './auth-jwt.strategy';
+import { OAuth2Strategy } from './auth-oauth2.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { HttpModule } from '@nestjs/axios';
-import { JwtModule } from '@nestjs/jwt';
-import { JwtStrategy } from './auth-jwt.strategy';
-import { Module } from '@nestjs/common';
-import { OAuth2Strategy } from './auth-oauth2.strategy';
-import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -18,6 +18,6 @@ import { UserModule } from '../user/user.module';
   ],
   controllers: [AuthController],
   providers: [AuthService, OAuth2Strategy, JwtStrategy],
-  exports: [],
+  exports: [AuthService],
 })
 export class AuthModule {}

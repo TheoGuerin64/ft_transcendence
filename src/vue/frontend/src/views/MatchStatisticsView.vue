@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import { store } from '../store'
 import type { statistics } from './MatchHistoryView.vue'
 </script>
 
 <script lang="ts">
 export default {
   data() {
-    return {
-      store
-    }
+    return {}
   },
   props: {
     userStats: { type: Object as () => statistics }
