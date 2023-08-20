@@ -2,7 +2,6 @@ import { DeepPartial, In, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MatchPlayed } from './matchPlayed.entity';
-import { UserService } from 'src/user/user.service';
 
 @Injectable()
 export class MatchPlayedService {

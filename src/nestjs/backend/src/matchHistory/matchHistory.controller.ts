@@ -6,6 +6,7 @@ import { MatchPlayedService } from 'src/pong/database/matchPlayed.service';
 @Controller('MatchHistory')
 export class MatchHistoryController {
   constructor(private readonly matchPlayedService: MatchPlayedService) {}
+
   @Get()
   @UseGuards(JwtAuthGuard)
   async matchPlayed(@Req() req: any): Promise<MatchPlayed[]> {

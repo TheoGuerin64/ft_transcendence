@@ -1,4 +1,4 @@
-import { collisionPlayerMapBorder, playerStep } from '../globals';
+import { collisionPlayerMapBorder, playerSpeed } from '../globals';
 import { Game } from '../classes/game.class';
 import { Injectable } from '@nestjs/common';
 import { Player } from '../classes/player.class';
@@ -118,14 +118,14 @@ export class PlayerService {
 
   private updatePosition(player: Player, keycode: string): void {
     if (keycode === 'w') {
-      if (player.getPosY() + playerStep < collisionPlayerMapBorder) {
-        player.setPosY(player.getPosY() + playerStep);
+      if (player.getPosY() + playerSpeed < collisionPlayerMapBorder) {
+        player.setPosY(player.getPosY() + playerSpeed);
       } else {
         player.setPosY(collisionPlayerMapBorder);
       }
     } else if (keycode === 's') {
-      if (player.getPosY() - playerStep > -collisionPlayerMapBorder) {
-        player.setPosY(player.getPosY() - playerStep);
+      if (player.getPosY() - playerSpeed > -collisionPlayerMapBorder) {
+        player.setPosY(player.getPosY() - playerSpeed);
       } else {
         player.setPosY(-collisionPlayerMapBorder);
       }
