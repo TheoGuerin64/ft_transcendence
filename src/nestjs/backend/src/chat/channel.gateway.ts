@@ -88,32 +88,12 @@ export class ChannelGateway {
           'member',
         ))
       ) {
-        await this.channelService.sendHistory(channelDto.name, client);
         const user = await this.userService.findOne(req.user.login);
         this.server
           .to(channelDto.name)
-          .emit('user-joined', user.name, user.avatar);
+          .emit('user-joined', user.name, user.avatar, user.login);
         client.emit('success', 'You joined the channel');
       }
-    } catch (error) {
-      console.log(error);
-    }
-  }
-
-  @UseGuards(JwtAuthGuard)
-  @SubscribeMessage('send-history')
-  async sendHistoryMessage(
-    @MessageBody() channelDto: ChannelDto,
-    @ConnectedSocket() client: Socket,
-    @Req() req: any,
-  ): Promise<void> {
-    try {
-      await this.channelService.checkConnection(
-        channelDto.name,
-        req.user.login,
-        client,
-      );
-      await this.channelService.sendHistory(channelDto.name, client);
     } catch (error) {
       console.log(error);
     }
@@ -139,7 +119,7 @@ export class ChannelGateway {
         const user = await this.userService.findOne(req.user.login);
         this.server
           .to(channelDto.name)
-          .emit('user-left', user.name, user.avatar);
+          .emit('user-left', user.name, user.avatar, user.login);
         client.emit('success', 'You left the channel');
       }
     } catch (error) {
@@ -164,6 +144,24 @@ export class ChannelGateway {
       } else {
         client.emit('success', 'Channel created');
       }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('reconnect')
+  async reconnect(
+    @MessageBody() channelDto: ChannelDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      await this.channelService.checkConnection(
+        channelDto.name,
+        req.user?.login,
+        client,
+      );
     } catch (error) {
       console.log(error);
     }

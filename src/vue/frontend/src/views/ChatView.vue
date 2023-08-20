@@ -30,7 +30,6 @@ export default {
       },
       Channels: [] as Channel[],
       password: '' as string,
-      axiosEnded: false,
       id: 0 as number
     }
   },
@@ -43,8 +42,7 @@ export default {
     },
     joinChannel(channelName: string): void {
       console.log('Joining channel: ' + channelName)
-      this.state.Messages = []
-      socket.emit('join-channel', channelName)
+      socket.emit('join-channel', { name: channelName })
       this.$router.push('/chat/' + channelName)
     },
     createChannel(): void {
@@ -53,15 +51,13 @@ export default {
       this.showDialog = false
     },
     async getChannels(): Promise<void> {
-      this.axiosEnded = false
       try {
-        const response = await axios.get('http://127.0.0.1:3000/channels', {
+        const response = await axios.get('http://127.0.0.1:3000/channel', {
           withCredentials: true
         })
         for (let i = 0; i < response.data.length; i++) {
           this.Channels.push(response.data[i])
         }
-        this.axiosEnded = true
       } catch (error) {
         console.log(error)
       }

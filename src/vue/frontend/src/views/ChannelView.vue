@@ -3,9 +3,17 @@ import { useStore } from '../store'
 import Message from '../components/Message.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { state, socket } from '@/socket'
+import axios from 'axios'
 </script>
 
 <script lang="ts">
+interface Channel {
+  id: number
+  name: string
+  isPublic: boolean
+  isProtected: boolean
+}
+
 const messageData = {
   content: '' as string,
   channelName: '' as string | undefined
@@ -19,24 +27,39 @@ export default {
     return {
       store: useStore,
       state: state,
-      message: '' as string
+      message: '' as string,
+      channel: null as any
     }
   },
-  async mounted() {
-    const data = { name: this.$route.params.channelId }
-    this.state.Messages = []
-    this.state.channelName = this.$route.params.channelId as string
-    console.log('Channel name: ' + this.state.channelName)
-    socket.emit('send-history', data)
-  },
   methods: {
+    async getChannel(channelName: string): Promise<void> {
+      try {
+        const response = await axios.get('http://127.0.0.1:3000/channel/' + channelName, {
+          withCredentials: true
+        })
+        this.channel = response.data
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    async getMessages(channelName: string): Promise<void> {
+      try {
+        const response = await axios.get('http://127.0.0.1:3000/channel/messages/' + channelName, {
+          withCredentials: true
+        })
+        for (let i = 0; i < response.data.length; i++) {
+          this.state.Messages.push({ id: i, data: response.data[i] })
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    },
     submitNewMessage(event: Event): void {
       if (event) {
         event.preventDefault()
       }
       messageData.content = this.message
       messageData.channelName = this.state.channelName
-      console.log('channel name: ' + messageData.channelName)
       socket.emit('message', messageData)
       this.message = ''
     },
@@ -45,6 +68,14 @@ export default {
       socket.emit('leave-channel', data)
       this.$router.push('/chat')
     }
+  },
+  async mounted() {
+    const data = { name: this.$route.params.channelId as string }
+    state.Messages = []
+    socket.emit('reconnect', data)
+    await this.getChannel(data.name)
+    await this.getMessages(data.name)
+    this.state.channelName = this.$route.params.channelId as string
   }
 }
 </script>
@@ -58,10 +89,10 @@ export default {
       <ul>
         <li v-for="message in state.Messages" :key="message.id">
           <Message
-            :username="message.data.username"
+            :username="message.data.user.name"
             :content="message.data.content"
-            :avatar="message.data.avatar"
-            :login="message.data.login"
+            :avatar="message.data.user.avatar"
+            :login="message.data.user.login"
           />
         </li>
       </ul>

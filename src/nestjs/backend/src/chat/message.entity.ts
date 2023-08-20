@@ -14,7 +14,7 @@ export class Message {
   id: number;
 
   @Column()
-  text: string;
+  content: string;
 
   @Column()
   createdAt: Date;
