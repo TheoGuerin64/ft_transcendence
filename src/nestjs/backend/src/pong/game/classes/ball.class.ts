@@ -6,21 +6,17 @@ export class Ball {
   private directionY: number;
   private positionX: number;
   private positionY: number;
-  private hitSomething: boolean;
 
   constructor(gameType: string) {
     this.speed = ballBaseSpeed;
     this.directionX = Math.random() * (1 - -1) + -1;
-    this.directionY = Math.random() * (0.5 - -0.5) + -0.5;
-    this.directionX = 1;
-    this.directionY = 0;
+    this.directionY = Math.random() * (1 - -1) + -1;
     this.positionX = 0;
     if (gameType === 'normal') {
       this.positionY = 0;
     } else if (gameType === 'custom') {
       this.positionY = 1.5;
     }
-    this.hitSomething = false;
   }
 
   getSpeed(): number {
@@ -38,9 +34,6 @@ export class Ball {
   getDirectionY(): number {
     return this.directionY;
   }
-  getHitSomething(): boolean {
-    return this.hitSomething;
-  }
 
   setSpeed(speed: number): void {
     this.speed = speed;
@@ -56,8 +49,5 @@ export class Ball {
   }
   setDirectionY(directionY: number): void {
     this.directionY = directionY;
-  }
-  setHitSomething(hitSomething: boolean): void {
-    this.hitSomething = hitSomething;
   }
 }

@@ -16,6 +16,7 @@ export class Player {
     this.lastKeyType = ['keyup', 'keyup'];
     this.intervalID = [null, null];
   }
+
   getLogin(): string {
     return this.login;
   }
@@ -31,13 +32,13 @@ export class Player {
   getPoint(): number {
     return this.point;
   }
-
   getLastKeyType(index: number): string {
     return this.lastKeyType[index];
   }
   getIntervalID(index: number): NodeJS.Timer {
     return this.intervalID[index];
   }
+
   setPosX(newPosX: number): void {
     this.posX = newPosX;
   }
@@ -47,14 +48,14 @@ export class Player {
   setPoint(point: number): void {
     this.point = point;
   }
-
-  addOnePoint(): void {
-    this.point += 1;
-  }
   setLastKeyType(index: number, lastKeyType: string) {
     this.lastKeyType[index] = lastKeyType;
   }
   setIntervalID(index: number, intervalID: NodeJS.Timer): void {
     this.intervalID[index] = intervalID;
+  }
+
+  addOnePoint(): void {
+    this.point += 1;
   }
 }
