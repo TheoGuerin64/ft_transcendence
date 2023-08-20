@@ -64,14 +64,15 @@ export class PongGateway {
   @SubscribeMessage('playerMovement')
   playerMovement(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() keycode: string,
+    @MessageBody() dataKey: string,
   ) {
     this.pongService.playerMovement(
       this.server,
       socket,
       this.playerService,
       this.gameService,
-      keycode,
+      dataKey[0],
+      dataKey[1],
     );
   }
 

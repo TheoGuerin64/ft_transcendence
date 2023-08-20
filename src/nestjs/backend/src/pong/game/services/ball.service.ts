@@ -88,7 +88,7 @@ export class BallService {
     ) {
       return true;
     } else {
-      return false;
+      return true; //false
     }
   }
 

@@ -87,12 +87,33 @@ export class PlayerService {
     socket: Socket,
     game: Game,
     keycode: string,
+    keytype: string,
   ): void {
+    let index;
+    if (keycode === 'w') {
+      index = 0;
+    } else if (keycode === 's') {
+      index = 1;
+    } else {
+      return;
+    }
     const player = this.findPlayer(game, socket);
-    this.updatePosition(player, keycode);
-    server
-      .in(game.getGameID())
-      .emit('someoneMoved', player.getLogin(), player.getPosY());
+    if (player.getLastKeyType(index) !== 'keydown' && keytype === 'keydown') {
+      player.setLastKeyType(index, keytype);
+      const intervalID = setInterval(() => {
+        if (player.getLastKeyType(0) === player.getLastKeyType(1)) {
+          return;
+        }
+        this.updatePosition(player, keycode);
+        server
+          .in(game.getGameID())
+          .emit('someoneMoved', player.getLogin(), player.getPosY());
+      }, 15);
+      player.setIntervalID(index, intervalID);
+    } else if (keytype === 'keyup') {
+      player.setLastKeyType(index, keytype);
+      clearInterval(player.getIntervalID(index));
+    }
   }
 
   private updatePosition(player: Player, keycode: string): void {
