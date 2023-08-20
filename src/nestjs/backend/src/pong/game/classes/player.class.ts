@@ -4,6 +4,8 @@ export class Player {
   private posX: number;
   private posY: number;
   private point: number;
+  private lastKeyType: string[];
+  private intervalID: NodeJS.Timer[];
 
   constructor(login: string, socketID: string) {
     this.login = login;
@@ -11,8 +13,9 @@ export class Player {
     this.posX = 0;
     this.posY = 0;
     this.point = 0;
+    this.lastKeyType = ['', ''];
+    this.intervalID = [null, null];
   }
-
   getLogin(): string {
     return this.login;
   }
@@ -28,6 +31,13 @@ export class Player {
   getPoint(): number {
     return this.point;
   }
+
+  getLastKeyType(index: number): string {
+    return this.lastKeyType[index];
+  }
+  getIntervalID(index: number): NodeJS.Timer {
+    return this.intervalID[index];
+  }
   setPosX(newPosX: number): void {
     this.posX = newPosX;
   }
@@ -40,5 +50,11 @@ export class Player {
 
   addOnePoint(): void {
     this.point += 1;
+  }
+  setLastKeyType(index: number, lastKeyType: string) {
+    this.lastKeyType[index] = lastKeyType;
+  }
+  setIntervalID(index: number, intervalID: NodeJS.Timer): void {
+    this.intervalID[index] = intervalID;
   }
 }

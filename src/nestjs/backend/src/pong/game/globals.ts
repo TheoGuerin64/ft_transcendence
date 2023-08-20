@@ -1,4 +1,4 @@
-export const playerStep = 0.1;
+export const playerStep = 0.05;
 export const playerHeight = 0.5;
 export const playerWidth = 0.1;
 

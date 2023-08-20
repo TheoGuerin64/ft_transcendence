@@ -78,7 +78,8 @@ export class PongService {
     socket: Socket,
     playerService: PlayerService,
     gameService: GameService,
-    keycode,
+    keycode: string,
+    keytype: string,
   ): void {
     const games = gameService.getGames();
     const game = games.find(
@@ -87,7 +88,7 @@ export class PongService {
         element.getPlayerTwo().getSocketID() === socket.id,
     );
     if (game !== undefined) {
-      playerService.playerMovement(server, socket, game, keycode);
+      playerService.playerMovement(server, socket, game, keycode, keytype);
     }
   }
   async disconnectPlayer(

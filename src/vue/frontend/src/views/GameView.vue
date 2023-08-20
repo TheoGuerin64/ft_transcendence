@@ -44,7 +44,8 @@ export default {
             canvas: container
           })
         }
-        document.addEventListener('keydown', this.checkInput, false)
+        document.addEventListener('keyup', this.checkInput)
+        document.addEventListener('keydown', this.checkInput)
         window.addEventListener('resize', resizeCanva)
         camera.position.z = 5
 
@@ -149,7 +150,7 @@ export default {
     },
 
     checkInput(event: KeyboardEvent) {
-      socket.emit('playerMovement', event.key)
+      socket.emit('playerMovement', event.key, event.type)
     },
     returnLobby() {
       state.gameParam.gameEnded = false
