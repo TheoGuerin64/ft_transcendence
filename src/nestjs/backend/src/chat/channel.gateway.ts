@@ -83,15 +83,23 @@ export class ChannelGateway {
     try {
       if (
         !(await this.channelService.addMembership(
-          channelDto.name,
+          channelDto,
           req.user.login,
           'member',
+          client,
         ))
       ) {
         const user = await this.userService.findOne(req.user.login);
+        client.join(channelDto.name);
         this.server
           .to(channelDto.name)
-          .emit('user-joined', user.name, user.avatar, user.login);
+          .emit(
+            'user-joined',
+            user.name,
+            user.avatar,
+            user.login,
+            channelDto.name,
+          );
         client.emit('success', 'You joined the channel');
       }
     } catch (error) {
@@ -157,6 +165,12 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
+      if (
+        !(await this.membershipService.findOne(channelDto.name, req.user.login))
+      ) {
+        client.emit('error', 'You are not a member of this channel');
+        return;
+      }
       await this.channelService.checkConnection(
         channelDto.name,
         req.user?.login,

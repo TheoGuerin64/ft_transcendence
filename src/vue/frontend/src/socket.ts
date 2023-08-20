@@ -10,12 +10,19 @@ export const state = reactive({
     data: any
   }>,
   channelName: '' as string,
-  idMessage: 0
+  idMessage: 0,
+  joined: false
 })
 
 export const socket = io('http://localhost:3000', {
   autoConnect: false
 })
+
+let routerInstance = null
+
+export function setRouterInstance(router: any) {
+  routerInstance = router
+}
 
 socket.on('connect', () => {
   state.connected = true
@@ -38,7 +45,8 @@ socket.on('message', (msg: string, username: string, avatar: string, login: stri
     }
   })
 })
-socket.on('user-joined', (username: string, avatar: string, login: string) => {
+
+socket.on('user-joined', (username: string, avatar: string, login: string, channelName: string) => {
   state.Messages.push({
     id: state.idMessage++,
     data: {
@@ -50,7 +58,9 @@ socket.on('user-joined', (username: string, avatar: string, login: string) => {
       }
     }
   })
+  routerInstance.push('/chat/' + channelName)
 })
+
 socket.on('user-left', (username: string, avatar: string, login: string) => {
   state.Messages.push({
     id: state.idMessage++,
@@ -77,6 +87,7 @@ socket.on('error', (msg: string) => {
     type: 'error',
     text: msg
   })
+  routerInstance.push('/chat')
 })
 
 export const socketConnect = () => {
