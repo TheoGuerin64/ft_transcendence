@@ -12,8 +12,8 @@ export class Ball {
     this.speed = ballBaseSpeed;
     this.directionX = Math.random() * (1 - -1) + -1;
     this.directionY = Math.random() * (0.5 - -0.5) + -0.5;
-    this.directionX = 0.5;
-    this.directionY = 1;
+    this.directionX = 1;
+    this.directionY = 0;
     this.positionX = 0;
     if (gameType === 'normal') {
       this.positionY = 0;

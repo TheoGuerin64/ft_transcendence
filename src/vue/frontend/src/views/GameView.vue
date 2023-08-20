@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { useStore } from '../store'
-import { io } from 'socket.io-client'
 import * as THREE from 'three'
 import { socket, state } from '@/socket'
 </script>

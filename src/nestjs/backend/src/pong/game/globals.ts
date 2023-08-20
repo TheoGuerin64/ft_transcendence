@@ -3,7 +3,7 @@ export const playerHeight = 0.5;
 export const playerWidth = 0.1;
 
 export const ballRadius = 0.15;
-export const ballBaseSpeed = 0.05;
+export const ballBaseSpeed = 0.01;
 export const IncreaseBallSpeed = 0.0005;
 
 export const mapLength = 2;

@@ -44,6 +44,11 @@ export class BallService {
       newPosX >= collisionBallMapBorder
     ) {
       if (this.ballHitPaddle(newPosX, newPosY, game)) {
+        const impact =
+          game.getBall().getPositionY() - game.getPlayerTwo().getPosY();
+        const directionY = this.calculateDirection(game, ball);
+        const direction = ((100 / (playerHeight / 2)) * impact) / 100;
+        ball.setDirectionY(directionY * (Math.abs(direction) % 1));
         ball.setDirectionX(-ball.getDirectionX());
         ball.setSpeed(ball.getSpeed() + IncreaseBallSpeed);
         newPosX = this.adaptNewPosition(newPosX, collisionBallMapBorder);
@@ -61,6 +66,20 @@ export class BallService {
     return someoneWinPoint;
   }
 
+  private static calculateDirection(game: Game, ball: Ball): number {
+    let value;
+    if (
+      (ball.getPositionX() < 0 &&
+        game.getBall().getPositionY() < game.getPlayerOne().getPosY()) ||
+      (ball.getPositionX() > 0 &&
+        game.getBall().getPositionY() < game.getPlayerTwo().getPosY())
+    ) {
+      value = -1;
+    } else {
+      value = 1;
+    }
+    return value;
+  }
   private static checkCentralCube(
     ball: Ball,
     newPos: { x: number; y: number },
@@ -88,7 +107,7 @@ export class BallService {
     ) {
       return true;
     } else {
-      return true; //false
+      return false;
     }
   }
 

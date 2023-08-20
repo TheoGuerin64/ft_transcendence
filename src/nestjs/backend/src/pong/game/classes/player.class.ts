@@ -13,7 +13,7 @@ export class Player {
     this.posX = 0;
     this.posY = 0;
     this.point = 0;
-    this.lastKeyType = ['', ''];
+    this.lastKeyType = ['keyup', 'keyup'];
     this.intervalID = [null, null];
   }
   getLogin(): string {
