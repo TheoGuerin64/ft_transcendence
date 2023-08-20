@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useStore } from '../store'
 import { socket, state } from '@/socket'
 import axios from 'axios'
+import { setRouterInstance } from '@/socket'
 </script>
 
 <script lang="ts">
@@ -40,13 +41,17 @@ export default {
       this.channelData.isProtected = true
       this.channelData.isPublic = false
     },
-    joinChannel(channelName: string): void {
-      console.log('Joining channel: ' + channelName)
-      socket.emit('join-channel', { name: channelName })
-      this.$router.push('/chat/' + channelName)
+    joinChannel(channel: Channel): void {
+      this.channelData.name = channel.name
+      this.channelData.isPublic = channel.isPublic
+      this.channelData.isProtected = channel.isProtected
+      if (channel.isProtected) {
+        this.password = window.prompt('Enter Password') as string
+      }
+      this.channelData.password = this.password
+      socket.emit('join-channel', this.channelData)
     },
     createChannel(): void {
-      console.log('Creating channel: ' + this.channelData.isPublic, this.channelData.isProtected)
       socket.emit('create-channel', this.channelData)
       this.showDialog = false
     },
@@ -64,6 +69,7 @@ export default {
     }
   },
   async mounted() {
+    setRouterInstance(this.$router)
     await this.getChannels()
   }
 }
@@ -75,7 +81,7 @@ export default {
       <nav class="panel column is-10" id="channelPanel">
         <p class="panel-heading">Channels</p>
         <div v-for="channel in Channels" :key="channel.id">
-          <a @click="joinChannel(channel.name)" class="panel-block">
+          <a @click="joinChannel(channel)" class="panel-block">
             <span v-if="channel.isPublic" class="panel-icon">
               <FontAwesomeIcon :icon="['fas', 'hashtag']" />
             </span>

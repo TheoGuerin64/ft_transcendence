@@ -1,10 +1,12 @@
 import { Channel } from './channel.entity';
+import { ChannelDto } from './channel.pipe';
 import { DeepPartial, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MembershipService } from './membership.service';
 import { MessageService } from './message.service';
 import { Server } from 'socket.io';
+import { Socket } from 'dgram';
 import { UserService } from '../user/user.service';
 
 @Injectable()
@@ -63,21 +65,27 @@ export class ChannelService {
   }
 
   async addMembership(
-    channelName: string,
+    channelDto: ChannelDto,
     login: string,
     role: string,
+    client: any,
   ): Promise<boolean> {
     const user = await this.userService.findOne(login);
     if (!user) {
       return true;
     }
-    let channel = await this.findOne(channelName);
+    let channel = await this.findOne(channelDto.name);
     if (
       channel &&
       (await this.membershipService.findOne(channel.name, user.login))
     ) {
+      return false;
+    }
+    if (channelDto.isProtected && channelDto.password !== channel.password) {
+      client.emit('error', 'Wrong password');
       return true;
     }
+
     const membership = this.membershipService.create({
       role: role,
       isBanned: false,
@@ -136,7 +144,7 @@ export class ChannelService {
       password: channel.password,
     });
     await this.save(channel);
-    await this.addMembership(channel.name, login, 'owner');
+    await this.addMembership(channel.name, login, 'owner', null);
     return false;
   }
 

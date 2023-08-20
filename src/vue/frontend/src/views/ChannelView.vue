@@ -2,7 +2,7 @@
 import { useStore } from '../store'
 import Message from '../components/Message.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { state, socket } from '@/socket'
+import { state, socket, setRouterInstance } from '@/socket'
 import axios from 'axios'
 </script>
 
@@ -70,6 +70,7 @@ export default {
     }
   },
   async mounted() {
+    setRouterInstance(this.$router)
     const data = { name: this.$route.params.channelId as string }
     state.Messages = []
     socket.emit('reconnect', data)
