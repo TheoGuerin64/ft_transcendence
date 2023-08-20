@@ -1,12 +1,14 @@
-import { Controller, Get } from '@nestjs/common';
-import { MatchHistoryService } from './matchHistory.service';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from 'src/auth/auth-jwt.guard';
 import { MatchPlayed } from 'src/pong/database/matchPlayed.entity';
+import { MatchPlayedService } from 'src/pong/database/matchPlayed.service';
 
 @Controller('MatchHistory')
 export class MatchHistoryController {
-  constructor(private readonly matchHistoryService: MatchHistoryService) {}
+  constructor(private readonly matchPlayedService: MatchPlayedService) {}
   @Get()
-  async matchPlayed(): Promise<MatchPlayed[]> {
-    return await this.matchHistoryService.matchPlayed();
+  @UseGuards(JwtAuthGuard)
+  async matchPlayed(@Req() req: any): Promise<MatchPlayed[]> {
+    return await this.matchPlayedService.find(req.user.login);
   }
 }

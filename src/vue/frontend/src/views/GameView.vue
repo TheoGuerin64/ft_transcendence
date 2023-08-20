@@ -10,25 +10,14 @@ export default {
   data() {
     return {
       useStore,
-      login: useStore.user?.name,
 
       ballMovement: (posX: number, posY: number) => {},
       someoneMoved: (login: string, posY: number) => {},
       killCanvas: () => {}
     }
   },
-  created() {
-    if (this.useStore.user === undefined) {
-      this.$router.push('/')
-      return
-    }
-  },
-  mounted() {
-    if (this.useStore.user === undefined) {
-      this.$router.push('/')
-      return
-    }
 
+  mounted() {
     this.connect()
   },
   beforeUnmount() {
@@ -148,13 +137,13 @@ export default {
       resizeCanva()
     },
     connect() {
-      socket.emit('connectGame', this.login)
+      socket.emit('connectGame')
     },
     joinQueue(queueType: string) {
       if (queueType === 'normal') {
-        socket.emit('joinNormalQueue', this.login)
+        socket.emit('joinNormalQueue')
       } else if (queueType === 'custom') {
-        socket.emit('joinCustomQueue', this.login)
+        socket.emit('joinCustomQueue')
       }
       state.gameParam.inQueue = true
     },

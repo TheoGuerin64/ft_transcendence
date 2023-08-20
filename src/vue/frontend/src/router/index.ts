@@ -20,12 +20,14 @@ const router = createRouter({
     {
       path: '/Game',
       name: 'game',
-      component: GameView
+      component: GameView,
+      beforeEnter: isAuthenticatedGuard
     },
     {
       path: '/MatchHistory',
       name: 'match history',
-      component: MatchHistoryView
+      component: MatchHistoryView,
+      beforeEnter: isAuthenticatedGuard
     },
     {
       path: '/callback',
