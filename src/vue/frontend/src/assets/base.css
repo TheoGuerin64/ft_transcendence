@@ -1,0 +1,42 @@
+@import url('https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;500;600;700;800&display=swap');
+
+.image.is-256x256 {
+  width: 256px;
+  height: 256px;
+}
+
+body {
+  font-family: 'Libre Franklin', sans-serif;
+}
+
+.box a {
+  color: #4a4a4a;
+}
+
+.box a:hover {
+  color: #4a4a4a;
+}
+
+@keyframes dots {
+  0% {
+    content: '';
+  }
+  25% {
+    content: '.';
+  }
+  50% {
+    content: '..';
+  }
+  75% {
+    content: '...';
+  }
+  100% {
+    content: '';
+  }
+}
+
+.dots-animation::after {
+  content: '';
+  animation: dots 1.2s infinite;
+}

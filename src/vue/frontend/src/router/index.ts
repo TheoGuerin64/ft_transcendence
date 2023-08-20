@@ -1,8 +1,13 @@
+import CallBackView from '../views/CallbackView.vue'
 import GameView from '../views/GameView.vue'
 import HomeView from '../views/HomeView.vue'
 import MatchHistoryView from '../views/MatchHistoryView.vue'
+import PathNotFoundView from '../views/PathNotFoundView.vue'
+import ProfileSearchView from '../views/ProfileSearchView.vue'
+import ProfileView from '../views/ProfileView.vue'
+import PublicProfileView from '../views/PublicProfileView.vue'
 import { createRouter, createWebHistory } from 'vue-router'
-import { store } from '../store'
+import { isAuthenticatedGuard } from './guards'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -21,6 +26,34 @@ const router = createRouter({
       path: '/MatchHistory',
       name: 'match history',
       component: MatchHistoryView
+    },
+    {
+      path: '/callback',
+      name: 'callback',
+      component: CallBackView
+    },
+    {
+      path: '/profile',
+      name: 'profile',
+      component: ProfileView,
+      beforeEnter: isAuthenticatedGuard
+    },
+    {
+      path: '/profile/search',
+      name: 'search-profile',
+      component: ProfileSearchView,
+      beforeEnter: isAuthenticatedGuard
+    },
+    {
+      path: '/profile/public/:login',
+      name: 'public-profile',
+      component: PublicProfileView,
+      beforeEnter: isAuthenticatedGuard
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'page-not-found',
+      component: PathNotFoundView
     }
   ]
 })

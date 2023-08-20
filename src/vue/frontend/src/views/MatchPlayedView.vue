@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { store } from '../store'
+import { useStore } from '../store'
 import UserAvatar from '@/components/UserAvatar.vue'
 import type { Match, User } from '../interface'
 import axios, { type AxiosResponse } from 'axios'
@@ -9,7 +9,7 @@ import axios, { type AxiosResponse } from 'axios'
 export default {
   data() {
     return {
-      store,
+      useStore,
       Matches: [] as Match[]
     }
   },
@@ -19,8 +19,8 @@ export default {
   methods: {
     userWon(match: Match): string {
       if (
-        (this.store.user?.name === match.users[0].login?.trimEnd() && match.result[0] === 5) ||
-        (this.store.user?.name === match.users[1].login?.trimEnd() && match.result[1] === 5)
+        (this.useStore.user?.name === match.users[0].login?.trimEnd() && match.result[0] === 5) ||
+        (this.useStore.user?.name === match.users[1].login?.trimEnd() && match.result[1] === 5)
       ) {
         return 'box column is-flex is-three-fifths is-offset-one-fifth is-justify-content-space-between has-background-success'
       } else {

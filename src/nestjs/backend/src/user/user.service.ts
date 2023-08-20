@@ -4,11 +4,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { UserStatsService } from 'src/userStats/userStats.service';
 
-export interface PublicData {
-  name: string;
-  avatar: string;
-}
-
 @Injectable()
 export class UserService {
   constructor(
@@ -17,19 +12,36 @@ export class UserService {
     private readonly userStatsService: UserStatsService,
   ) {}
 
+  /**
+   * Create a new user and save it in the database
+   * @param userData User data
+   * @returns Created user
+   */
   async create(userData: DeepPartial<User>): Promise<User> {
-    const user = await this.userModel.create(userData);
+    const user = this.userModel.create(userData);
     user.stats = await this.userStatsService.init();
-    this.userModel.save(user);
+    await this.userModel.save(user);
     return user;
   }
 
-  update(user: User, userData: DeepPartial<User>): User {
-    const updatedUser = this.userModel.merge(user, userData);
-    this.userModel.save(updatedUser);
-    return updatedUser;
+  /**
+   * Update a user and save it in the database
+   * @param user User to update
+   * @param userData User data
+   * @returns Updated user
+   */
+  async update(user: User, userData: DeepPartial<User>): Promise<User> {
+    Object.assign(user, userData);
+    //await this.userModel.update(user.login, user);
+    await this.userModel.save(user);
+    return user;
   }
 
+  /**
+   * Find a user by its login
+   * @param login Login of the user
+   * @returns User
+   */
   findOne(login: string): Promise<User> {
     return this.userModel.findOne({
       where: { login },
@@ -44,7 +56,11 @@ export class UserService {
     });
   }
 
-  getPublicData(user: User): PublicData {
-    return { name: user.name, avatar: user.avatar };
+  /**
+   * Find all users
+   * @returns List of users
+   */
+  findAll(): Promise<User[]> {
+    return this.userModel.find();
   }
 }

@@ -45,8 +45,6 @@ export default {
 }
 </script>
 <template>
-  <routerLink to="/">Home</routerLink> |
-  <routerLink to="/Game">Game</routerLink>
   <h1 class="title is-1 has-text-centered">Match History</h1>
   <div v-if="userStats.ladder !== -1">
     <MatchesStatistics :userStats="userStats" />
