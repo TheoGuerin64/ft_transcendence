@@ -1,4 +1,9 @@
-import { IsString, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsString,
+  IsStrongPassword,
+  MinLength,
+} from 'class-validator';
 
 export class MessageDto {
   @IsString()
@@ -14,4 +19,13 @@ export class ChannelDto {
   @IsString()
   @MinLength(1)
   name: string;
+
+  @IsBoolean()
+  isProtected: boolean;
+
+  @IsBoolean()
+  isPublic: boolean;
+
+  @IsStrongPassword()
+  password: string;
 }

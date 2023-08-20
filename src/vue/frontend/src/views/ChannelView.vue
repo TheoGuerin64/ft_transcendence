@@ -25,12 +25,9 @@ export default {
   async mounted() {
     const data = { name: this.$route.params.channelId }
     this.state.Messages = []
-    // const isFirstLoad = sessionStorage.getItem('isFirstLoad')
     this.state.channelName = this.$route.params.channelId as string
     console.log('Channel name: ' + this.state.channelName)
-    // if (isFirstLoad === null) {
     socket.emit('send-history', data)
-    // }
   },
   methods: {
     submitNewMessage(event: Event): void {
@@ -88,7 +85,7 @@ export default {
   width: 90%;
   height: 600px;
   border: solid;
-  border-radius: 15px;
+  border-radius: 5px;
   margin-right: 5%;
   margin-left: 5%;
   margin-top: 2%;
