@@ -19,19 +19,17 @@ export default {
       axiosEnded: false
     }
   },
-  mounted() {
-    this.findPlayerStat()
+  async created() {
+    await this.findPlayerStat()
   },
   methods: {
-    findPlayerStat() {
-      this.axiosEnded = false
-      axios
+    async findPlayerStat() {
+      await axios
         .get('http://127.0.0.1:3000/MatchStatistics', {
           withCredentials: true
         })
         .then((response) => {
           this.parseData(response)
-          this.axiosEnded = true
         })
     },
     parseData(response: AxiosResponse) {
@@ -50,7 +48,7 @@ export default {
   <routerLink to="/">Home</routerLink> |
   <routerLink to="/Game">Game</routerLink>
   <h1 class="title is-1 has-text-centered">Match History</h1>
-  <div v-if="axiosEnded && userStats.ladder !== -1">
+  <div v-if="userStats.ladder !== -1">
     <MatchesStatistics :userStats="userStats" />
     <div id="history">
       <MatchPlayed />

@@ -10,12 +10,11 @@ export default {
   data() {
     return {
       store,
-      Matches: [] as Match[],
-      findMatches: false
+      Matches: [] as Match[]
     }
   },
-  created() {
-    this.findMatchPlayed()
+  async created() {
+    await this.findMatchPlayed()
   },
   methods: {
     userWon(match: Match): string {
@@ -28,15 +27,13 @@ export default {
         return 'box column is-flex is-three-fifths is-offset-one-fifth is-justify-content-space-between has-background-danger'
       }
     },
-    findMatchPlayed() {
-      this.findMatches = false
-      axios
+    async findMatchPlayed() {
+      await axios
         .get('http://127.0.0.1:3000/MatchHistory', {
           withCredentials: true
         })
         .then((response) => {
           this.parseResponse(response)
-          this.findMatches = true
         })
     },
 
