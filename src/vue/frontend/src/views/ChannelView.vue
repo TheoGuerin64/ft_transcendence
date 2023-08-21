@@ -72,8 +72,8 @@ export default {
     setRouterInstance(this.$router)
     const data = { name: this.$route.params.channelId as string }
     state.Messages = []
-    socket.emit('reconnect', data)
     await this.getChannel(data.name)
+    socket.emit('reconnect', data)
     await this.getMessages(data.name)
     this.state.channelName = this.$route.params.channelId as string
   }

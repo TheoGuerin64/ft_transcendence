@@ -58,7 +58,7 @@ socket.on('user-joined', (username: string, avatar: string, login: string, chann
       }
     }
   })
-  routerInstance.push('/chat/' + channelName)
+  // routerInstance.push('/chat/' + channelName)
 })
 
 socket.on('user-left', (username: string, avatar: string, login: string) => {
@@ -73,7 +73,7 @@ socket.on('user-left', (username: string, avatar: string, login: string) => {
       }
     }
   })
-  routerInstance.push('/chat')
+  // routerInstance.push('/chat')
 })
 
 socket.on('channel-created', async (channelName: string) => {

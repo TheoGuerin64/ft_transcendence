@@ -34,7 +34,6 @@ export default {
     handleContextMenu(e: any, channel: Channel): void {
       e.preventDefault()
       channel.showContextMenu = !channel.showContextMenu
-      console.log('context menu')
     },
     submitPassword(): void {
       this.protectedDialog = false
@@ -48,20 +47,15 @@ export default {
       this.channelData.isProtected = channel.isProtected
       this.channelData.password = this.password
       socket.emit('join-channel', this.channelData)
+      this.$router.push('/chat/' + channel.name)
     },
     leaveChannel(channel: Channel): void {
       const data = { name: channel.name }
-      console.log('leave channel')
       socket.emit('leave-channel', data)
-      // location.reload()
-      // this.$router.push('/chat')
     },
     removeChannel(channel: Channel): void {
       const data = { name: channel.name }
-      console.log('remove channel')
       socket.emit('remove-channel', data)
-      // location.reload()
-      // this.$router.push('/chat')
     }
   }
 }
@@ -79,10 +73,6 @@ export default {
       </span>
       {{ channel.name }}
     </a>
-    <div v-if="channel.showContextMenu" class="mt-3">
-      <button class="button is-warning is-small ml-3" @click="leaveChannel(channel)">Leave</button>
-      <button class="button is-danger is-small ml-3" @click="removeChannel(channel)">Remove</button>
-    </div>
     <button
       v-if="!channel.promptPassword"
       class="button is-info ml-3"

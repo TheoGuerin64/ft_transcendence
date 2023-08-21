@@ -24,4 +24,8 @@ export class MessageService {
     this.messageModel.save(updatedMessage);
     return updatedMessage;
   }
+
+  async remove(message: Message): Promise<Message> {
+    return await this.messageModel.remove(message);
+  }
 }
