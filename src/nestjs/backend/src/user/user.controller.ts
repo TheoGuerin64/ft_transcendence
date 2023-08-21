@@ -115,4 +115,11 @@ export class UserController {
     const users = await this.userService.findAll();
     return users.map((user) => user.public);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('blocked')
+  async getBlocked(@Req() req: any): Promise<string[]> {
+    const user = await this.userService.findOne(req.user.login);
+    return user.blocked;
+  }
 }

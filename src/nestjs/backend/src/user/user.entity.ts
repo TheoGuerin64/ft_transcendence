@@ -34,6 +34,9 @@ export class User {
   @Column({ type: 'varchar', length: 3000000 })
   avatar: string;
 
+  @Column({ type: 'varchar', array: true, default: '{}' })
+  blocked: string[];
+
   @OneToMany(() => Membership, (membership) => membership.user)
   memberships: Membership[];
 

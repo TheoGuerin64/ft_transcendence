@@ -28,6 +28,7 @@ export default {
       store: useStore,
       state: state,
       message: '' as string,
+      blockedUsers: [] as string[],
       channel: null as any
     }
   },
@@ -54,6 +55,18 @@ export default {
         console.log(error)
       }
     },
+    async getBlockedUsers(): Promise<void> {
+      try {
+        const response = await axios.get('http://127.0.0.1:3000/user/blocked', {
+          withCredentials: true
+        })
+        for (let i = 0; i < response.data.length; i++) {
+          this.blockedUsers.push(response.data[i])
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    },
     submitNewMessage(event: Event): void {
       if (event) {
         event.preventDefault()
@@ -75,6 +88,8 @@ export default {
     await this.getChannel(data.name)
     socket.emit('reconnect', data)
     await this.getMessages(data.name)
+    await this.getBlockedUsers()
+    console.log(this.blockedUsers)
     this.state.channelName = this.$route.params.channelId as string
   }
 }
@@ -87,14 +102,17 @@ export default {
     </div>
     <div id="chatDisplay">
       <ul>
-        <li v-for="message in state.Messages" :key="message.id">
-          <Message
-            :username="message.data.user.name"
-            :content="message.data.content"
-            :avatar="message.data.user.avatar"
-            :login="message.data.user.login"
-          />
-        </li>
+        <template v-for="message in state.Messages" :key="message.id">
+          <li v-if="!blockedUsers.includes(message.data.user.login)">
+            <Message
+              :username="message.data.user.name"
+              :content="message.data.content"
+              :avatar="message.data.user.avatar"
+              :login="message.data.user.login"
+              :channelName="state.channelName"
+            />
+          </li>
+        </template>
       </ul>
     </div>
     <div id="sendBar">

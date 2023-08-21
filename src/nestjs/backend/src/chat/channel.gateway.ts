@@ -1,5 +1,5 @@
 import { async } from 'rxjs';
-import { ChannelDto, MessageDto } from './channel.pipe';
+import { ChannelDto, MembershipDto, MessageDto } from './channel.pipe';
 import { ChannelService } from './channel.service';
 import { JwtAuthGuard } from '../auth/auth-jwt.guard';
 import { MembershipService } from './membership.service';
@@ -40,35 +40,30 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
-      if (
-        !(await this.membershipService.findOne(
-          messageDto.channelName,
-          req.user.login,
-        ))
-      ) {
-        client.emit('error', 'You are not a member of this channel');
-        return;
-      }
       await this.channelService.checkConnection(
         messageDto.channelName,
         req.user?.login,
         client,
       );
-      this.channelService.addMessage(
-        messageDto.content,
-        messageDto.channelName,
-        req.user.login,
-      );
-      const user = await this.userService.findOne(req.user.login);
-      this.server
-        .to(messageDto.channelName)
-        .emit(
-          'message',
+      if (
+        await this.channelService.addMessage(
           messageDto.content,
-          user.name,
-          user.avatar,
-          user.login,
-        );
+          messageDto.channelName,
+          req.user.login,
+          client,
+        )
+      ) {
+        const user = await this.userService.findOne(req.user.login);
+        this.server
+          .to(messageDto.channelName)
+          .emit(
+            'message',
+            messageDto.content,
+            user.name,
+            user.avatar,
+            user.login,
+          );
+      }
     } catch (error) {
       console.log(error);
     }
@@ -82,6 +77,17 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
+      const membership = await this.membershipService.findOne(
+        channelDto.name,
+        req.user.login,
+      );
+      if (membership) {
+        return;
+      }
+      if (membership?.isBanned == true) {
+        client.emit('error', 'You are banned from this channel');
+        return;
+      }
       if (
         !(await this.channelService.addMembership(
           channelDto,
@@ -173,9 +179,11 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
-      if (
-        !(await this.membershipService.findOne(channelDto.name, req.user.login))
-      ) {
+      const membership = await this.membershipService.findOne(
+        channelDto.name,
+        req.user.login,
+      );
+      if (!membership) {
         client.emit('error', 'You are not a member of this channel');
         return;
       }
@@ -211,6 +219,73 @@ export class ChannelGateway {
         this.server,
       );
       this.server.emit('channel-removed', channelDto.name);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('ban-user')
+  async banUser(
+    @MessageBody() membershipDto: MembershipDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      if (
+        !(await this.channelService.banUser(
+          membershipDto,
+          req.user.login,
+          client,
+        ))
+      ) {
+        this.server.to(membershipDto.channelName).emit('user-banned');
+        client.emit('success', 'User banned');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('block-user')
+  async blockUser(
+    @MessageBody() membershipDto: MembershipDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      if (
+        !(await this.channelService.blockUser(
+          membershipDto,
+          req.user.login,
+          client,
+        ))
+      ) {
+        client.emit('success', 'User blocked');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('mute-user')
+  async muteUser(
+    @MessageBody() membershipDto: MembershipDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      if (
+        !(await this.channelService.muteUser(
+          membershipDto,
+          req.user.login,
+          client,
+        ))
+      ) {
+        client.emit('success', 'User muted');
+      }
     } catch (error) {
       console.log(error);
     }
