@@ -1,5 +1,5 @@
 import { MatchPlayed } from './matchPlayed.entity';
-import { MatchPlayedController } from './matchHistory.controller';
+import { MatchPlayedController } from './matchPlayed.controller';
 import { MatchPlayedService } from './matchPlayed.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';

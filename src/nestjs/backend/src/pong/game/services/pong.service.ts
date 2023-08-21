@@ -4,6 +4,7 @@ import { Game } from '../classes/game.class';
 import { GameService } from './game.service';
 import { Injectable } from '@nestjs/common';
 import { MatchPlayedService } from 'src/pong/database/matchPlayed.service';
+import { Player } from '../classes/player.class';
 import { PlayerService } from './player.service';
 import { Server, Socket } from 'socket.io';
 import { UserService } from 'src/user/user.service';
@@ -18,36 +19,69 @@ export class PongService {
     private readonly userStatsService: UserStatsService,
     private readonly matchPlayedService: MatchPlayedService,
   ) {}
+
+  /**
+   * create a game based on a invitation
+   * @param server socket server
+   * @param userOne login and socket of a user
+   * @param userTwo login and socket of a user
+   * @param gameType normal or custom game
+   */
+  invitationGame(
+    server: Server,
+    userOne: { login: string; socket: Socket },
+    userTwo: { login: string; socket: Socket },
+    gameType: string,
+  ) {
+    const playerOne = new Player(userOne.login, userOne.socket.id);
+    const playerTwo = new Player(userTwo.login, userTwo.socket.id);
+    this.startGame(server, playerOne, playerTwo, gameType);
+  }
+
   /**
    * add a player into a queue
    * and start a game by popping 2 of them
    * if there is at least 2 in this queue
    * @param server socket server
-   * @param login login of the user joining the room
    * @param queueType normal or custom queue
    * @returns
    */
-  joinQueue(server: Server, login: string, queueType: string): void {
-    this.playerService.joinQueue(server, login, queueType);
+  joinQueue(server: Server, socket: Socket, queueType: string): void {
+    this.playerService.joinQueue(socket, queueType);
     if (this.playerService.getNbPlayersInqueue(queueType) < 2) {
       return;
     }
-    this.startGame(server, queueType);
+    this.setGame(server, queueType);
   }
 
   /**
-   * create a new game and start interval loop of the ball
+   * take off two player of the queue and start a game
    * @param server socket server
-   * @param login login of the user joining the room
    * @param queueType normal or custom queue
    */
-  startGame(server: Server, queueType: string) {
+  setGame(server: Server, queueType: string) {
     const queue = this.playerService.getQueue(queueType);
     if (queue === null) {
       return;
     }
     const playerTwo = queue.pop();
     const playerOne = queue.pop();
+    this.startGame(server, playerOne, playerTwo, queueType);
+  }
+
+  /**
+   * create a new game and start interval loop of the ball
+   * @param server socket server
+   * @param playerOne player instance
+   * @param playerTwo player instance
+   * @param queueType normal or custom queue
+   */
+  startGame(
+    server: Server,
+    playerOne: Player,
+    playerTwo: Player,
+    queueType: string,
+  ) {
     const newGame = this.gameService.startGame(
       server,
       playerOne,
@@ -129,7 +163,7 @@ export class PongService {
   /**
    * disconnect a player
    * and stop the game if he was playing one
-   @param server socket server
+   * @param server socket server
    * @param socket socket which send the message
    */
   async disconnectPlayer(server: Server, socket: Socket) {

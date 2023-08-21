@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { useStore } from '../store'
-import UserAvatar from '@/components/UserAvatar.vue'
-import type { Match, User } from '../interface'
+import { useStore } from '../../store'
+import UserAvatar from '../../components/UserAvatar.vue'
+import type { Match, User } from '../../interface'
 import axios, { type AxiosResponse } from 'axios'
 </script>
 
@@ -17,6 +17,10 @@ export default {
     await this.findMatchPlayed()
   },
   methods: {
+    /**
+     * determine if the userWon and adapt the css
+     * @param match match instance
+     */
     userWon(match: Match): string {
       if (
         (this.useStore.user?.name === match.users[0].login?.trimEnd() && match.result[0] === 5) ||
@@ -27,16 +31,26 @@ export default {
         return 'box column is-flex is-three-fifths is-offset-one-fifth is-justify-content-space-between has-background-danger'
       }
     },
+    /**
+     * make a request to the back to get all match played by the user
+     */
     async findMatchPlayed() {
       await axios
-        .get('http://127.0.0.1:3000/MatchHistory', {
+        .get('http://127.0.0.1:3000/MatchPlayed', {
           withCredentials: true
         })
         .then((response) => {
           this.parseResponse(response)
         })
+        .catch((error) => {
+          console.log(error)
+        })
     },
 
+    /**
+     * parse the response
+     * @param response axios response
+     */
     parseResponse(response: AxiosResponse) {
       for (let x = 0; x < response.data.length; x++) {
         const match = {} as Match
@@ -76,6 +90,3 @@ export default {
     </div>
   </div>
 </template>
-<style>
-@import 'https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css';
-</style>

@@ -2,7 +2,6 @@
 import axios, { type AxiosResponse } from 'axios'
 import MatchPlayed from './MatchPlayedView.vue'
 import MatchesStatistics from './MatchStatisticsView.vue'
-import type { Match, User } from '../interface'
 </script>
 <script lang="ts">
 export interface statistics {
@@ -15,14 +14,16 @@ export interface statistics {
 export default {
   data() {
     return {
-      userStats: {} as statistics,
-      axiosEnded: false
+      userStats: {} as statistics
     }
   },
   async created() {
     await this.findPlayerStat()
   },
   methods: {
+    /**
+     * make a request to the back to get all players stats
+     */
     async findPlayerStat() {
       await axios
         .get('http://127.0.0.1:3000/MatchStatistics', {
@@ -31,7 +32,14 @@ export default {
         .then((response) => {
           this.parseData(response)
         })
+        .catch((error) => {
+          console.log(error)
+        })
     },
+    /**
+     * parse the response
+     * @param response axios response
+     */
     parseData(response: AxiosResponse) {
       this.userStats = {
         nbWin: response.data.nbWin,
@@ -54,10 +62,3 @@ export default {
   </div>
   <div v-else><p>no match played for the moment</p></div>
 </template>
-
-<style>
-#history {
-  height: 60vh;
-  overflow: auto;
-}
-</style>

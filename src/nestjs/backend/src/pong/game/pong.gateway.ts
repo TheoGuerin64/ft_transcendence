@@ -4,13 +4,13 @@ import { PlayerService } from './services/player.service';
 import { PongService } from './services/pong.service';
 import { Req, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { WebSocketServer } from '@nestjs/websockets';
 
 import {
   ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
+  WebSocketServer,
 } from '@nestjs/websockets';
 
 @WebSocketGateway({ cors: true })
@@ -29,16 +29,19 @@ export class PongGateway {
     this.playerService.connectGame(socket, req.user.login);
   }
 
-  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('joinNormalQueue')
-  joinNormalQueue(@Req() req: any) {
-    this.pongService.joinQueue(this.server, req.user.login, 'normal');
+  joinNormalQueue(@ConnectedSocket() socket: Socket) {
+    this.pongService.joinQueue(this.server, socket, 'normal');
   }
 
-  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('joinCustomQueue')
-  joinCustomQueue(@Req() req: any) {
-    this.pongService.joinQueue(this.server, req.user.login, 'custom');
+  joinCustomQueue(@ConnectedSocket() socket: Socket) {
+    this.pongService.joinQueue(this.server, socket, 'custom');
+  }
+
+  @SubscribeMessage('leftQueue')
+  leftQueue(@ConnectedSocket() socket: Socket) {
+    this.playerService.leftQueue(socket);
   }
 
   @SubscribeMessage('joinGameRoom')

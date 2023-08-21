@@ -1,42 +1,54 @@
 <script setup lang="ts">
-import { useStore } from '../store'
+import { useStore, playerStatus } from '../../store'
 import * as THREE from 'three'
-import { socket, state } from '@/socket'
+import { socket, state } from '../../socket'
+import gameView from './GameView.vue'
+import lobbyView from './LobbyView.vue'
+import postGameView from './PostGameView.vue'
+import queueView from './QueueView.vue'
 </script>
 
 <script lang="ts">
 export default {
   data() {
     return {
-      useStore,
-
-      ballMovement: (posX: number, posY: number) => {},
-      someoneMoved: (login: string, posY: number) => {},
-      killCanvas: () => {}
+      useStore
     }
   },
-
   mounted() {
+    this.joinLobby()
     this.connect()
   },
-  unmounted() {
+  beforeUnmount() {
     socket?.emit('changePage')
-    this.killCanvas()
-    this.resetState()
+    state.gameFunctions.killCanvas()
+    this.joinLobby()
   },
   methods: {
+    /**
+     * init the game and call all functions for that
+     * @param playerOneLogin login of one user
+     * @param playerTwoLogin login of one user
+     * @param gameType normal or custom game
+     */
     init(playerOneLogin: string, playerTwoLogin: string, gameType: string) {
-      state.gameParam.inGame = true
-      state.gameParam.inQueue = false
+      state.gameParam.status = playerStatus.GAME
       let scene: THREE.Scene
       let camera: THREE.PerspectiveCamera
       let renderer: THREE.WebGLRenderer
       let idCanvas: number
       let ball: THREE.Mesh
+
+      /**
+       * create the scene, the camera, the renderer,
+       * add event listener for key and resize
+       * and add elements to the scene
+       */
       const setCanvas = () => {
         scene = new THREE.Scene()
         camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000)
         scene.add(camera)
+        camera.position.z = 5
         const container = document.getElementById('canva')
         if (container !== null) {
           renderer = new THREE.WebGLRenderer({
@@ -47,8 +59,16 @@ export default {
         document.addEventListener('keyup', this.checkInput)
         document.addEventListener('keydown', this.checkInput)
         window.addEventListener('resize', resizeCanva)
-        camera.position.z = 5
 
+        addElements()
+        animate()
+      }
+
+      /**
+       * add background, ball, players
+       * and cube if it's a custom game
+       */
+      const addElements = () => {
         const backgroundGeometry = new THREE.BoxGeometry(4, 4, 0)
         const backgroundMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
         const background = new THREE.Mesh(backgroundGeometry, backgroundMaterial)
@@ -72,9 +92,14 @@ export default {
 
         addNewPlayer(playerOneLogin, -2 - 0.1 / 2)
         addNewPlayer(playerTwoLogin, 2 + 0.1 / 2)
-
-        animate()
       }
+
+      /**
+       * create a new user on the scene
+       * and change the uuid to his login to recognize him
+       * @param login login of the user
+       * @param posX position on the X axe
+       */
       const addNewPlayer = (login: string, posX: number) => {
         const geometry = new THREE.BoxGeometry(0.1, 0.5, 0)
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
@@ -83,16 +108,26 @@ export default {
         newPlayer.uuid = login
         newPlayer.position.set(posX, 0, 0)
       }
+
+      /**
+       * start the animation loop
+       */
       const animate = () => {
         idCanvas = requestAnimationFrame(animate)
         renderer.render(scene, camera)
       }
 
-      this.ballMovement = (posX, posY) => {
+      /**
+       * update ball position
+       */
+      state.gameFunctions.ballMovement = (posX, posY) => {
         ball.position.set(posX, posY, 0)
       }
 
-      this.someoneMoved = (login: string, posY: number) => {
+      /**
+       * update player position
+       */
+      state.gameFunctions.someoneMoved = (login: string, posY: number) => {
         const arrayElements: THREE.Mesh[] = scene.children
         const elementToMove = arrayElements.find((element) => element.uuid === login)
         if (elementToMove === undefined) {
@@ -101,7 +136,10 @@ export default {
         elementToMove.position.y = posY
       }
 
-      this.killCanvas = () => {
+      /**
+       * kill the canvas and stop everything
+       */
+      state.gameFunctions.killCanvas = () => {
         cancelAnimationFrame(idCanvas)
         renderer.dispose()
         renderer.forceContextLoss()
@@ -111,6 +149,9 @@ export default {
         document.body.appendChild(newCanvas)
       }
 
+      /**
+       * resize the canvas so it's responsive
+       */
       const resizeCanva = () => {
         const canvas = renderer.domElement
         const pixelRatio = window.devicePixelRatio
@@ -134,52 +175,76 @@ export default {
       setCanvas()
       resizeCanva()
     },
+
+    /**
+     * connect to the lobby
+     */
     connect() {
       socket.emit('connectGame')
     },
+
+    /**
+     * join a queue to play
+     * @param queueType normal or custom queue
+     */
     joinQueue(queueType: string) {
       if (queueType === 'normal') {
         socket.emit('joinNormalQueue')
       } else if (queueType === 'custom') {
         socket.emit('joinCustomQueue')
       }
-      state.gameParam.inQueue = true
+      state.gameParam.status = playerStatus.QUEUE
     },
 
+    /**
+     * left the queue
+     */
+    leftQueue() {
+      socket.emit('leftQueue')
+      state.gameParam.status = playerStatus.LOBBY
+    },
+
+    /**
+     * move the player
+     * @param event keyboard event (press, release, etc ...)
+     */
     checkInput(event: KeyboardEvent) {
       socket.emit('playerMovement', event.key, event.type)
     },
-    returnLobby() {
-      state.gameParam.gameEnded = false
+
+    /**
+     * reset state
+     */
+    joinLobby() {
+      state.gameParam.status = playerStatus.LOBBY
       state.gameParam.winner = ''
       state.gameParam.scorePlayerOne = 0
       state.gameParam.scorePlayerTwo = 0
     },
+
+    /**
+     * increment players score
+     */
     incrementPlayerOneScore() {
       state.gameParam.scorePlayerOne++
     },
     incrementPlayerTwoScore() {
       state.gameParam.scorePlayerTwo++
     },
+
+    /**
+     * stop the game and change the page to post game
+     * @param login login of the winner
+     */
     PlayerOneWinGame(login: string) {
-      this.killCanvas()
-      state.gameParam.inGame = false
-      state.gameParam.gameEnded = true
+      state.gameFunctions.killCanvas()
+      state.gameParam.status = playerStatus.POSTGAME
       state.gameParam.winner = login
     },
     PlayerTwoWinGame(login: string) {
-      this.killCanvas()
-      state.gameParam.inGame = false
-      state.gameParam.gameEnded = true
+      state.gameFunctions.killCanvas()
+      state.gameParam.status = playerStatus.POSTGAME
       state.gameParam.winner = login
-    },
-    resetState() {
-      state.gameParam.gameEnded = false
-      state.gameParam.inGame = false
-      state.gameParam.inQueue = false
-      state.gameParam.scorePlayerOne = 0
-      state.gameParam.scorePlayerTwo = 0
-      state.gameParam.winner = ''
     }
   }
 }
@@ -188,63 +253,10 @@ export default {
 <template>
   <h1 class="title is-1 has-text-centered">Game</h1>
   <div class="has-text-centered">
-    <div v-if="state.gameParam.inQueue">
-      <p>currently in queue, please wait</p>
-      <div class="lds-dual-ring"></div>
-    </div>
-    <div
-      v-else-if="state.gameParam.inGame"
-      class="column is-flex is-half is-offset-one-quarter is-justify-content-space-between"
-    >
-      <p>Player One: {{ state.gameParam.scorePlayerOne }}</p>
-      <p>Player Two: {{ state.gameParam.scorePlayerTwo }}</p>
-    </div>
-    <div v-else-if="state.gameParam.gameEnded" class="box">
-      <p v-if="state.gameParam.winner === 'surrender'">
-        the other player left the game, you won by forfeit
-      </p>
-      <p v-else>
-        the winner is {{ state.gameParam.winner }} ! The score is
-        {{ state.gameParam.scorePlayerOne }} - {{ state.gameParam.scorePlayerTwo }}
-      </p>
-      <button @click="returnLobby" class="button mx-3 is-light">return to lobby</button>
-    </div>
-    <div v-else>
-      <button @click="joinQueue('normal')" class="button mx-3 is-light">Join Normal Queue</button>
-      <button @click="joinQueue('custom')" class="button mx-3 is-light">Join Custom Queue</button>
-    </div>
+    <lobbyView @joinQueue="(queueType) => joinQueue(queueType)" />
+    <queueView @leftQueue="() => leftQueue()" />
+    <gameView />
+    <postGameView @joinLobby="() => joinLobby()" />
     <canvas id="canva"> </canvas>
   </div>
 </template>
-
-<style>
-#canva {
-  margin: auto;
-  display: block;
-}
-
-.lds-dual-ring {
-  display: inline-block;
-  width: 80px;
-  height: 80px;
-}
-.lds-dual-ring:after {
-  content: ' ';
-  display: block;
-  width: 64px;
-  height: 64px;
-  margin: 8px;
-  border-radius: 50%;
-  border: 6px solid #000;
-  border-color: #000 transparent #000 transparent;
-  animation: lds-dual-ring 1.2s linear infinite;
-}
-@keyframes lds-dual-ring {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-</style>
