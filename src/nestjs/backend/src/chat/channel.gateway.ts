@@ -91,7 +91,6 @@ export class ChannelGateway {
         ))
       ) {
         const user = await this.userService.findOne(req.user.login);
-        client.join(channelDto.name);
         this.server
           .to(channelDto.name)
           .emit(
@@ -160,7 +159,6 @@ export class ChannelGateway {
         client.emit('error', 'This channel already exists');
       } else {
         this.server.emit('channel-created', channelDto.name);
-        console.log('after');
       }
     } catch (error) {
       console.log(error);

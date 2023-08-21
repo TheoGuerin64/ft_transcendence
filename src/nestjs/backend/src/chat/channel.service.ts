@@ -187,6 +187,9 @@ export class ChannelService {
     }
     const channel = await this.findOne(channelName);
     if (channel) {
+      for (let i = 0; i < channel.messages.length; i++) {
+        await this.messageService.remove(channel.messages[i]);
+      }
       await this.channelModel.remove(channel);
       server.emit('channel-removed', channel.name);
     }
