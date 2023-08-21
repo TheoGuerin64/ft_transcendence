@@ -1,19 +1,17 @@
-import { AppGateway } from './app.gateway'
-import { AppService } from './app.service'
-import { AuthModule } from './auth/auth.module'
-import { Friendship } from './user/friendship/friendship.entity'
-import { LoggerMiddleware } from './logger.middleware'
-import { MatchHistoryModule } from './matchHistory/matchHistory.module'
-import { MatchPlayed } from './pong/database/matchPlayed.entity'
-import { MatchPlayedModule } from './pong/database/matchPlayed.module'
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
-import { PongModule } from './pong/game/pong.module'
-import { TypeOrmModule } from '@nestjs/typeorm'
-import { User } from './user/user.entity'
-import { UserModule } from './user/user.module'
-import { UserStats } from './userStats/userStats.entity'
-import { userStatsModule } from './userStats/userStats.module'
-
+import { AppGateway } from './app.gateway';
+import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
+import { Friendship } from './user/friendship/friendship.entity';
+import { LoggerMiddleware } from './logger.middleware';
+import { MatchPlayed } from './pong/database/matchPlayed.entity';
+import { MatchPlayedModule } from './pong/database/matchPlayed.module';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { PongModule } from './pong/game/pong.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './user/user.entity';
+import { UserModule } from './user/user.module';
+import { UserStats } from './userStats/userStats.entity';
+import { userStatsModule } from './userStats/userStats.module';
 
 @Module({
   imports: [
@@ -31,7 +29,6 @@ import { userStatsModule } from './userStats/userStats.module'
     AuthModule,
     PongModule,
     MatchPlayedModule,
-    MatchHistoryModule,
     userStatsModule,
   ],
   controllers: [],

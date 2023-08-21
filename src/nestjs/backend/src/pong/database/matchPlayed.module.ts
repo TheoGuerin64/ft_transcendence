@@ -1,12 +1,14 @@
 import { MatchPlayed } from './matchPlayed.entity';
+import { MatchPlayedController } from './matchHistory.controller';
 import { MatchPlayedService } from './matchPlayed.service';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from 'src/user/user.module';
 
 @Module({
-  providers: [MatchPlayedService, MatchPlayed],
   imports: [TypeOrmModule.forFeature([MatchPlayed]), UserModule],
+  providers: [MatchPlayedService, MatchPlayed],
+  controllers: [MatchPlayedController],
   exports: [MatchPlayedService],
 })
 export class MatchPlayedModule {}

@@ -12,8 +12,15 @@ import {
 
 @Injectable()
 export class BallService {
-  static ballMovement(server: Server, game: Game): boolean {
-    const someoneWinPoint = this.newBallPosition(server, game);
+  /**
+   * update the ball position
+   * and emit this information to the players in the game
+   * @param server socket server
+   * @param game game instance
+   */
+
+  static ballMovement(server: Server, game: Game): void {
+    this.newBallPosition(server, game);
     server
       .in(game.getGameID())
       .emit(
@@ -22,88 +29,135 @@ export class BallService {
         game.getBall().getPositionY(),
       );
     server.in(game.getGameID()).emit('message');
-    return someoneWinPoint;
   }
 
-  private static newBallPosition(server: Server, game: Game): boolean {
+  /**
+   * update ball position on axes X and Y
+   * by adding to its position its direction multiplied by its speed
+   * @param server socket server
+   * @param game game instance
+   */
+  private static newBallPosition(server: Server, game: Game): void {
     const ball = game.getBall();
 
-    let newPosX = ball.getPositionX() + ball.getDirectionX() * ball.getSpeed();
-    let newPosY = ball.getPositionY() + ball.getDirectionY() * ball.getSpeed();
-    let someoneWinPoint = false;
+    const newPosX =
+      ball.getPositionX() + ball.getDirectionX() * ball.getSpeed();
+    const newPosY =
+      ball.getPositionY() + ball.getDirectionY() * ball.getSpeed();
 
-    if (
-      newPosY <= -collisionBallMapBorder ||
-      newPosY >= collisionBallMapBorder
-    ) {
-      ball.setDirectionY(-ball.getDirectionY());
-      newPosY = this.adaptNewPosition(newPosY, collisionBallMapBorder);
-    }
-    if (
-      newPosX <= -collisionBallMapBorder ||
-      newPosX >= collisionBallMapBorder
-    ) {
-      if (this.ballHitPaddle(newPosX, newPosY, game)) {
-        const impact =
-          game.getBall().getPositionY() - game.getPlayerTwo().getPosY();
-        const directionY = this.calculateDirection(game, ball);
-        const direction = ((100 / (playerHeight / 2)) * impact) / 100;
-        ball.setDirectionY(directionY * (Math.abs(direction) % 1));
-        ball.setDirectionX(-ball.getDirectionX());
-        ball.setSpeed(ball.getSpeed() + IncreaseBallSpeed);
-        newPosX = this.adaptNewPosition(newPosX, collisionBallMapBorder);
-      } else {
-        someoneWinPoint = true;
-      }
-    }
+    this.updateDirection(game, ball, { x: newPosX, y: newPosY });
 
-    if (game.getGameType() === 'custom') {
-      this.checkCentralCube(ball, { x: newPosX, y: newPosY });
-    }
     ball.setPositionX(newPosX);
     ball.setPositionY(newPosY);
-
-    return someoneWinPoint;
   }
 
-  private static calculateDirection(game: Game, ball: Ball): number {
-    let value;
+  /**
+   * adapt the direction and the position if the ball hit a wall, a paddle,
+   * or the cube if the game is on custom type
+   * @param game game instance
+   * @param ball ball instance
+   * @param newPos new position on X and Y axes of the ball
+   */
+  private static updateDirection(
+    game: Game,
+    ball: Ball,
+    newPos: { x: number; y: number },
+  ) {
+    if (
+      newPos.y <= -collisionBallMapBorder ||
+      newPos.y >= collisionBallMapBorder
+    ) {
+      ball.setDirectionY(-ball.getDirectionY());
+      newPos.y = this.adaptNewPosition(newPos.y, collisionBallMapBorder);
+    }
+    if (
+      (newPos.x <= -collisionBallMapBorder ||
+        newPos.x >= collisionBallMapBorder) &&
+      this.ballHitPaddle(game, newPos)
+    ) {
+      this.updateDirectionOnPaddle(game, ball, newPos);
+    }
+    if (game.getGameType() === 'custom') {
+      this.checkCentralCube(ball, newPos);
+    }
+  }
+
+  /**
+   * adapt the direction and the position if the ball hit a paddle
+   * and increase its speed
+   * @param game game instance
+   * @param ball ball instance
+   * @param newPos new position on X and Y axes of the ball
+   */
+  private static updateDirectionOnPaddle(
+    game: Game,
+    ball: Ball,
+    newPos: { x: number; y: number },
+  ): void {
+    ball.setDirectionY(this.calculateDirectionY(game, ball));
+    ball.setDirectionX(-ball.getDirectionX());
+    ball.setSpeed(ball.getSpeed() + IncreaseBallSpeed);
+    newPos.x = this.adaptNewPosition(newPos.x, collisionBallMapBorder);
+  }
+
+  /**
+   * calculate new direction Y by calculating where did the ball hit the paddle
+   * and multiplying it by the the orientation,
+   * depending if the ball hit the top or the bot of the paddle
+   * @param game game instance
+   * @param ball ball instance
+   * @returns the new direction Y
+   */
+  private static calculateDirectionY(game: Game, ball: Ball): number {
+    const impact =
+      game.getBall().getPositionY() - game.getPlayerTwo().getPosY();
+    const vectorValue = (((100 / (playerHeight / 2)) * impact) / 100) % 1;
+    let vectorOrientation;
     if (
       (ball.getPositionX() < 0 &&
         game.getBall().getPositionY() < game.getPlayerOne().getPosY()) ||
       (ball.getPositionX() > 0 &&
         game.getBall().getPositionY() < game.getPlayerTwo().getPosY())
     ) {
-      value = -1;
+      vectorOrientation = -1;
     } else {
-      value = 1;
+      vectorOrientation = 1;
     }
-    return value;
+    return vectorOrientation * Math.abs(vectorValue);
   }
+
+  /**
+   * check if the ball hit the central cube
+   * and adapt possition and direction based on it
+   * @param ball ball instance
+   * @param newPos new position on X and Y axes of the ball
+   */
   private static checkCentralCube(
     ball: Ball,
     newPos: { x: number; y: number },
   ) {
-    if (this.ballHitCube(newPos.x, newPos.y)) {
-      this.updateDirection(ball);
+    if (this.ballHitCube(newPos)) {
+      this.updateDirectionOnCube(ball);
       newPos.x = this.adaptNewPosition(newPos.x, collisionBallCentralCube);
       newPos.y = this.adaptNewPosition(newPos.y, collisionBallCentralCube);
     }
   }
 
-  private static ballHitPaddle(
-    newPosX: number,
-    newPosY: number,
-    game: Game,
-  ): boolean {
+  /**
+   * check if the ball hit the paddle or not
+   * @param game game instance
+   * @param newPos new position on X and Y axes of the ball
+   * @returns boolean telling if the ball hit the paddle or not
+   */
+  static ballHitPaddle(game: Game, newPos: { x: number; y: number }): boolean {
     if (
-      newPosX <= -collisionBallMapBorder &&
-      this.ballAtPlayerHeight(newPosY, game.getPlayerOne())
+      newPos.x <= -collisionBallMapBorder &&
+      this.ballAtPlayerHeight(game.getPlayerOne(), newPos.y)
     ) {
       return true;
     } else if (
-      newPosX >= collisionBallMapBorder &&
-      this.ballAtPlayerHeight(newPosY, game.getPlayerTwo())
+      newPos.x >= collisionBallMapBorder &&
+      this.ballAtPlayerHeight(game.getPlayerTwo(), newPos.y)
     ) {
       return true;
     } else {
@@ -111,7 +165,13 @@ export class BallService {
     }
   }
 
-  private static ballAtPlayerHeight(newPosY: number, player: Player): boolean {
+  /**
+   * check if the ball is at player height
+   * @param player player to compare
+   * @param newPosY new position Y of the ball
+   * @returns boolean telling if the ball is at player height or not
+   */
+  private static ballAtPlayerHeight(player: Player, newPosY: number): boolean {
     if (
       newPosY >= player.getPosY() - playerHeight / 2 &&
       newPosY <= player.getPosY() + playerHeight / 2
@@ -122,18 +182,30 @@ export class BallService {
     }
   }
 
-  private static ballHitCube(newPosX: number, newPosY: number): boolean {
+  /**
+   * check if the ball hit the paddle
+   * @param newPos new position on X and Y axes of the ball
+   * @returns boolean telling if the ball hit the paddle or not
+   */
+  private static ballHitCube(newPos: { x: number; y: number }): boolean {
     if (
-      newPosX >= -collisionBallCentralCube &&
-      newPosX <= collisionBallCentralCube &&
-      newPosY >= -collisionBallCentralCube &&
-      newPosY <= collisionBallCentralCube
+      newPos.x >= -collisionBallCentralCube &&
+      newPos.x <= collisionBallCentralCube &&
+      newPos.y >= -collisionBallCentralCube &&
+      newPos.y <= collisionBallCentralCube
     ) {
       return true;
     } else {
       return false;
     }
   }
+
+  /**
+   * adapt position X or Y to avoid the ball to leave the field
+   * @param newPos position X or Y of the ball
+   * @param entityCollide border of the cube or the wall
+   * @returns new position adapted
+   */
   private static adaptNewPosition(
     newPos: number,
     entityCollide: number,
@@ -146,7 +218,11 @@ export class BallService {
     return newPos;
   }
 
-  private static updateDirection(ball: Ball) {
+  /**
+   * adapt the direction of the ball if it hit the cube
+   * @param ball ball instance
+   */
+  private static updateDirectionOnCube(ball: Ball) {
     if (ball.getPositionX() <= -collisionBallCentralCube) {
       ball.setDirectionX(-Math.abs(ball.getDirectionX()));
     } else if (ball.getPositionX() >= collisionBallCentralCube) {

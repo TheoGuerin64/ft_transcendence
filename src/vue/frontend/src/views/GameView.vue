@@ -19,9 +19,10 @@ export default {
   mounted() {
     this.connect()
   },
-  beforeUnmount() {
+  unmounted() {
     socket?.emit('changePage')
     this.killCanvas()
+    this.resetState()
   },
   methods: {
     init(playerOneLogin: string, playerTwoLogin: string, gameType: string) {
@@ -108,9 +109,6 @@ export default {
         const newCanvas = document.createElement('canvas')
         newCanvas.id = 'canva'
         document.body.appendChild(newCanvas)
-        state.gameParam.gameEnded = false
-        state.gameParam.inGame = false
-        state.gameParam.inQueue = false
       }
 
       const resizeCanva = () => {
@@ -165,13 +163,23 @@ export default {
     },
     PlayerOneWinGame(login: string) {
       this.killCanvas()
+      state.gameParam.inGame = false
       state.gameParam.gameEnded = true
       state.gameParam.winner = login
     },
     PlayerTwoWinGame(login: string) {
       this.killCanvas()
+      state.gameParam.inGame = false
       state.gameParam.gameEnded = true
       state.gameParam.winner = login
+    },
+    resetState() {
+      state.gameParam.gameEnded = false
+      state.gameParam.inGame = false
+      state.gameParam.inQueue = false
+      state.gameParam.scorePlayerOne = 0
+      state.gameParam.scorePlayerTwo = 0
+      state.gameParam.winner = ''
     }
   }
 }
