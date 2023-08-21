@@ -1,5 +1,3 @@
-import { BallService } from './services/ball.service';
-import { Game } from './classes/game.class';
 import { GameService } from './services/game.service';
 import { JwtAuthGuard } from 'src/auth/auth-jwt.guard';
 import { PlayerService } from './services/player.service';
@@ -19,11 +17,10 @@ import {
 export class PongGateway {
   @WebSocketServer()
   server: Server;
-
   constructor(
     private readonly playerService: PlayerService,
-    private readonly gameService: GameService,
     private readonly pongService: PongService,
+    private readonly gameService: GameService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
@@ -35,25 +32,13 @@ export class PongGateway {
   @UseGuards(JwtAuthGuard)
   @SubscribeMessage('joinNormalQueue')
   joinNormalQueue(@Req() req: any) {
-    this.pongService.joinQueue(
-      this.server,
-      this.playerService,
-      this.gameService,
-      req.user.login,
-      'normal',
-    );
+    this.pongService.joinQueue(this.server, req.user.login, 'normal');
   }
 
   @UseGuards(JwtAuthGuard)
   @SubscribeMessage('joinCustomQueue')
   joinCustomQueue(@Req() req: any) {
-    this.pongService.joinQueue(
-      this.server,
-      this.playerService,
-      this.gameService,
-      req.user.login,
-      'custom',
-    );
+    this.pongService.joinQueue(this.server, req.user.login, 'custom');
   }
 
   @SubscribeMessage('joinGameRoom')
@@ -69,8 +54,6 @@ export class PongGateway {
     this.pongService.playerMovement(
       this.server,
       socket,
-      this.playerService,
-      this.gameService,
       dataKey[0],
       dataKey[1],
     );
@@ -78,21 +61,11 @@ export class PongGateway {
 
   @SubscribeMessage('changePage')
   changePage(@ConnectedSocket() socket: Socket) {
-    this.pongService.disconnectPlayer(
-      this.server,
-      socket,
-      this.playerService,
-      this.gameService,
-    );
+    this.pongService.disconnectPlayer(this.server, socket);
   }
 
   @SubscribeMessage('disconnecting')
   disconnecting(@ConnectedSocket() socket: Socket) {
-    this.pongService.disconnectPlayer(
-      this.server,
-      socket,
-      this.playerService,
-      this.gameService,
-    );
+    this.pongService.disconnectPlayer(this.server, socket);
   }
 }
