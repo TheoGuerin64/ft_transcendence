@@ -1,5 +1,5 @@
 import { Channel } from './channel.entity';
-import { ChannelDto } from './channel.pipe';
+import { ChannelDto, MembershipDto } from './channel.pipe';
 import { DeepPartial, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -30,8 +30,13 @@ export class ChannelService {
     login: string,
     client: any,
   ): Promise<void> {
-    if (await this.membershipService.findOne(channelName, login)) {
+    const membership = await this.membershipService.findOne(channelName, login);
+
+    if (membership && membership.isBanned == false) {
       client.join(channelName);
+    } else if (membership && membership.isBanned == true) {
+      client.emit('error-banned');
+      return;
     }
   }
 
@@ -39,16 +44,30 @@ export class ChannelService {
     content: string,
     channelName: string,
     login: string,
-  ): Promise<void> {
-    const channel = await this.findOne(channelName);
-    const message = this.messageService.create({
-      content: content,
-      createdAt: new Date(),
-    });
+    client: any,
+  ): Promise<boolean> {
     const user = await this.userService.findOne(login);
     if (!user) {
       return;
     }
+    const channel = await this.findOne(channelName);
+    const membership = await this.membershipService.findOne(
+      channel.name,
+      user.login,
+    );
+    if (!membership) {
+      return true;
+    } else if (membership.isMuted == true) {
+      client.emit('error', 'You are muted from this channel');
+      return false;
+    } else if (membership.isBanned == true) {
+      client.emit('error', 'You are banned from this channel');
+      return false;
+    }
+    const message = this.messageService.create({
+      content: content,
+      createdAt: new Date(),
+    });
     message.user = user;
     await this.messageService.save(message);
     if (!user.messages) {
@@ -63,6 +82,7 @@ export class ChannelService {
     channel.messages.push(message);
     await this.userService.save(user);
     await this.channelModel.save(channel);
+    return true;
   }
 
   async addMembership(
@@ -75,7 +95,7 @@ export class ChannelService {
     if (!user) {
       return true;
     }
-    let channel = await this.findOne(channelDto.name);
+    const channel = await this.findOne(channelDto.name);
     if (
       channel &&
       (await this.membershipService.findOne(channel.name, user.login))
@@ -128,6 +148,10 @@ export class ChannelService {
     if (!membership) {
       return true;
     }
+    if (membership.isBanned == true) {
+      client.emit('error', 'You are banned from this channel');
+      return true;
+    }
     if (membership.role === 'owner') {
       const users = (await this.userService.findAll()) as User[];
       await this.membershipService.remove(membership);
@@ -136,7 +160,7 @@ export class ChannelService {
           channel.name,
           users[i].login,
         );
-        if (newMembership) {
+        if (newMembership && newMembership.isBanned == false) {
           newMembership.role = 'owner';
           await this.membershipService.save(newMembership);
           return false;
@@ -183,7 +207,13 @@ export class ChannelService {
   ): Promise<void> {
     const users = (await this.userService.findAll()) as User[];
     for (let i = 0; i < users.length; i++) {
-      await this.removeMembership(channelName, users[i].login, client, server);
+      const membership = await this.membershipService.findOne(
+        channelName,
+        users[i].login,
+      );
+      if (membership) {
+        await this.membershipService.remove(membership);
+      }
     }
     const channel = await this.findOne(channelName);
     if (channel) {
@@ -193,6 +223,84 @@ export class ChannelService {
       await this.channelModel.remove(channel);
       server.emit('channel-removed', channel.name);
     }
+  }
+
+  async banUser(
+    membershipDto: any,
+    login: string,
+    client: any,
+  ): Promise<boolean> {
+    const userToBan = await this.membershipService.findOne(
+      membershipDto.channelName,
+      membershipDto.login,
+    );
+    const owner = await this.membershipService.findOne(
+      membershipDto.channelName,
+      login,
+    );
+    if (userToBan.role === 'owner') {
+      client.emit('error', 'You cannot ban the owner of this channel');
+      return true;
+    }
+    if (owner.role !== 'owner' && owner.role !== 'admin') {
+      client.emit('error', 'You dont have the role to ban this user');
+      return true;
+    }
+    userToBan.isBanned = true;
+    await this.membershipService.save(userToBan);
+    return false;
+  }
+
+  async blockUser(
+    membershipDto: MembershipDto,
+    login: string,
+    client: any,
+  ): Promise<boolean> {
+    const owner = await this.userService.findOne(login);
+    if (!owner) {
+      return true;
+    }
+    if (!(await this.userService.findOne(membershipDto.login))) {
+      client.emit('error', 'User not found');
+      return true;
+    }
+    if (login === membershipDto.login) {
+      client.emit('error', 'You cannot block yourself');
+      return true;
+    }
+    owner.blocked.push(membershipDto.login);
+    this.userService.save(owner);
+    return false;
+  }
+
+  async muteUser(
+    membershipDto: MembershipDto,
+    login: string,
+    client: any,
+  ): Promise<boolean> {
+    const userToMute = await this.membershipService.findOne(
+      membershipDto.channelName,
+      membershipDto.login,
+    );
+    const owner = await this.membershipService.findOne(
+      membershipDto.channelName,
+      login,
+    );
+    if (userToMute.role === 'owner') {
+      console.log(userToMute);
+      client.emit('error', 'You cannot mute the owner of this channel');
+      return true;
+    }
+    if (owner.role !== 'owner' && owner.role !== 'admin') {
+      client.emit('error', 'You dont have the role to mute this user');
+      return true;
+    }
+    if (login === membershipDto.login) {
+      client.emit('error', 'You cannot mute yourself');
+      return true;
+    }
+    userToMute.isMuted = true;
+    await this.membershipService.save(userToMute);
   }
 
   async save(channel: Channel): Promise<Channel> {

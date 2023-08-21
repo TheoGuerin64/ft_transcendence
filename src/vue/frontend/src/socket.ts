@@ -76,6 +76,10 @@ socket.on('user-left', (username: string, avatar: string, login: string) => {
   // routerInstance.push('/chat')
 })
 
+socket.on('user-banned', () => {
+  location.reload()
+})
+
 socket.on('channel-created', async (channelName: string) => {
   location.reload()
   routerInstance.push('/chat')
@@ -105,6 +109,14 @@ socket.on('error', (msg: string) => {
   notify({
     type: 'error',
     text: msg
+  })
+  // routerInstance.push('/chat')
+})
+
+socket.on('error-banned', () => {
+  notify({
+    type: 'error',
+    text: 'You are banned from this channel'
   })
   routerInstance.push('/chat')
 })

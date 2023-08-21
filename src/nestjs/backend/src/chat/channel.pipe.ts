@@ -7,7 +7,7 @@ import {
 
 export class MessageDto {
   @IsString()
-  @MinLength(1)
+  @MinLength(10)
   content: string;
 
   @IsString()
@@ -28,4 +28,14 @@ export class ChannelDto {
 
   @IsStrongPassword()
   password: string;
+}
+
+export class MembershipDto {
+  @IsString()
+  @MinLength(1)
+  channelName: string;
+
+  @IsString()
+  @MinLength(1)
+  login: string;
 }
