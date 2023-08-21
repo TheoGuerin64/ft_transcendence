@@ -15,6 +15,7 @@ export default {
     this.updatePiechart()
   },
   methods: {
+    //update piechart depending on the winrate
     updatePiechart() {
       const piechart = document.getElementById('piechart')
       if (piechart === null || this.userStats === undefined) {
@@ -46,21 +47,3 @@ export default {
     </div>
   </div>
 </template>
-<style>
-@import 'https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css';
-#piechart {
-  margin-left: 7vw;
-  margin-top: 5vh;
-  display: block;
-  position: absolute;
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-}
-
-#piechart {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-</style>

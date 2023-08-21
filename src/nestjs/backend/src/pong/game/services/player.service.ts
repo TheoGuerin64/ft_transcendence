@@ -60,6 +60,15 @@ export class PlayerService {
   }
 
   /**
+   * left all queue where the socket is in it
+   * @param socket socket which send the message
+   */
+  leftQueue(socket: Socket): void {
+    this.eraseFromArray(this.normalQueue, socket.id);
+    this.eraseFromArray(this.customQueue, socket.id);
+  }
+
+  /**
    * erase a player from an array of player
    * @param playerArray  array of player
    * @param socketID Id of socket which send the message
@@ -79,8 +88,10 @@ export class PlayerService {
    * @param server socket server
    * @param login login of the player
    */
-  joinQueue(login: string, queueType: string): void {
-    const player = this.players.find((element) => element.getLogin() === login);
+  joinQueue(socket: Socket, queueType: string): void {
+    const player = this.players.find(
+      (element) => element.getSocketID() === socket.id,
+    );
     if (player === undefined || this.normalQueue.includes(player)) {
       return;
     }

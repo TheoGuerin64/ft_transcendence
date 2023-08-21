@@ -1,8 +1,8 @@
 import CallBackView from '../views/CallbackView.vue'
-import GameView from '../views/GameView.vue'
 import HomeView from '../views/HomeView.vue'
-import MatchHistoryView from '../views/MatchHistoryView.vue'
+import MatchHistoryView from '../views/MatchHistoryViews/MatchHistoryView.vue'
 import PathNotFoundView from '../views/PathNotFoundView.vue'
+import PongView from '../views/PongViews/PongView.vue'
 import ProfileSearchView from '../views/ProfileSearchView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
@@ -20,7 +20,7 @@ const router = createRouter({
     {
       path: '/Game',
       name: 'game',
-      component: GameView,
+      component: PongView,
       beforeEnter: isAuthenticatedGuard
     },
     {

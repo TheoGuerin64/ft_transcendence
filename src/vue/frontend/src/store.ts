@@ -6,6 +6,13 @@ export enum UserStatus {
   PLAYING = 'playing'
 }
 
+export enum playerStatus {
+  LOBBY = 'lobby',
+  QUEUE = 'inQueue',
+  GAME = 'inGame',
+  POSTGAME = 'postGame'
+}
+
 export type User = {
   login: UserStatus
   name: string

@@ -1,20 +1,24 @@
-import GameView from './views/GameView.vue'
+import PongView from './views/PongViews/PongView.vue'
 import { getCookie } from './utils'
 import { io } from 'socket.io-client'
+import { playerStatus } from './store'
 import { reactive, type ComponentOptions } from 'vue'
 export const state = reactive({
   connected: false,
   gameParam: {
     scorePlayerOne: 0,
     scorePlayerTwo: 0,
-    inGame: false,
-    inQueue: false,
-    gameEnded: false,
+    status: playerStatus.LOBBY,
     winner: ''
+  },
+  gameFunctions: {
+    ballMovement: (posX: number, posY: number) => {},
+    someoneMoved: (login: string, posY: number) => {},
+    killCanvas: () => {}
   }
 })
 
-const GameViewMethods = (GameView as ComponentOptions).methods
+const PongViewMethods = (PongView as ComponentOptions).methods
 
 export const socket = io('http://localhost:3000', {
   autoConnect: false
@@ -30,25 +34,25 @@ socket.on('disconnect', () => {
 
 socket.on('findGame', (playerOneLogin: string, playerTwoLogin: string, gameType: string) => {
   socket.emit('joinGameRoom')
-  GameViewMethods.init(playerOneLogin, playerTwoLogin, gameType)
+  PongViewMethods.init(playerOneLogin, playerTwoLogin, gameType)
 })
 socket.on('ballMovement', (posX: number, posY: number) => {
-  GameViewMethods.ballMovement(posX, posY)
+  state.gameFunctions.ballMovement(posX, posY)
 })
 socket.on('someoneMoved', (login: string, posY: number) => {
-  GameViewMethods.someoneMoved(login, posY)
+  state.gameFunctions.someoneMoved(login, posY)
 })
 socket.on('PlayerOneWinPoint', () => {
-  GameViewMethods.incrementPlayerOneScore()
+  PongViewMethods.incrementPlayerOneScore()
 })
 socket.on('PlayerTwoWinPoint', () => {
-  GameViewMethods.incrementPlayerTwoScore()
+  PongViewMethods.incrementPlayerTwoScore()
 })
 socket.on('PlayerOneWinGame', (login: string) => {
-  GameViewMethods.PlayerOneWinGame(login)
+  PongViewMethods.PlayerOneWinGame(login)
 })
 socket.on('PlayerTwoWinGame', (login: string) => {
-  GameViewMethods.PlayerTwoWinGame(login)
+  PongViewMethods.PlayerTwoWinGame(login)
 })
 
 export const socketConnect = () => {
