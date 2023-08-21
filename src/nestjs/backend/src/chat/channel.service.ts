@@ -111,6 +111,7 @@ export class ChannelService {
     channelName: string,
     login: string,
     client: any,
+    server: any,
   ): Promise<boolean> {
     const user = await this.userService.findOne(login);
     if (!user) {
@@ -141,7 +142,7 @@ export class ChannelService {
           return false;
         }
       }
-      await this.removeChannel(channel.name, client);
+      await this.removeChannel(channel.name, client, server);
       client.emit('success', 'Channel removed');
     } else {
       await this.membershipService.remove(membership);
@@ -154,7 +155,11 @@ export class ChannelService {
     return channel.messages;
   }
 
-  async createChannel(channel: any, login: string): Promise<boolean> {
+  async createChannel(
+    channel: any,
+    login: string,
+    client: any,
+  ): Promise<boolean> {
     if (await this.findOne(channel.name)) {
       return true;
     }
@@ -167,16 +172,24 @@ export class ChannelService {
       password: channel.password,
     });
     await this.save(channel);
-    await this.addMembership(channel.name, login, 'owner', null);
+    await this.addMembership(channel.name, login, 'owner', client);
     return false;
   }
 
-  async removeChannel(channelName: string, client: any): Promise<void> {
+  async removeChannel(
+    channelName: string,
+    client: any,
+    server: any,
+  ): Promise<void> {
     const users = (await this.userService.findAll()) as User[];
     for (let i = 0; i < users.length; i++) {
-      await this.removeMembership(channelName, users[i].login, client);
+      await this.removeMembership(channelName, users[i].login, client, server);
     }
-    await this.channelModel.remove(await this.findOne(channelName));
+    const channel = await this.findOne(channelName);
+    if (channel) {
+      await this.channelModel.remove(channel);
+      server.emit('channel-removed', channel.name);
+    }
   }
 
   async save(channel: Channel): Promise<Channel> {

@@ -63,9 +63,9 @@ export default {
       socket.emit('message', messageData)
       this.message = ''
     },
-    leaveChannel(): void {
+    leave(): void {
       const data = { name: this.$route.params.channelId }
-      socket.emit('leave-channel', data)
+      this.$router.push('/chat')
     }
   },
   async mounted() {
@@ -104,9 +104,7 @@ export default {
       <button class="button is-success" id="sendMessage" @click="submitNewMessage">
         <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
       </button>
-      <button class="button is-danger" id="leaveChannel" @click="leaveChannel">
-        Leave Channel
-      </button>
+      <button class="button is-danger ml-3" id="leave" @click="leave">Leave</button>
     </div>
   </main>
 </template>
@@ -154,9 +152,5 @@ export default {
   border-radius: 5px;
   width: 100%;
   margin-left: 8%;
-}
-
-#leaveChannel {
-  margin-left: 3%;
 }
 </style>

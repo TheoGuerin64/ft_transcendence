@@ -121,6 +121,7 @@ export class ChannelGateway {
           channelDto.name,
           req.user.login,
           client,
+          this.server,
         )
       ) {
         client.emit('error', 'You already left this channel');
@@ -149,10 +150,17 @@ export class ChannelGateway {
       if (errors.length > 0) {
         throw new BadRequestException(errors);
       }
-      if (await this.channelService.createChannel(channelDto, req.user.login)) {
+      if (
+        await this.channelService.createChannel(
+          channelDto,
+          req.user.login,
+          client,
+        )
+      ) {
         client.emit('error', 'This channel already exists');
       } else {
-        client.emit('success', 'Channel created');
+        this.server.emit('channel-created', channelDto.name);
+        console.log('after');
       }
     } catch (error) {
       console.log(error);
@@ -199,8 +207,12 @@ export class ChannelGateway {
         client.emit('error', 'You are not the owner of this channel');
         return;
       }
-      await this.channelService.removeChannel(channelDto.name, client);
-      client.emit('success', 'Channel removed');
+      await this.channelService.removeChannel(
+        channelDto.name,
+        client,
+        this.server,
+      );
+      this.server.emit('channel-removed', channelDto.name);
     } catch (error) {
       console.log(error);
     }

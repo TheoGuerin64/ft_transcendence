@@ -31,6 +31,15 @@ export default {
   methods: {
     createChannel(): void {
       socket.emit('create-channel', this.channelData)
+      // const channel = {
+      //   id: this.id++,
+      //   name: this.channelData.name,
+      //   isPublic: this.channelData.isPublic,
+      //   isProtected: this.channelData.isProtected
+      // } as Channel
+      // this.Channels.push(channel)
+      // location.reload()
+      // this.$router.push('/chat')
     },
     submitPassword(): void {
       this.protectedDialog = false
@@ -96,7 +105,9 @@ export default {
         Protected
       </button>
       <div v-if="protectedDialog" id="passwordInput">
-        <input class="input" v-model="password" placeholder="********" type="password" />
+        <form @submit="submitPassword">
+          <input class="input" v-model="password" placeholder="********" type="password" />
+        </form>
         <button class="button is-warning ml-1" @click="submitPassword">
           <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
         </button>

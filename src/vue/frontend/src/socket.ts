@@ -76,6 +76,24 @@ socket.on('user-left', (username: string, avatar: string, login: string) => {
   routerInstance.push('/chat')
 })
 
+socket.on('channel-created', async (channelName: string) => {
+  location.reload()
+  routerInstance.push('/chat')
+  notify({
+    type: 'success',
+    text: 'Channel ' + channelName + ' created'
+  })
+})
+
+socket.on('channel-removed', (channelName: string) => {
+  location.reload()
+  routerInstance.push('/chat')
+  notify({
+    type: 'success',
+    text: 'Channel ' + channelName + ' removed'
+  })
+})
+
 socket.on('success', (msg: string) => {
   notify({
     type: 'success',

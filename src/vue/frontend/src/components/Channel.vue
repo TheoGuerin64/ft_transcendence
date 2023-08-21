@@ -53,14 +53,14 @@ export default {
       const data = { name: channel.name }
       console.log('leave channel')
       socket.emit('leave-channel', data)
-      location.reload()
+      // location.reload()
       // this.$router.push('/chat')
     },
     removeChannel(channel: Channel): void {
       const data = { name: channel.name }
       console.log('remove channel')
       socket.emit('remove-channel', data)
-      location.reload()
+      // location.reload()
       // this.$router.push('/chat')
     }
   }
