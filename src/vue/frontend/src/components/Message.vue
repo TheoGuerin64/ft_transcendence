@@ -12,7 +12,8 @@ export default {
     login: String,
     username: String,
     content: String,
-    channelName: String
+    channelName: String,
+    owner: Boolean
   },
   data() {
     return {
@@ -57,6 +58,13 @@ export default {
         login: this.login
       }
       socket.emit('block-user', data)
+    },
+    setAdmin(): void {
+      const data = {
+        channelName: this.channelName,
+        login: this.login
+      }
+      socket.emit('set-admin', data)
     }
   }
 }
@@ -77,6 +85,7 @@ export default {
       <button class="button is-warning ml-3" @click="mute">Mute</button>
       <button class="button is-danger ml-3" @click="ban">Ban</button>
       <button class="button is-danger ml-3" @click="block">Block</button>
+      <button class="button is-info ml-3" @click="setAdmin">Set admin</button>
     </div>
     <div
       v-else

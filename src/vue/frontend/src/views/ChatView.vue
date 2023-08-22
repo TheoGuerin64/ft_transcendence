@@ -30,23 +30,7 @@ export default {
   },
   methods: {
     createChannel(): void {
-      if (this.channelData.isProtected && this.channelData.password === '') {
-        this.$notify({
-          type: 'error',
-          text: 'Password cannot be empty'
-        })
-        return
-      }
       socket.emit('create-channel', this.channelData)
-      // const channel = {
-      //   id: this.id++,
-      //   name: this.channelData.name,
-      //   isPublic: this.channelData.isPublic,
-      //   isProtected: this.channelData.isProtected
-      // } as Channel
-      // this.Channels.push(channel)
-      // location.reload()
-      // this.$router.push('/chat')
     },
     submitPassword(): void {
       this.protectedDialog = false
