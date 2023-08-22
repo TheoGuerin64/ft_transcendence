@@ -2,6 +2,7 @@
 import UserAvatar from './UserAvatar.vue'
 import { socket } from '@/socket'
 import { useStore } from '@/store'
+import axios from 'axios'
 </script>
 
 <script lang="ts">
@@ -12,12 +13,13 @@ export default {
     login: String,
     username: String,
     content: String,
-    channelName: String,
-    owner: Boolean
+    channelName: String
   },
   data() {
     return {
       store: useStore,
+      role: '' as string,
+      operator: false as boolean,
       profile: 'http://127.0.0.1:8080/profile/public/' + this.login,
       showContextMenu: false as boolean
     }
@@ -65,7 +67,27 @@ export default {
         login: this.login
       }
       socket.emit('set-admin', data)
+    },
+    async getChannelOwner(): Promise<void> {
+      try {
+        const response = await axios.get(
+          'http://127.0.0.1:3000/channel/owner/' + this.channelName,
+          {
+            withCredentials: true
+          }
+        )
+        this.role = response.data
+        console.log('role', this.role)
+        console.log('channelName', this.channelName)
+      } catch (error) {
+        console.log(error)
+      }
     }
+  },
+  async created() {
+    await this.getChannelOwner()
+    this.operator = this.role === 'owner' || this.role === 'admin'
+    console.log(this.operator)
   }
 }
 </script>
@@ -81,11 +103,11 @@ export default {
       <button class="button is-success ml-2" @click="inviteToGame(login as string)">
         Invite to game
       </button>
-      <button class="button is-info ml-3" @click="kick">Kick</button>
-      <button class="button is-warning ml-3" @click="mute">Mute</button>
-      <button class="button is-danger ml-3" @click="ban">Ban</button>
+      <button v-if="operator" class="button is-info ml-3" @click="kick">Kick</button>
+      <button v-if="operator" class="button is-warning ml-3" @click="mute">Mute</button>
+      <button v-if="operator" class="button is-danger ml-3" @click="ban">Ban</button>
       <button class="button is-danger ml-3" @click="block">Block</button>
-      <button class="button is-info ml-3" @click="setAdmin">Set admin</button>
+      <button v-if="operator" class="button is-info ml-3" @click="setAdmin">Set admin</button>
     </div>
     <div
       v-else
