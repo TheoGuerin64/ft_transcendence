@@ -45,6 +45,10 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
+      if (messageDto.content === '') {
+        client.emit('error', 'Message cannot be empty');
+        return;
+      }
       await this.channelService.checkConnection(
         messageDto.channelName,
         req.user?.login,
@@ -87,10 +91,6 @@ export class ChannelGateway {
         req.user.login,
       );
       if (membership) {
-        return;
-      }
-      if (membership?.isBanned == true) {
-        client.emit('error', 'You are banned from this channel');
         return;
       }
       if (
@@ -156,9 +156,9 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
-      const errors = await validate(channelDto);
-      if (errors.length > 0) {
-        throw new BadRequestException(errors);
+      if (channelDto.password === '') {
+        client.emit('error', 'Password cannot be empty');
+        return;
       }
       if (
         await this.channelService.createChannel(
@@ -225,6 +225,29 @@ export class ChannelGateway {
         this.server,
       );
       this.server.emit('channel-removed', channelDto.name);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('kick-user')
+  async kickUser(
+    @MessageBody() membershipDto: MembershipDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      if (
+        await this.channelService.kickUser(
+          membershipDto,
+          req.user.login,
+          client,
+        )
+      ) {
+        this.server.to(membershipDto.channelName).emit('reload');
+        client.emit('success', 'User kicked');
+      }
     } catch (error) {
       console.log(error);
     }
@@ -305,6 +328,10 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
+      if (passwordDto.password === '') {
+        client.emit('error', 'Password cannot be empty');
+        return;
+      }
       if (
         await this.channelService.addPassword(
           passwordDto.name,
@@ -352,6 +379,10 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
+      if (passwordDto.password === '') {
+        client.emit('error', 'Password cannot be empty');
+        return;
+      }
       if (
         await this.channelService.editPassword(
           passwordDto.name,

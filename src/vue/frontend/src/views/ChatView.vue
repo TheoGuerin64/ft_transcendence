@@ -30,6 +30,13 @@ export default {
   },
   methods: {
     createChannel(): void {
+      if (this.channelData.isProtected && this.channelData.password === '') {
+        this.$notify({
+          type: 'error',
+          text: 'Password cannot be empty'
+        })
+        return
+      }
       socket.emit('create-channel', this.channelData)
       // const channel = {
       //   id: this.id++,
@@ -109,7 +116,7 @@ export default {
           <input class="input" v-model="password" placeholder="********" type="password" />
         </form>
         <button class="button is-warning ml-1" @click="submitPassword">
-          <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
+          <FontAwesomeIcon :icon="['fas', 'fingerprint']" />
         </button>
       </div>
       <button
