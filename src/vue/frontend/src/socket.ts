@@ -5,6 +5,7 @@ import { reactive } from 'vue'
 
 export const state = reactive({
   connected: false,
+  redirected: false,
   Messages: [] as Array<{
     id: number
     data: any
@@ -76,8 +77,12 @@ socket.on('user-left', (username: string, avatar: string, login: string) => {
   // routerInstance.push('/chat')
 })
 
-socket.on('user-banned', () => {
+socket.on('reload', () => {
   location.reload()
+})
+
+socket.on('reset', () => {
+  routerInstance.push('/chat')
 })
 
 socket.on('channel-created', async (channelName: string) => {
