@@ -56,10 +56,10 @@ export default {
       <a @click="add = !add">Add password</a>
       <div v-if="add" id="promptPassword">
         <form @submit="addPassword">
-          <input class="is-small input" type="password" v-model="password" />
+          <input class="is-small input" type="password" placeholder="********" v-model="password" />
         </form>
-        <button class="is-small button is-success" @click="addPassword">
-          <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
+        <button class="is-small button is-success ml-2" @click="addPassword">
+          <FontAwesomeIcon :icon="['fas', 'fingerprint']" size="lg" />
         </button>
       </div>
     </li>

@@ -95,7 +95,7 @@ export default {
         class="button is-success ml-1"
         @click="joinChannel(channel)"
       >
-        <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
+        <FontAwesomeIcon :icon="['fas', 'fingerprint']" />
       </button>
     </div>
   </div>

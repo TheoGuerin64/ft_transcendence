@@ -225,6 +225,32 @@ export class ChannelService {
     }
   }
 
+  async kickUser(membershipDto: MembershipDto, login: string, client: any) {
+    const userToKick = await this.membershipService.findOne(
+      membershipDto.channelName,
+      membershipDto.login,
+    );
+    if (!userToKick) {
+      client.emit('error', 'User is not part of the channel');
+      return false;
+    }
+    const owner = await this.membershipService.findOne(
+      membershipDto.channelName,
+      login,
+    );
+    if (userToKick.role === 'owner') {
+      client.emit('error', 'You cannot kick the owner of this channel');
+      return false;
+    }
+    if (owner.role !== 'owner' && owner.role !== 'admin') {
+      client.emit('error', 'You dont have the role to kick this user');
+      return false;
+    }
+    client.leave(membershipDto.channelName);
+    await this.membershipService.remove(userToKick);
+    return true;
+  }
+
   async banUser(
     membershipDto: any,
     login: string,
