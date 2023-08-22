@@ -321,6 +321,28 @@ export class ChannelGateway {
   }
 
   @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('set-admin')
+  async setAdmin(
+    @MessageBody() membershipDto: MembershipDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      if (
+        await this.channelService.setAdmin(
+          membershipDto,
+          req.user.login,
+          client,
+        )
+      ) {
+        client.emit('success', 'User is now an admin');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('add-password')
   async addPassword(
     @MessageBody() passwordDto: PasswordDto,

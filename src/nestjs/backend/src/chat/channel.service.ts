@@ -7,6 +7,7 @@ import { MembershipService } from './membership.service';
 import { MessageService } from './message.service';
 import { Server } from 'socket.io';
 import { Socket } from 'dgram';
+import { use } from 'passport';
 import { User } from 'src/user/user.entity';
 import { UserService } from '../user/user.service';
 
@@ -326,6 +327,32 @@ export class ChannelService {
     }
     userToMute.isMuted = true;
     await this.membershipService.save(userToMute);
+  }
+
+  async setAdmin(membershipDto: MembershipDto, login: string, client: any) {
+    const userToSet = await this.membershipService.findOne(
+      membershipDto.channelName,
+      membershipDto.login,
+    );
+    const owner = await this.membershipService.findOne(
+      membershipDto.channelName,
+      login,
+    );
+    if (userToSet.role === 'owner') {
+      client.emit('error', 'You cannot set the owner of this channel as admin');
+      return false;
+    }
+    if (owner.role !== 'owner' && owner.role !== 'admin') {
+      client.emit('error', 'You dont have the role to set this user as admin');
+      return false;
+    }
+    if (userToSet.role === 'admin') {
+      client.emit('error', 'This user is already admin');
+      return false;
+    }
+    userToSet.role = 'admin';
+    await this.membershipService.save(userToSet);
+    return true;
   }
 
   async addPassword(

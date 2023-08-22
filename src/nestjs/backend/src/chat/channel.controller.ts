@@ -41,18 +41,15 @@ export class ChannelController {
 
   @UseGuards(JwtAuthGuard)
   @Get('owner/:name')
-  async isOwner(
-    @Param('name') name: string,
-    @Req() req: any,
-  ): Promise<boolean> {
+  async getRole(@Param('name') name: string, @Req() req: any): Promise<string> {
     const membership = await this.membershipService.findOne(
       name,
       req.user.login,
     );
-    if (membership && membership.role === 'owner') {
-      return true;
+    if (membership) {
+      return membership.role;
     }
-    return false;
+    return 'none';
   }
 
   // @UseGuards(JwtAuthGuard)

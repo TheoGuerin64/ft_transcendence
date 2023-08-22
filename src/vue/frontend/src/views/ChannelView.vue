@@ -108,7 +108,7 @@ export default {
               :content="message.data.content"
               :avatar="message.data.user.avatar"
               :login="message.data.user.login"
-              :channelName="state.channelName"
+              :channelName="$route.params.channelId as string"
             />
           </li>
         </template>

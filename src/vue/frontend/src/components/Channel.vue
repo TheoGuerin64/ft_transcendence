@@ -30,7 +30,7 @@ export default {
         password: '' as string | undefined
       },
       store: useStore,
-      owner: false as boolean,
+      role: '' as string,
       manageMenu: false as boolean,
       password: '' as string,
       protectedDialog: false as boolean
@@ -67,7 +67,7 @@ export default {
             withCredentials: true
           }
         )
-        this.owner = response.data
+        this.role = response.data
       } catch (error) {
         console.log(error)
       }
@@ -134,11 +134,15 @@ export default {
     {{ channel.name }}
   </a>
   <div v-if="channel.showContextMenu" class="mt-2 mb-2 ml-3">
-    <button v-if="owner" class="button is-warning is-small ml-3" @click="manageMenu = !manageMenu">
+    <button
+      v-if="role === 'owner'"
+      class="button is-warning is-small ml-3"
+      @click="manageMenu = !manageMenu"
+    >
       Manage
     </button>
     <button class="button is-danger is-small ml-3" @click="leaveChannel(channel)">Leave</button>
-    <div v-if="manageMenu && owner">
+    <div v-if="manageMenu && role === 'owner'">
       <ManageMenu :channel="channel" />
     </div>
   </div>
