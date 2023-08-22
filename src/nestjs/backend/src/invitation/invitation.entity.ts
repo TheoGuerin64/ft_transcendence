@@ -33,5 +33,5 @@ export class Invitation {
   requested_socket_id: number;
 
   @ManyToOne(() => Channel)
-  id: string;
+  channel: string;
 }
