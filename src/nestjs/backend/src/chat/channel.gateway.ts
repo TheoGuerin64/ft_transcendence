@@ -1,11 +1,16 @@
 import { async } from 'rxjs';
-import { ChannelDto, MembershipDto, MessageDto } from './channel.pipe';
 import { ChannelService } from './channel.service';
 import { JwtAuthGuard } from '../auth/auth-jwt.guard';
 import { MembershipService } from './membership.service';
 import { Server, Socket } from 'socket.io';
 import { UserService } from 'src/user/user.service';
 import { validate } from 'class-validator';
+import {
+  ChannelDto,
+  MembershipDto,
+  MessageDto,
+  PasswordDto,
+} from './channel.pipe';
 import {
   BadRequestException,
   Req,
@@ -184,6 +189,7 @@ export class ChannelGateway {
         req.user.login,
       );
       if (!membership) {
+        client.emit('reset');
         client.emit('error', 'You are not a member of this channel');
         return;
       }
@@ -239,7 +245,7 @@ export class ChannelGateway {
           client,
         ))
       ) {
-        this.server.to(membershipDto.channelName).emit('user-banned');
+        this.server.to(membershipDto.channelName).emit('reload');
         client.emit('success', 'User banned');
       }
     } catch (error) {
@@ -285,6 +291,77 @@ export class ChannelGateway {
         ))
       ) {
         client.emit('success', 'User muted');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('add-password')
+  async addPassword(
+    @MessageBody() passwordDto: PasswordDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      if (
+        await this.channelService.addPassword(
+          passwordDto.name,
+          passwordDto.password,
+          req.user.login,
+          client,
+        )
+      ) {
+        this.server.emit('reload');
+        client.emit('success', 'Password added');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('remove-password')
+  async removePassword(
+    @MessageBody() passwordDto: PasswordDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      if (
+        await this.channelService.removePassword(
+          passwordDto.name,
+          req.user.login,
+          client,
+        )
+      ) {
+        this.server.emit('reload');
+        client.emit('success', 'Password removed');
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('edit-password')
+  async editPassword(
+    @MessageBody() passwordDto: PasswordDto,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      if (
+        await this.channelService.editPassword(
+          passwordDto.name,
+          passwordDto.password,
+          req.user.login,
+          client,
+        )
+      ) {
+        this.server.emit('reload');
+        client.emit('success', 'Password edited');
       }
     } catch (error) {
       console.log(error);

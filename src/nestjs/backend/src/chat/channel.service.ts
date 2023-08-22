@@ -287,7 +287,6 @@ export class ChannelService {
       login,
     );
     if (userToMute.role === 'owner') {
-      console.log(userToMute);
       client.emit('error', 'You cannot mute the owner of this channel');
       return true;
     }
@@ -301,6 +300,105 @@ export class ChannelService {
     }
     userToMute.isMuted = true;
     await this.membershipService.save(userToMute);
+  }
+
+  async addPassword(
+    channelName: string,
+    password: string,
+    login: string,
+    client: any,
+  ): Promise<boolean> {
+    const membership = await this.membershipService.findOne(channelName, login);
+    if (!membership) {
+      client.emit('error', 'You are not a member of this channel');
+      return false;
+    }
+    if (membership.role !== 'owner') {
+      client.emit('error', 'You are not the owner of this channel');
+      return false;
+    }
+    const channel = await this.findOne(channelName);
+    if (!channel) {
+      return false;
+    }
+    if (!channel.isProtected && channel.isPublic) {
+      channel.password = password;
+      channel.isProtected = true;
+      channel.isPublic = false;
+    } else if (!channel.isProtected && !channel.isPublic) {
+      client.emit('error', 'This channel is already private');
+      return false;
+    } else if (channel.isProtected) {
+      client.emit('error', 'This channel is already protected');
+      return false;
+    }
+    await this.channelModel.save(channel);
+    return true;
+  }
+
+  async removePassword(
+    channelName: string,
+    login: string,
+    client: any,
+  ): Promise<boolean> {
+    const membership = await this.membershipService.findOne(channelName, login);
+    if (!membership) {
+      client.emit('error', 'You are not a member of this channel');
+      return false;
+    }
+    if (membership.role !== 'owner') {
+      client.emit('error', 'You are not the owner of this channel');
+      return false;
+    }
+    const channel = await this.findOne(channelName);
+    if (!channel) {
+      return false;
+    }
+    if (channel.isProtected && !channel.isPublic) {
+      channel.password = '';
+      channel.isProtected = false;
+      channel.isPublic = true;
+    } else if (!channel.isProtected && !channel.isPublic) {
+      client.emit('error', 'This channel is private');
+      return false;
+    } else if (channel.isProtected) {
+      client.emit('error', 'This channel is protected');
+      return false;
+    }
+    await this.channelModel.save(channel);
+    return true;
+  }
+
+  async editPassword(
+    channelName: string,
+    password: string,
+    login: string,
+    client: any,
+  ) {
+    const membership = await this.membershipService.findOne(channelName, login);
+    if (!membership) {
+      client.emit('error', 'You are not a member of this channel');
+      return false;
+    }
+    if (membership.role !== 'owner') {
+      client.emit('error', 'You are not the owner of this channel');
+      return false;
+    }
+    const channel = await this.findOne(channelName);
+    if (!channel) {
+      return false;
+    }
+    if (!channel.isProtected && channel.isPublic) {
+      client.emit('error', 'This channel is public');
+      return false;
+    } else if (!channel.isProtected && !channel.isPublic) {
+      client.emit('error', 'This channel is private');
+      return false;
+    } else if (channel.isProtected) {
+      channel.password = password;
+    }
+    await this.channelModel.save(channel);
+    return true;
   }
 
   async save(channel: Channel): Promise<Channel> {

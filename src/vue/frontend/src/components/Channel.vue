@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { socket } from '@/socket'
+import { socket, state } from '@/socket'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import ManageMenu from '@/components/ManageMenu.vue'
 </script>
 
 <script lang="ts">
@@ -26,6 +27,7 @@ export default {
         isProtected: false as boolean,
         password: '' as string | undefined
       },
+      manageMenu: false as boolean,
       password: '' as string,
       protectedDialog: false as boolean
     }
@@ -52,10 +54,6 @@ export default {
     leaveChannel(channel: Channel): void {
       const data = { name: channel.name }
       socket.emit('leave-channel', data)
-    },
-    removeChannel(channel: Channel): void {
-      const data = { name: channel.name }
-      socket.emit('remove-channel', data)
     }
   }
 }
@@ -75,20 +73,23 @@ export default {
     </a>
     <button
       v-if="!channel.promptPassword"
-      class="button is-info ml-3"
+      class="button is-info is-small mt-1 ml-3"
       id="protectedButton"
       @click="channel.promptPassword = !channel.promptPassword"
     >
       Join
+      <!-- <FontAwesomeIcon :icon="['fas', 'circle-arrow-right']" size="xl" /> -->
     </button>
     <div id="passwordInput">
-      <input
-        v-if="channel.promptPassword"
-        class="input"
-        v-model="password"
-        placeholder="********"
-        type="password"
-      />
+      <form @submit="joinChannel(channel)">
+        <input
+          v-if="channel.promptPassword"
+          class="input"
+          v-model="password"
+          placeholder="********"
+          type="password"
+        />
+      </form>
       <button
         v-if="channel.promptPassword"
         class="button is-success ml-1"
@@ -113,7 +114,12 @@ export default {
     {{ channel.name }}
   </a>
   <div v-if="channel.showContextMenu" class="mt-2 mb-2 ml-3">
-    <button class="button is-warning is-small ml-3" @click="leaveChannel(channel)">Leave</button>
-    <button class="button is-danger is-small ml-3" @click="removeChannel(channel)">Remove</button>
+    <button class="button is-warning is-small ml-3" @click="manageMenu = !manageMenu">
+      Manage
+    </button>
+    <button class="button is-danger is-small ml-3" @click="leaveChannel(channel)">Leave</button>
+    <div v-if="manageMenu">
+      <ManageMenu :channel="channel" />
+    </div>
   </div>
 </template>

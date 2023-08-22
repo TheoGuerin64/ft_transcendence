@@ -89,7 +89,6 @@ export default {
     socket.emit('reconnect', data)
     await this.getMessages(data.name)
     await this.getBlockedUsers()
-    console.log(this.blockedUsers)
     this.state.channelName = this.$route.params.channelId as string
   }
 }
@@ -122,7 +121,9 @@ export default {
       <button class="button is-success" id="sendMessage" @click="submitNewMessage">
         <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
       </button>
-      <button class="button is-danger ml-3" id="leave" @click="leave">Leave</button>
+      <button class="button is-danger ml-3" id="leave" @click="leave">
+        <FontAwesomeIcon :icon="['fas', 'right-to-bracket']" />
+      </button>
     </div>
   </main>
 </template>

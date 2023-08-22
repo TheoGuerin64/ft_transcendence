@@ -39,3 +39,12 @@ export class MembershipDto {
   @MinLength(1)
   login: string;
 }
+
+export class PasswordDto {
+  @IsString()
+  @MinLength(1)
+  name: string;
+
+  @IsStrongPassword()
+  password: string;
+}
