@@ -2,6 +2,8 @@
 import { socket, state } from '@/socket'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import ManageMenu from '@/components/ManageMenu.vue'
+import { useStore } from '@/store'
+import axios from 'axios'
 </script>
 
 <script lang="ts">
@@ -27,6 +29,8 @@ export default {
         isProtected: false as boolean,
         password: '' as string | undefined
       },
+      store: useStore,
+      owner: false as boolean,
       manageMenu: false as boolean,
       password: '' as string,
       protectedDialog: false as boolean
@@ -54,7 +58,23 @@ export default {
     leaveChannel(channel: Channel): void {
       const data = { name: channel.name }
       socket.emit('leave-channel', data)
+    },
+    async getChannelOwner(): Promise<void> {
+      try {
+        const response = await axios.get(
+          'http://127.0.0.1:3000/channel/owner/' + this.channel.name,
+          {
+            withCredentials: true
+          }
+        )
+        this.owner = response.data
+      } catch (error) {
+        console.log(error)
+      }
     }
+  },
+  async created() {
+    await this.getChannelOwner()
   }
 }
 </script>
@@ -114,11 +134,11 @@ export default {
     {{ channel.name }}
   </a>
   <div v-if="channel.showContextMenu" class="mt-2 mb-2 ml-3">
-    <button class="button is-warning is-small ml-3" @click="manageMenu = !manageMenu">
+    <button v-if="owner" class="button is-warning is-small ml-3" @click="manageMenu = !manageMenu">
       Manage
     </button>
     <button class="button is-danger is-small ml-3" @click="leaveChannel(channel)">Leave</button>
-    <div v-if="manageMenu">
+    <div v-if="manageMenu && owner">
       <ManageMenu :channel="channel" />
     </div>
   </div>
