@@ -1,5 +1,5 @@
+import * as THREE from 'three'
 import { reactive } from 'vue'
-
 export enum UserStatus {
   ONLINE = 'online',
   OFFLINE = 'offline',
@@ -35,6 +35,24 @@ function fromLocalStorage(key: string, defaultValue: any): any {
     return JSON.parse(data)
   }
   return defaultValue
+}
+
+export const gameElements = {
+  scene: null as null | THREE.Scene,
+  camera: null as null | THREE.PerspectiveCamera,
+  renderer: null as null | THREE.WebGLRenderer,
+  isInit: false,
+
+  init() {
+    this.scene = new THREE.Scene()
+    this.camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000)
+    ;(this.renderer = new THREE.WebGLRenderer({
+      antialias: true
+    })),
+      this.scene.add(this.camera)
+    this.camera.position.z = 5
+    this.isInit = true
+  }
 }
 
 /**
