@@ -46,10 +46,10 @@ export const gameElements = {
   init() {
     this.scene = new THREE.Scene()
     this.camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000)
-    ;(this.renderer = new THREE.WebGLRenderer({
+    this.renderer = new THREE.WebGLRenderer({
       antialias: true
-    })),
-      this.scene.add(this.camera)
+    })
+    this.scene.add(this.camera)
     this.camera.position.z = 5
     this.isInit = true
   }

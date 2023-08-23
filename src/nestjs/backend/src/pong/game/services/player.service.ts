@@ -92,12 +92,12 @@ export class PlayerService {
     const player = this.players.find(
       (element) => element.getSocketID() === socket.id,
     );
-    if (player === undefined || this.normalQueue.includes(player)) {
+    if (player === undefined) {
       return;
     }
-    if (queueType === 'normal') {
+    if (queueType === 'normal' && !this.normalQueue.includes(player)) {
       this.normalQueue.push(player);
-    } else if (queueType === 'custom') {
+    } else if (queueType === 'custom' && !this.customQueue.includes(player)) {
       this.customQueue.push(player);
     }
   }

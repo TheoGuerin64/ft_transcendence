@@ -29,26 +29,31 @@ export class PongGateway {
     this.playerService.connectGame(socket, req.user.login);
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('joinNormalQueue')
   joinNormalQueue(@ConnectedSocket() socket: Socket) {
     this.pongService.joinQueue(this.server, socket, 'normal');
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('joinCustomQueue')
   joinCustomQueue(@ConnectedSocket() socket: Socket) {
     this.pongService.joinQueue(this.server, socket, 'custom');
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('leftQueue')
   leftQueue(@ConnectedSocket() socket: Socket) {
     this.playerService.leftQueue(socket);
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('joinGameRoom')
   joinGameRoom(@ConnectedSocket() socket: Socket) {
     this.gameService.joinGameRoom(socket);
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('playerMovement')
   playerMovement(
     @ConnectedSocket() socket: Socket,
@@ -62,11 +67,13 @@ export class PongGateway {
     );
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('changePage')
   changePage(@ConnectedSocket() socket: Socket) {
     this.pongService.disconnectPlayer(this.server, socket);
   }
 
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('disconnecting')
   disconnecting(@ConnectedSocket() socket: Socket) {
     this.pongService.disconnectPlayer(this.server, socket);

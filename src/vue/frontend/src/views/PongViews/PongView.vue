@@ -63,32 +63,57 @@ export default {
        * and cube if it's a custom game
        */
       const addElements = () => {
+        addLine(2)
+        addLine(-2)
+        addBall()
+        if (gameType === 'custom') {
+          addCube()
+          ball.position.y = 1.5
+        }
+        addNewPlayer(playerOneLogin, -2 - 0.1 / 2)
+        addNewPlayer(playerTwoLogin, 2 + 0.1 / 2)
+      }
+
+      /** add a ball to the canva
+       */
+      const addBall = () => {
         if (gameElements.scene === null) {
           return
         }
-        const backgroundGeometry = new THREE.BoxGeometry(4, 4, 0)
-        const backgroundMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
-        const background = new THREE.Mesh(backgroundGeometry, backgroundMaterial)
-        background.position.set(0, 0, 0)
-        gameElements.scene.add(background)
-
         const geometry = new THREE.BoxGeometry(0.15, 0.15, 0)
-        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
+        const material = new THREE.MeshBasicMaterial({ color: 0xffffff })
         ball = new THREE.Mesh(geometry, material)
         ball.position.set(0, 0, 0)
-
-        if (gameType === 'custom') {
-          const centralCubeGeometry = new THREE.BoxGeometry(1, 1, 0)
-          const centralCubeMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff })
-          const centralCube = new THREE.Mesh(centralCubeGeometry, centralCubeMaterial)
-          centralCube.position.set(0, 0, 0)
-          ball.position.y = 1.5
-          gameElements.scene.add(centralCube)
-        }
         gameElements.scene.add(ball)
+      }
 
-        addNewPlayer(playerOneLogin, -2 - 0.1 / 2)
-        addNewPlayer(playerTwoLogin, 2 + 0.1 / 2)
+      /** add a cube to the canva
+       */
+      const addCube = () => {
+        if (gameElements.scene === null) {
+          return
+        }
+        const centralCubeGeometry = new THREE.BoxGeometry(1, 1, 0)
+        const centralCubeMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
+        const centralCube = new THREE.Mesh(centralCubeGeometry, centralCubeMaterial)
+        centralCube.position.set(0, 0, 0)
+        ball.position.y = 1.5
+        gameElements.scene.add(centralCube)
+      }
+
+      /** add lines to the canva to delimit the field
+       */
+      const addLine = (posY: number) => {
+        if (gameElements.scene === null) {
+          return
+        }
+        const lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 3 })
+        const points = []
+        points.push(new THREE.Vector3(-2 - 0.1, posY, 0))
+        points.push(new THREE.Vector3(2 + 0.1, posY, 0))
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints(points)
+        const line = new THREE.Line(lineGeometry, lineMaterial)
+        gameElements.scene.add(line)
       }
 
       /**
@@ -102,7 +127,7 @@ export default {
           return
         }
         const geometry = new THREE.BoxGeometry(0.1, 0.5, 0)
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
+        const material = new THREE.MeshBasicMaterial({ color: 0xffffff })
         const newPlayer = new THREE.Mesh(geometry, material)
         gameElements.scene.add(newPlayer)
         newPlayer.uuid = login
@@ -150,10 +175,11 @@ export default {
        * kill the canvas and stop everything
        */
       state.gameFunctions.killCanvas = () => {
-        if (gameElements.renderer === null) {
+        if (gameElements.renderer === null || gameElements.scene === null) {
           return
         }
         cancelAnimationFrame(idCanvas)
+        gameElements.scene.clear()
         gameElements.renderer.domElement.style.display = 'none'
       }
 
