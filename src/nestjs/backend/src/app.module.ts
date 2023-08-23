@@ -1,18 +1,15 @@
 import { AppGateway } from './app.gateway';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
-
 import { Channel } from './chat/channel.entity';
 import { ChannelModule } from './chat/channel.module';
 import { Friendship } from './user/friendship/friendship.entity';
 import { LoggerMiddleware } from './logger.middleware';
+import { MatchPlayed } from './pong/database/matchPlayed.entity';
+import { MatchPlayedModule } from './pong/database/matchPlayed.module';
 import { Membership } from './chat/membership.entity';
 import { Message } from './chat/message.entity';
 import { MessageModule } from './chat/message.module';
-import { Friendship } from './user/friendship/friendship.entity';
-import { LoggerMiddleware } from './logger.middleware';
-import { MatchPlayed } from './pong/database/matchPlayed.entity';
-import { MatchPlayedModule } from './pong/database/matchPlayed.module';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { PongModule } from './pong/game/pong.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -30,7 +27,15 @@ import { userStatsModule } from './userStats/userStats.module';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_USER,
-      entities: [User, MatchPlayed, UserStats, Friendship, Message, Channel, Membership],
+      entities: [
+        User,
+        MatchPlayed,
+        UserStats,
+        Friendship,
+        Message,
+        Channel,
+        Membership,
+      ],
       synchronize: true,
     }),
     ChannelModule,

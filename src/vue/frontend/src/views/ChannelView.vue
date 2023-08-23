@@ -14,11 +14,6 @@ interface Channel {
   isProtected: boolean
 }
 
-const messageData = {
-  content: '' as string,
-  channelName: '' as string | undefined
-}
-
 export default {
   components: {
     Message
@@ -71,6 +66,11 @@ export default {
       if (event) {
         event.preventDefault()
       }
+
+      const messageData = {
+        content: '' as string,
+        channelName: '' as string | undefined
+      }
       messageData.content = this.message
       messageData.channelName = this.state.channelName
       socket.emit('message', messageData)
@@ -90,6 +90,12 @@ export default {
     await this.getMessages(data.name)
     await this.getBlockedUsers()
     this.state.channelName = this.$route.params.channelId as string
+  },
+  updated() {
+    let elem = document.getElementById('chatDisplay')
+    if (elem) {
+      elem.scrollTop = elem.scrollHeight
+    }
   }
 }
 </script>
@@ -108,7 +114,8 @@ export default {
               :content="message.data.content"
               :avatar="message.data.user.avatar"
               :login="message.data.user.login"
-              :channelName="$route.params.channelId as string"
+              :channelName="state.channelName"
+              :id="message.id"
             />
           </li>
         </template>

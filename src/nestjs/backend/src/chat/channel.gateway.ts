@@ -140,7 +140,13 @@ export class ChannelGateway {
         client.leave(channelDto.name);
         this.server
           .to(channelDto.name)
-          .emit('user-left', user.name, user.avatar, user.login);
+          .emit(
+            'user-left',
+            user.name,
+            user.avatar,
+            user.login,
+            channelDto.name,
+          );
         client.emit('success', 'You left the channel');
       }
     } catch (error) {
