@@ -93,11 +93,12 @@ export default {
 </script>
 
 <template>
-  <div id="messages" class="box is-large columns mb-2 mt-2 is-flex-grow-1">
+  <div id="message" class="box is-small columns mb-2 mt-2 is-flex-grow-1">
     <div class="column is-narrow is-flex is-flex-direction-column is-justify-content-center">
       <a @contextmenu="handleContextMenu($event)" :href="profile"
-        ><UserAvatar :image="avatar" :size="40" class="round-image"
-      /></a>
+        ><UserAvatar :image="avatar" :size="40" class="round-image" />
+        <p class="has-text-centered is-size-7">{{ username }}</p>
+      </a>
     </div>
     <div v-if="showContextMenu" class="mt-2 mb-2 ml-3">
       <button class="button is-success ml-2" @click="inviteToGame(login as string)">
@@ -109,12 +110,7 @@ export default {
       <button class="button is-danger ml-3" @click="block">Block</button>
       <button v-if="operator" class="button is-info ml-3" @click="setAdmin">Set admin</button>
     </div>
-    <div
-      v-else
-      class="column is-flex is-flex-direction-column is-justify-content-center is-flex-wrap-wrap"
-    >
-      <p class="has-text-left is-size-5 break-word">{{ content }}</p>
-    </div>
+    <p v-else class="has-text-left is-size-5 break-word message-content">{{ content }}</p>
   </div>
 </template>
 
@@ -124,11 +120,11 @@ export default {
 }
 
 .break-word {
-  overflow-wrap: break-word;
-  word-wrap: break-all;
+  display: inline-block;
+  word-break: break-word;
 }
 
-#messages {
-  height: 60px;
+.message-content {
+  vertical-align: middle;
 }
 </style>
