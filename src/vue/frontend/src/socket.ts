@@ -1,19 +1,35 @@
+import PongView from './views/PongViews/PongView.vue'
 import { getCookie } from './utils'
 import { io } from 'socket.io-client'
 import { notify } from '@kyvg/vue3-notification'
-import { reactive } from 'vue'
+import { playerStatus } from './store'
+
+import { reactive, type ComponentOptions } from 'vue'
 
 export const state = reactive({
   connected: false,
-  redirected: false,
+   redirected: false,
   Messages: [] as Array<{
     id: number
     data: any
   }>,
   channelName: '' as string,
   idMessage: 0,
-  joined: false
+  joined: false,
+  gameParam: {
+    scorePlayerOne: 0,
+    scorePlayerTwo: 0,
+    status: playerStatus.LOBBY,
+    winner: ''
+  },
+  gameFunctions: {
+    ballMovement: (posX: number, posY: number) => {},
+    someoneMoved: (login: string, posY: number) => {},
+    killCanvas: () => {}
+  }
 })
+
+const PongViewMethods = (PongView as ComponentOptions).methods
 
 export const socket = io('http://localhost:3000', {
   autoConnect: false
@@ -124,6 +140,29 @@ socket.on('error-banned', () => {
     text: 'You are banned from this channel'
   })
   routerInstance.push('/chat')
+})
+
+socket.on('findGame', (playerOneLogin: string, playerTwoLogin: string, gameType: string) => {
+  socket.emit('joinGameRoom')
+  PongViewMethods.init(playerOneLogin, playerTwoLogin, gameType)
+})
+socket.on('ballMovement', (posX: number, posY: number) => {
+  state.gameFunctions.ballMovement(posX, posY)
+})
+socket.on('someoneMoved', (login: string, posY: number) => {
+  state.gameFunctions.someoneMoved(login, posY)
+})
+socket.on('PlayerOneWinPoint', () => {
+  PongViewMethods.incrementPlayerOneScore()
+})
+socket.on('PlayerTwoWinPoint', () => {
+  PongViewMethods.incrementPlayerTwoScore()
+})
+socket.on('PlayerOneWinGame', (login: string) => {
+  PongViewMethods.PlayerOneWinGame(login)
+})
+socket.on('PlayerTwoWinGame', (login: string) => {
+  PongViewMethods.PlayerTwoWinGame(login)
 })
 
 export const socketConnect = () => {

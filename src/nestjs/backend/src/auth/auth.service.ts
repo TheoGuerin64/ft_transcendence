@@ -1,9 +1,8 @@
 import { createCipheriv, createDecipheriv, scrypt } from 'crypto';
-import { firstValueFrom } from 'rxjs';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, firstValueFrom } from 'rxjs';
 import { promisify } from 'util';
 import { TokenResponse } from './auth.types';
 import { User } from '../user/user.entity';
@@ -44,6 +43,10 @@ export class AuthService {
   async register(token: TokenResponse): Promise<User> {
     const data = await this.getData(token.access_token, '/v2/me');
     let user = await this.userService.findOne(data['login']);
+    const newToken = {
+      access_token: token.access_token,
+      refresh_token: token.refresh_token,
+    };
     if (!user) {
       user = await this.userService.create({
         login: data['login'],
@@ -51,6 +54,8 @@ export class AuthService {
         avatar: data['image']['versions']['medium'],
         memberships: [],
         messages: [],
+        ...newToken,
+        matchPlayed: [],
       });
     }
     return user;
