@@ -40,6 +40,7 @@ function fromLocalStorage(key: string, defaultValue: any): any {
 /**
  * Global store
  */
+
 export const useStore = reactive({
   user: fromLocalStorage('user', undefined) as User | null | undefined,
   isConnecting: fromLocalStorage('isConnecting', false),

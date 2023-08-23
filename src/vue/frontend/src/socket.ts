@@ -1,10 +1,20 @@
+import * as THREE from 'three'
 import PongView from './views/PongViews/PongView.vue'
 import { getCookie } from './utils'
 import { io } from 'socket.io-client'
 import { playerStatus } from './store'
 import { reactive, type ComponentOptions } from 'vue'
+
 export const state = reactive({
   connected: false,
+  gameElements: {
+    init: false,
+    scene: new THREE.Scene(),
+    camera: new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000),
+    renderer: new THREE.WebGLRenderer({
+      antialias: true
+    })
+  },
   gameParam: {
     scorePlayerOne: 0,
     scorePlayerTwo: 0,

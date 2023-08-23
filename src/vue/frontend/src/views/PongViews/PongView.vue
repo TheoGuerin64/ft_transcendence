@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useStore, playerStatus } from '../../store'
+import { playerStatus } from '../../store'
 import * as THREE from 'three'
 import { socket, state } from '../../socket'
 import gameView from './GameView.vue'
@@ -9,12 +9,16 @@ import queueView from './QueueView.vue'
 </script>
 
 <script lang="ts">
+const scene = new THREE.Scene()
+const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000)
+const renderer = new THREE.WebGLRenderer({
+  antialias: true
+})
+scene.add(camera)
+camera.position.z = 5
+document.body.appendChild(renderer.domElement)
+
 export default {
-  data() {
-    return {
-      useStore
-    }
-  },
   mounted() {
     this.joinLobby()
     this.connect()
@@ -32,10 +36,9 @@ export default {
      * @param gameType normal or custom game
      */
     init(playerOneLogin: string, playerTwoLogin: string, gameType: string) {
+      renderer.domElement.style.display = 'inline'
       state.gameParam.status = playerStatus.GAME
-      let scene: THREE.Scene
-      let camera: THREE.PerspectiveCamera
-      let renderer: THREE.WebGLRenderer
+
       let idCanvas: number
       let ball: THREE.Mesh
 
@@ -45,17 +48,7 @@ export default {
        * and add elements to the scene
        */
       const setCanvas = () => {
-        scene = new THREE.Scene()
-        camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000)
-        scene.add(camera)
-        camera.position.z = 5
-        const container = document.getElementById('canva')
-        if (container !== null) {
-          renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            canvas: container
-          })
-        }
+        //renderer.domElement.style.display = 'inline'
         document.addEventListener('keyup', this.checkInput)
         document.addEventListener('keydown', this.checkInput)
         window.addEventListener('resize', resizeCanva)
@@ -141,12 +134,7 @@ export default {
        */
       state.gameFunctions.killCanvas = () => {
         cancelAnimationFrame(idCanvas)
-        renderer.dispose()
-        renderer.forceContextLoss()
-        document.getElementById('canva')?.remove()
-        const newCanvas = document.createElement('canvas')
-        newCanvas.id = 'canva'
-        document.body.appendChild(newCanvas)
+        renderer.domElement.style.display = 'none'
       }
 
       /**
@@ -257,6 +245,5 @@ export default {
     <queueView @leftQueue="() => leftQueue()" />
     <gameView />
     <postGameView @joinLobby="() => joinLobby()" />
-    <canvas id="canva"> </canvas>
   </div>
 </template>
