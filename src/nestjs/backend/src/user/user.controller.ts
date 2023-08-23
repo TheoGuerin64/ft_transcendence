@@ -1,8 +1,8 @@
-import { FileInterceptor } from '@nestjs/platform-express';
 import { DeepPartial } from 'typeorm';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/auth-jwt.guard';
-import { User } from './user.entity';
 import { LoginDto, UserDto } from './user.pipe';
+import { User } from './user.entity';
 import { UserService } from './user.service';
 import {
   BadRequestException,
@@ -98,7 +98,8 @@ export class UserController {
     // Upate user if there is something to update
     if (Object.keys(toUpdate).length > 0) {
       const user = await this.userService.findOne(req.user.login);
-      this.userService.update(user, toUpdate);
+      Object.assign(user, toUpdate);
+      await this.userService.save(user);
     }
     return toUpdate;
   }
@@ -113,5 +114,12 @@ export class UserController {
   async getList(): Promise<DeepPartial<User>[]> {
     const users = await this.userService.findAll();
     return users.map((user) => user.public);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('blocked')
+  async getBlocked(@Req() req: any): Promise<string[]> {
+    const user = await this.userService.findOne(req.user.login);
+    return user.blocked;
   }
 }

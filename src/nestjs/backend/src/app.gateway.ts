@@ -1,8 +1,8 @@
+import { AuthService } from './auth/auth.service';
 import { Logger } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
-import { AuthService } from './auth/auth.service';
-import { UserStatus } from './user/user.entity';
 import { UserService } from './user/user.service';
+import { UserStatus } from './user/user.entity';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 
 @WebSocketGateway({ cors: ['http://localhost:8080', 'http://127.0.0.1:8080'] })
@@ -28,7 +28,8 @@ export class AppGateway {
       client.handshake.auth.token,
     );
     if (user) {
-      await this.userService.update(user, { status: UserStatus.ONLINE });
+      user.status = UserStatus.ONLINE;
+      await this.userService.save(user);
     } else {
       this.logger.error("Token doesn't match any user");
       client.disconnect(true);
@@ -42,7 +43,8 @@ export class AppGateway {
     );
 
     if (user) {
-      await this.userService.update(user, { status: UserStatus.OFFLINE });
+      user.status = UserStatus.OFFLINE;
+      await this.userService.save(user);
     }
   }
 }

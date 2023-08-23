@@ -25,6 +25,15 @@ export class UserService {
   }
 
   /**
+   * Save a user in the database
+   * @param user User to save
+   * @returns Saved user
+   */
+  save(user: User): Promise<User> {
+    return this.userModel.save(user);
+  }
+
+  /**
    * Update a user and save it in the database
    * @param user User to update
    * @param userData User data
@@ -44,8 +53,10 @@ export class UserService {
    */
   findOne(login: string): Promise<User> {
     return this.userModel.findOne({
-      where: { login },
-      relations: ['matchPlayed'],
+      relations: ['messages', 'memberships', 'matchPlayed'],
+      where: {
+        login,
+      },
     });
   }
 

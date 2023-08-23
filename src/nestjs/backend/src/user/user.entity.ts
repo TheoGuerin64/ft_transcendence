@@ -1,12 +1,17 @@
+import { Channel } from '../chat/channel.entity';
 import { Exclude, Expose } from 'class-transformer';
+import { Membership } from '../chat/membership.entity';
+import { Message } from 'src/chat/message.entity';
 import { MatchPlayed } from 'src/pong/database/matchPlayed.entity';
 import { UserStats } from '../userStats/userStats.entity';
 import {
   Column,
   DeepPartial,
   Entity,
-  JoinColumn,
   JoinTable,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
   ManyToMany,
   OneToOne,
   PrimaryColumn,
@@ -35,6 +40,15 @@ export class User {
 
   @Column({ type: 'varchar', length: 3000000 })
   avatar: string;
+
+  @Column({ type: 'varchar', array: true, default: '{}' })
+  blocked: string[];
+
+  @OneToMany(() => Membership, (membership) => membership.user)
+  memberships: Membership[];
+
+  @OneToMany(() => Message, (message) => message.user)
+  messages: Message[];
 
   @ManyToMany(() => MatchPlayed, (matchPlayed) => matchPlayed.users, {
     cascade: true,
