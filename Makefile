@@ -8,6 +8,8 @@ down:
 
 re: fclean start
 
+re: stop fclean start
+
 logs:
 	docker compose logs -f
 
@@ -15,6 +17,7 @@ clean: down
 	docker system prune -f --volumes
 
 fclean: down
+	docker system prune -af
 	docker system prune -af --volumes
 
 .PHONY: all start stop re logs clean fclean

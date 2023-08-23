@@ -1,4 +1,6 @@
 import CallBackView from '../views/CallbackView.vue'
+import ChannelView from '../views/ChannelView.vue'
+import ChatView from '../views/ChatView.vue'
 import HomeView from '../views/HomeView.vue'
 import MatchHistoryView from '../views/MatchHistoryViews/MatchHistoryView.vue'
 import PathNotFoundView from '../views/PathNotFoundView.vue'
@@ -35,6 +37,12 @@ const router = createRouter({
       component: CallBackView
     },
     {
+      path: '/chat',
+      name: 'chat',
+      component: ChatView,
+      beforeEnter: isAuthenticatedGuard
+    },
+    {
       path: '/profile',
       name: 'profile',
       component: ProfileView,
@@ -50,6 +58,12 @@ const router = createRouter({
       path: '/profile/public/:login',
       name: 'public-profile',
       component: PublicProfileView,
+      beforeEnter: isAuthenticatedGuard
+    },
+    {
+      path: '/chat/:channelId',
+      name: 'chat-channel',
+      component: ChannelView,
       beforeEnter: isAuthenticatedGuard
     },
     {

@@ -1,3 +1,5 @@
+<script setup lang="ts"></script>
+
 <template>
   <main>
     <div class="mt-3 ml-4">
