@@ -156,7 +156,7 @@ export class ChannelGateway {
     @Req() req: any,
   ): Promise<void> {
     try {
-      if (channelDto.password === '') {
+      if (channelDto.isProtected && channelDto.password === '') {
         client.emit('error', 'Password cannot be empty');
         return;
       }

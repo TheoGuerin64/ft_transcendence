@@ -17,6 +17,7 @@ clean:
 	docker system prune -f --volumes
 
 fclean:
+	docker system prune -af
 	docker system prune -af --volumes
 
 .PHONY: all start stop restart logs clean fclean

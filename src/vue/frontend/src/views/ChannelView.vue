@@ -137,7 +137,8 @@ export default {
   margin-right: 5%;
   margin-left: 5%;
   margin-top: 2%;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-width: auto;
 }
 

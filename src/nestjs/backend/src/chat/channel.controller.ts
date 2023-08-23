@@ -51,17 +51,4 @@ export class ChannelController {
     }
     return 'none';
   }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Post('password/add')
-  // async addPassword(
-  //   @Body() passwordDto: PasswordDto,
-  //   @Req() req: any,
-  // ): Promise<boolean> {
-  //   return await this.channelService.addPassword(
-  //     passwordDto.name,
-  //     passwordDto.password,
-  //     req.user.login,
-  //   );
-  // }
 }
