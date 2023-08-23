@@ -3,12 +3,14 @@ import UserAvatar from './UserAvatar.vue'
 import { socket } from '@/socket'
 import { useStore } from '@/store'
 import axios from 'axios'
+import { onUpdated } from 'vue'
 </script>
 
 <script lang="ts">
 export default {
   name: 'Message',
   props: {
+    id: Number,
     avatar: String,
     login: String,
     username: String,
@@ -77,8 +79,6 @@ export default {
           }
         )
         this.role = response.data
-        console.log('role', this.role)
-        console.log('channelName', this.channelName)
       } catch (error) {
         console.log(error)
       }
@@ -93,11 +93,11 @@ export default {
 </script>
 
 <template>
-  <div id="message" class="box is-small columns mb-2 mt-2 is-flex-grow-1">
+  <div class="box is-small columns mb-2 mt-2 is-flex-grow-1 pt-2 pb-2">
     <div class="column is-narrow is-flex is-flex-direction-column is-justify-content-center">
       <a @contextmenu="handleContextMenu($event)" :href="profile"
-        ><UserAvatar :image="avatar" :size="40" class="round-image" />
-        <p class="has-text-centered is-size-7">{{ username }}</p>
+        ><UserAvatar :image="avatar" :size="40" class="round-image mt-4" />
+        <p class="has-text is-size-7">{{ username }}</p>
       </a>
     </div>
     <div v-if="showContextMenu" class="mt-2 mb-2 ml-3">
@@ -110,7 +110,7 @@ export default {
       <button class="button is-danger ml-3" @click="block">Block</button>
       <button v-if="operator" class="button is-info ml-3" @click="setAdmin">Set admin</button>
     </div>
-    <p v-else class="has-text-left is-size-5 break-word message-content">{{ content }}</p>
+    <p v-else class="has-text-left is-size-5 break-word center-vertically ml-2">{{ content }}</p>
   </div>
 </template>
 
@@ -124,7 +124,8 @@ export default {
   word-break: break-word;
 }
 
-.message-content {
-  vertical-align: middle;
+.center-vertically {
+  display: flex;
+  align-items: center;
 }
 </style>

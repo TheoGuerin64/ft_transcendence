@@ -8,7 +8,7 @@ import { reactive, type ComponentOptions } from 'vue'
 
 export const state = reactive({
   connected: false,
-   redirected: false,
+  redirected: false,
   Messages: [] as Array<{
     id: number
     data: any
@@ -55,7 +55,7 @@ socket.on('message', (msg: string, username: string, avatar: string, login: stri
     data: {
       content: msg,
       user: {
-        username: username,
+        name: username,
         avatar: avatar,
         login: login
       }
@@ -67,9 +67,9 @@ socket.on('user-joined', (username: string, avatar: string, login: string, chann
   state.Messages.push({
     id: state.idMessage++,
     data: {
-      content: username + ' has joined the channel ' + state.channelName,
+      content: username + ' has joined the channel ' + channelName,
       user: {
-        username: username,
+        name: username,
         avatar: avatar,
         login: login
       }
@@ -78,13 +78,13 @@ socket.on('user-joined', (username: string, avatar: string, login: string, chann
   // routerInstance.push('/chat/' + channelName)
 })
 
-socket.on('user-left', (username: string, avatar: string, login: string) => {
+socket.on('user-left', (username: string, avatar: string, login: string, channelName: string) => {
   state.Messages.push({
     id: state.idMessage++,
     data: {
-      content: username + ' has left the channel ' + state.channelName,
+      content: username + ' has left the channel ' + channelName,
       user: {
-        username: username,
+        name: username,
         avatar: avatar,
         login: login
       }
