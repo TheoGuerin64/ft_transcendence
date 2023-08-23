@@ -65,6 +65,8 @@ export default {
       <div class="navbar-start">
         <RouterLink to="/" class="navbar-item">Home</RouterLink>
         <RouterLink to="/chat" class="navbar-item">Chat</RouterLink>
+        <RouterLink to="/Game" class="navbar-item">Game</RouterLink>
+        <RouterLink to="/MatchHistory" class="navbar-item">Match History</RouterLink>
       </div>
       <div class="navbar-end">
         <a v-if="!store.user && !store.isConnecting" class="navbar-item" @click="signIn">Sign In</a>

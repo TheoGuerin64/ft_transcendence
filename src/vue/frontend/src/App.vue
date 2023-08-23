@@ -43,6 +43,16 @@ export default {
     if (this.store.user !== null) {
       socketConnect()
     }
+  },
+  created() {
+    axios
+      .get('http://127.0.0.1:3000/user/me', {
+        withCredentials: true
+      })
+      .then((response) => {
+        this.store.setUser(response.data)
+      })
+      .catch(() => {})
   }
 }
 </script>

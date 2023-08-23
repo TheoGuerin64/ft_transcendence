@@ -2,7 +2,9 @@ import CallBackView from '../views/CallbackView.vue'
 import ChannelView from '../views/ChannelView.vue'
 import ChatView from '../views/ChatView.vue'
 import HomeView from '../views/HomeView.vue'
+import MatchHistoryView from '../views/MatchHistoryViews/MatchHistoryView.vue'
 import PathNotFoundView from '../views/PathNotFoundView.vue'
+import PongView from '../views/PongViews/PongView.vue'
 import ProfileSearchView from '../views/ProfileSearchView.vue'
 import ProfileView from '../views/ProfileView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
@@ -16,6 +18,18 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView
+    },
+    {
+      path: '/Game',
+      name: 'game',
+      component: PongView,
+      beforeEnter: isAuthenticatedGuard
+    },
+    {
+      path: '/MatchHistory',
+      name: 'match history',
+      component: MatchHistoryView,
+      beforeEnter: isAuthenticatedGuard
     },
     {
       path: '/callback',

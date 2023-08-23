@@ -2,12 +2,14 @@ import { DeepPartial, Repository } from 'typeorm';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
+import { UserStatsService } from 'src/userStats/userStats.service';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userModel: Repository<User>,
+    private readonly userStatsService: UserStatsService,
   ) {}
 
   /**
@@ -17,6 +19,7 @@ export class UserService {
    */
   async create(userData: DeepPartial<User>): Promise<User> {
     const user = this.userModel.create(userData);
+    user.stats = await this.userStatsService.init();
     await this.userModel.save(user);
     return user;
   }
@@ -38,7 +41,8 @@ export class UserService {
    */
   async update(user: User, userData: DeepPartial<User>): Promise<User> {
     Object.assign(user, userData);
-    await this.userModel.update(user.login, user);
+    //await this.userModel.update(user.login, user);
+    await this.userModel.save(user);
     return user;
   }
 
@@ -49,10 +53,17 @@ export class UserService {
    */
   findOne(login: string): Promise<User> {
     return this.userModel.findOne({
-      relations: ['messages', 'memberships'],
+      relations: ['messages', 'memberships', 'matchPlayed'],
       where: {
         login,
       },
+    });
+  }
+
+  find(login: string): Promise<User[]> {
+    return this.userModel.find({
+      where: { login },
+      relations: ['matchPlayed'],
     });
   }
 
