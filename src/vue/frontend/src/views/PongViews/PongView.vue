@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { playerStatus } from '../../store'
+import { playerStatus, gameElements } from '../../store'
 import * as THREE from 'three'
 import { socket, state } from '../../socket'
 import gameView from './GameView.vue'
@@ -9,15 +9,6 @@ import queueView from './QueueView.vue'
 </script>
 
 <script lang="ts">
-const scene = new THREE.Scene()
-const camera = new THREE.PerspectiveCamera(90, window.innerWidth / window.innerHeight, 0.1, 1000)
-const renderer = new THREE.WebGLRenderer({
-  antialias: true
-})
-scene.add(camera)
-camera.position.z = 5
-document.body.appendChild(renderer.domElement)
-
 export default {
   mounted() {
     this.joinLobby()
@@ -36,7 +27,17 @@ export default {
      * @param gameType normal or custom game
      */
     init(playerOneLogin: string, playerTwoLogin: string, gameType: string) {
-      renderer.domElement.style.display = 'inline'
+      if (gameElements.isInit === false) {
+        gameElements.init()
+        if (gameElements.renderer !== null) {
+          document.body.appendChild(gameElements.renderer.domElement)
+          gameElements.renderer.domElement.id = 'canva'
+        }
+      }
+      if (gameElements.renderer === null) {
+        return
+      }
+      gameElements.renderer.domElement.style.display = 'block'
       state.gameParam.status = playerStatus.GAME
 
       let idCanvas: number
@@ -62,11 +63,14 @@ export default {
        * and cube if it's a custom game
        */
       const addElements = () => {
+        if (gameElements.scene === null) {
+          return
+        }
         const backgroundGeometry = new THREE.BoxGeometry(4, 4, 0)
         const backgroundMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff })
         const background = new THREE.Mesh(backgroundGeometry, backgroundMaterial)
         background.position.set(0, 0, 0)
-        scene.add(background)
+        gameElements.scene.add(background)
 
         const geometry = new THREE.BoxGeometry(0.15, 0.15, 0)
         const material = new THREE.MeshBasicMaterial({ color: 0xff0000 })
@@ -79,9 +83,9 @@ export default {
           const centralCube = new THREE.Mesh(centralCubeGeometry, centralCubeMaterial)
           centralCube.position.set(0, 0, 0)
           ball.position.y = 1.5
-          scene.add(centralCube)
+          gameElements.scene.add(centralCube)
         }
-        scene.add(ball)
+        gameElements.scene.add(ball)
 
         addNewPlayer(playerOneLogin, -2 - 0.1 / 2)
         addNewPlayer(playerTwoLogin, 2 + 0.1 / 2)
@@ -94,10 +98,13 @@ export default {
        * @param posX position on the X axe
        */
       const addNewPlayer = (login: string, posX: number) => {
+        if (gameElements.scene === null) {
+          return
+        }
         const geometry = new THREE.BoxGeometry(0.1, 0.5, 0)
         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 })
         const newPlayer = new THREE.Mesh(geometry, material)
-        scene.add(newPlayer)
+        gameElements.scene.add(newPlayer)
         newPlayer.uuid = login
         newPlayer.position.set(posX, 0, 0)
       }
@@ -106,8 +113,15 @@ export default {
        * start the animation loop
        */
       const animate = () => {
+        if (
+          gameElements.renderer === null ||
+          gameElements.scene === null ||
+          gameElements.camera === null
+        ) {
+          return
+        }
         idCanvas = requestAnimationFrame(animate)
-        renderer.render(scene, camera)
+        gameElements.renderer.render(gameElements.scene, gameElements.camera)
       }
 
       /**
@@ -121,7 +135,10 @@ export default {
        * update player position
        */
       state.gameFunctions.someoneMoved = (login: string, posY: number) => {
-        const arrayElements: THREE.Mesh[] = scene.children
+        if (gameElements.scene === null) {
+          return
+        }
+        const arrayElements: THREE.Mesh[] = gameElements.scene.children
         const elementToMove = arrayElements.find((element) => element.uuid === login)
         if (elementToMove === undefined) {
           return
@@ -133,17 +150,23 @@ export default {
        * kill the canvas and stop everything
        */
       state.gameFunctions.killCanvas = () => {
+        if (gameElements.renderer === null) {
+          return
+        }
         cancelAnimationFrame(idCanvas)
-        renderer.domElement.style.display = 'none'
+        gameElements.renderer.domElement.style.display = 'none'
       }
 
       /**
        * resize the canvas so it's responsive
        */
       const resizeCanva = () => {
-        const canvas = renderer.domElement
+        if (gameElements.renderer === null || gameElements.camera === null) {
+          return
+        }
+        const canvas = gameElements.renderer.domElement
         const pixelRatio = window.devicePixelRatio
-        renderer.setPixelRatio(pixelRatio)
+        gameElements.renderer.setPixelRatio(pixelRatio)
 
         if (window.innerWidth > window.innerHeight) {
           canvas.style.width = 'auto'
@@ -156,9 +179,9 @@ export default {
         }
         let width = canvas.clientWidth * pixelRatio
         let height = canvas.clientHeight * pixelRatio
-        camera.aspect = width / height
-        camera.updateProjectionMatrix()
-        renderer.setSize(width, height, false)
+        gameElements.camera.aspect = width / height
+        gameElements.camera.updateProjectionMatrix()
+        gameElements.renderer.setSize(width, height, false)
       }
       setCanvas()
       resizeCanva()

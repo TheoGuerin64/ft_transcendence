@@ -43,8 +43,8 @@ body {
 
 /*PongViews */
 #canva {
+  padding: 0;
   margin: auto;
-  display: block;
 }
 
 .lds-dual-ring {
