@@ -92,7 +92,11 @@ export default {
           <button class="button is-small is-info" @click="kick(user.login)">Kick</button>
           <button class="button is-small is-warning" @click="mute(user.login)">Mute</button>
           <button class="button is-small is-danger" @click="ban(user.login)">Ban</button>
-          <button class="button is-small is-success" @click="setAdmin(user.login)">
+          <button
+            v-if="role === 'owner'"
+            class="button is-small is-success"
+            @click="setAdmin(user.login)"
+          >
             Set admin
           </button>
         </div>
