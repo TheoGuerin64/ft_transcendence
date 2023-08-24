@@ -1,4 +1,5 @@
 import { ballBaseSpeed } from '../globals';
+import { Vector2 } from 'three';
 
 export class Ball {
   private speed: number;
@@ -9,8 +10,12 @@ export class Ball {
 
   constructor(gameType: string) {
     this.speed = ballBaseSpeed;
-    this.directionX = Math.random() * (1 - -1) + -1;
-    this.directionY = Math.random() * (1 - -1) + -1;
+    this.directionX = Math.random() * 1 * (Math.round(Math.random()) ? 1 : -1);
+    this.directionY = Math.random() * 1 * (Math.round(Math.random()) ? 1 : -1);
+    let vector = new Vector2(this.directionX, this.directionY);
+    vector = vector.normalize();
+    this.directionX = vector.x;
+    this.directionY = vector.y;
     this.positionX = 0;
     if (gameType === 'normal') {
       this.positionY = 0;
