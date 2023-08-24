@@ -22,6 +22,9 @@ export class Membership {
   @Column()
   isMuted: boolean;
 
+  @Column()
+  expireDate: Date;
+
   @ManyToOne(() => User, (user) => user.memberships)
   @JoinColumn()
   user: User;

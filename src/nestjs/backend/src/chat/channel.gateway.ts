@@ -225,11 +225,7 @@ export class ChannelGateway {
         client.emit('error', 'You are not the owner of this channel');
         return;
       }
-      await this.channelService.removeChannel(
-        channelDto.name,
-        client,
-        this.server,
-      );
+      await this.channelService.removeChannel(channelDto.name, this.server);
       this.server.emit('channel-removed', channelDto.name);
     } catch (error) {
       console.log(error);
@@ -298,6 +294,7 @@ export class ChannelGateway {
         ))
       ) {
         client.emit('success', 'User blocked');
+        // client.emit('reload');
       }
     } catch (error) {
       console.log(error);

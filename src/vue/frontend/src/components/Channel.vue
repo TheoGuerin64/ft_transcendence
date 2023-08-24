@@ -97,8 +97,8 @@ export default {
       id="protectedButton"
       @click="channel.promptPassword = !channel.promptPassword"
     >
-      Join
-      <!-- <FontAwesomeIcon :icon="['fas', 'circle-arrow-right']" size="xl" /> -->
+      <!-- Join -->
+      <FontAwesomeIcon :icon="['fas', 'fingerprint']" size="xl" />
     </button>
     <div id="passwordInput">
       <form @submit="joinChannel(channel)">

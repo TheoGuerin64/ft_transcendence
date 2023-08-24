@@ -43,4 +43,11 @@ export class MembershipService {
       where: { channel: { name: channelName }, user: { login } },
     });
   }
+
+  findAll(channelName: string): Promise<Membership[]> {
+    return this.membershipModel.find({
+      relations: ['channel', 'user'],
+      where: { channel: { name: channelName } },
+    });
+  }
 }

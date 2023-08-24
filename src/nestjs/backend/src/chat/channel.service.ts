@@ -59,8 +59,12 @@ export class ChannelService {
     if (!membership) {
       return true;
     } else if (membership.isMuted == true) {
-      client.emit('error', 'You are muted from this channel');
-      return false;
+      if (membership.expireDate.getTime() < new Date().getTime()) {
+        membership.isMuted = false;
+      } else {
+        client.emit('error', 'You are muted from this channel');
+        return false;
+      }
     } else if (membership.isBanned == true) {
       client.emit('error', 'You are banned from this channel');
       return false;
@@ -114,6 +118,7 @@ export class ChannelService {
       isMuted: false,
       user: user,
       channel: channel,
+      expireDate: new Date(),
     });
     if (!user.memberships) {
       user.memberships = [];
@@ -167,7 +172,7 @@ export class ChannelService {
           return false;
         }
       }
-      await this.removeChannel(channel.name, client, server);
+      await this.removeChannel(channel.name, server);
       client.emit('success', 'Channel removed');
     } else {
       await this.membershipService.remove(membership);
@@ -196,16 +201,22 @@ export class ChannelService {
       isPublic: channel.isPublic,
       password: channel.password,
     });
-    await this.save(channel);
-    await this.addMembership(channel.name, login, 'owner', client);
+    await this.save(newChannel);
+    await this.addMembership(
+      {
+        name: newChannel.name,
+        isProtected: newChannel.isProtected,
+        isPublic: newChannel.isPublic,
+        password: newChannel.password,
+      },
+      login,
+      'owner',
+      client,
+    );
     return false;
   }
 
-  async removeChannel(
-    channelName: string,
-    client: any,
-    server: any,
-  ): Promise<void> {
+  async removeChannel(channelName: string, server: any): Promise<void> {
     const users = (await this.userService.findAll()) as User[];
     for (let i = 0; i < users.length; i++) {
       const membership = await this.membershipService.findOne(
@@ -295,11 +306,22 @@ export class ChannelService {
       client.emit('error', 'You cannot block yourself');
       return true;
     }
+    if (owner.blocked.includes(membershipDto.login)) {
+      client.emit('error', 'User already blocked');
+      return true;
+    }
     owner.blocked.push(membershipDto.login);
     this.userService.save(owner);
     return false;
   }
 
+  /**
+   * Unmute a user for a duration of 30 seconds (0.5 minutes)
+   * @param membershipDto
+   * @param login
+   * @param client
+   * @returns true if the user is muted, false otherwise
+   */
   async muteUser(
     membershipDto: MembershipDto,
     login: string,
@@ -326,7 +348,9 @@ export class ChannelService {
       return true;
     }
     userToMute.isMuted = true;
+    userToMute.expireDate = new Date(new Date().getTime() + 0.5 * 60000);
     await this.membershipService.save(userToMute);
+    return false;
   }
 
   async setAdmin(membershipDto: MembershipDto, login: string, client: any) {
