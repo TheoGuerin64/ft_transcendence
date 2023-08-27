@@ -45,7 +45,6 @@ export default {
     },
     createDM(): void {
       socket.emit('create-dm', this.login)
-      // this.$router.push('/chat/' + this.store.user!.login + '-' + this.login)
     }
   }
 }

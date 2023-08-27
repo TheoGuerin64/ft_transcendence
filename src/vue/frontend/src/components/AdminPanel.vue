@@ -124,33 +124,3 @@ export default {
   float: right;
 }
 </style>
-<!-- 
-<template>
-  <div class="admin-panel">
-    <nav class="panel column is-10" id="channelPanel">
-      <p class="panel-heading">Users</p>
-      <div v-for="user in Users" :key="user.id" class="users">
-        <a class="panel-block">
-          <span class="panel-icon">
-            <UserAvatar :image="user.avatar" :size="40" class="round-image mt-4" />
-            <p class="has-text is-size-7">{{ user.name }}</p>
-          </span>
-          <button class="button is-small is-info ml-3" @click="kick">Kick</button>
-          <button class="button is-small is-warning ml-3" @click="mute">Mute</button>
-          <button class="button is-small is-danger ml-3" @click="ban">Ban</button>
-          <button class="button is-small is-success ml-3" @click="setAdmin">Set admin</button>
-        </a>
-      </div>
-    </nav>
-  </div>
-</template>
-
-<style>
-.admin-panel {
-  width: 50%;
-}
-
-.users {
-  display: flex;
-}
-</style> -->
