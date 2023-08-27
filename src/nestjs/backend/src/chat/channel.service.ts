@@ -1,15 +1,15 @@
-import { Channel } from './channel.entity';
-import { ChannelDto, MembershipDto } from './channel.pipe';
-import { DeepPartial, Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MembershipService } from './membership.service';
-import { MessageService } from './message.service';
-import { Server } from 'socket.io';
-import { Socket } from 'dgram';
-import { use } from 'passport';
-import { User } from 'src/user/user.entity';
-import { UserService } from '../user/user.service';
+import { Channel } from './channel.entity'
+import { ChannelDto, MembershipDto } from './channel.pipe'
+import { DeepPartial, Repository } from 'typeorm'
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { MembershipService } from './membership.service'
+import { MessageService } from './message.service'
+import { Server } from 'socket.io'
+import { Socket } from 'dgram'
+import { use } from 'passport'
+import { User } from 'src/user/user.entity'
+import { UserService } from '../user/user.service'
 
 @Injectable()
 export class ChannelService {
@@ -112,7 +112,7 @@ export class ChannelService {
       return true;
     }
 
-    const membership = this.membershipService.create({
+    const membership = await this.membershipService.create({
       role: role,
       isBanned: false,
       isMuted: false,
@@ -199,6 +199,7 @@ export class ChannelService {
       memberships: [],
       isProtected: channel.isProtected,
       isPublic: channel.isPublic,
+      isDM: false,
       password: channel.password,
     });
     await this.save(newChannel);
@@ -214,6 +215,60 @@ export class ChannelService {
       client,
     );
     return false;
+  }
+
+  /**
+   * Create a DM between two users
+   * @param target Login of the user to create the DM with
+   * @param request Login of the user who requested the DM
+   * @param client Socket of the user who requested the DM
+   * @returns false if the DM already exists, true otherwise
+   */
+  async createDM(
+    target: string,
+    request: string,
+    client: any,
+  ): Promise<boolean> {
+    const channelName = request + '-' + target;
+    const channelNameRev = target + '-' + request;
+    if (await this.findOne(channelName)) {
+      client.emit('error', 'This DM already exists');
+      client.emit('redirect', channelName);
+      return false;
+    } else if (await this.findOne(channelNameRev)) {
+      client.emit('error', 'This DM already exists');
+      client.emit('redirect', channelNameRev);
+      return false;
+    }
+    const requestUser = await this.userService.findOne(request);
+    const targetUser = await this.userService.findOne(target);
+    const newChannel = this.create({
+      name: channelName,
+      messages: [],
+      memberships: [],
+      isProtected: false,
+      isPublic: false,
+      isDM: true,
+      password: '',
+    });
+    await this.save(newChannel);
+    await this.membershipService.create({
+      role: 'member',
+      isBanned: false,
+      isMuted: false,
+      user: requestUser,
+      channel: newChannel,
+      expireDate: new Date(),
+    });
+    await this.membershipService.create({
+      role: 'member',
+      isBanned: false,
+      isMuted: false,
+      user: targetUser,
+      channel: newChannel,
+      expireDate: new Date(),
+    });
+    return true;
   }
 
   async removeChannel(channelName: string, server: any): Promise<void> {
@@ -237,17 +292,17 @@ export class ChannelService {
     }
   }
 
-  async kickUser(membershipDto: MembershipDto, login: string, client: any) {
+  async kickUser(member: MembershipDto, login: string, client: any) {
     const userToKick = await this.membershipService.findOne(
-      membershipDto.channelName,
-      membershipDto.login,
+      member.channelName,
+      member.login,
     );
     if (!userToKick) {
       client.emit('error', 'User is not part of the channel');
       return false;
     }
     const owner = await this.membershipService.findOne(
-      membershipDto.channelName,
+      member.channelName,
       login,
     );
     if (userToKick.role === 'owner') {
@@ -258,7 +313,7 @@ export class ChannelService {
       client.emit('error', 'You dont have the role to kick this user');
       return false;
     }
-    client.leave(membershipDto.channelName);
+    client.leave(member.channelName);
     await this.membershipService.remove(userToKick);
     return true;
   }
@@ -316,7 +371,7 @@ export class ChannelService {
   }
 
   /**
-   * Unmute a user for a duration of 30 seconds (0.5 minutes)
+   * Mute a user for a duration of 30 seconds (0.5 minutes)
    * @param membershipDto
    * @param login
    * @param client

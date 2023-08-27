@@ -42,6 +42,10 @@ export default {
       }
       socket.emit('block-user', data)
       this.$emit('block-user', this.login)
+    },
+    createDM(): void {
+      socket.emit('create-dm', this.login)
+      // this.$router.push('/chat/' + this.store.user!.login + '-' + this.login)
     }
   }
 }
@@ -55,11 +59,12 @@ export default {
         <p class="has-text is-size-7">{{ username }}</p>
       </a>
     </div>
-    <div v-if="showContextMenu" class="mt-2 mb-2 ml-3">
+    <div v-if="showContextMenu" class="mt-2 mb-2 ml-3 center-vertically">
       <button class="button is-success ml-2" @click="inviteToGame(login as string)">
         Invite to game
       </button>
       <button class="button is-danger ml-3" @click="block">Block</button>
+      <button class="button is-info ml-3" @click="createDM">New DM</button>
     </div>
     <p v-else class="has-text-left is-size-5 break-word center-vertically ml-2">{{ content }}</p>
   </div>

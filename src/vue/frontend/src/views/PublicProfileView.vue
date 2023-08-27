@@ -3,6 +3,9 @@ import axios from 'axios'
 import { useStore, type UserPublic, UserStatus } from '../store'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import UserAvatar from '@/components/UserAvatar.vue'
+import { seededRandom } from 'three/src/math/MathUtils.js'
+import { setRouterInstance } from '@/socket'
+import { socket } from '@/socket'
 </script>
 
 <script lang="ts">
@@ -19,6 +22,7 @@ export default {
   },
 
   async mounted() {
+    setRouterInstance(this.$router)
     // Get user informations
     let response
     try {
@@ -123,6 +127,14 @@ export default {
         }
       }
       this.isFriend = false
+    },
+
+    /**
+     * Send DM to user
+     */
+    createDM(): void {
+      socket.emit('create-dm', this.publicUser!.login)
+      // this.$router.push('/chat/' + this.store.user!.login + '-' + this.publicUser!.login)
     }
   }
 }
@@ -146,6 +158,7 @@ export default {
         <button class="button is-danger is-fullwidth mt-1" v-else @click="removeFriend">
           Remove friend
         </button>
+        <button class="button is-info is-fullwidth mt-2" @click="createDM">New DM</button>
       </div>
     </div>
   </main>

@@ -25,7 +25,30 @@ export class ChannelController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async channelsCreated(): Promise<Channel[]> {
-    return await this.channelService.findAll();
+    const channels = await this.channelService.findAll();
+    let channelsNoDM = [];
+    for (let i = 0; i < channels.length; i++) {
+      if (channels[i].isDM === false) {
+        channelsNoDM.push(channels[i]);
+      }
+    }
+    return channelsNoDM;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('dm')
+  async channelsCreatedDM(@Req() req: any): Promise<Channel[]> {
+    const channels = await this.channelService.findAll();
+    let channelsDM = [];
+    for (let i = 0; i < channels.length; i++) {
+      if (
+        channels[i].isDM === true &&
+        channels[i].name.includes(req.user.login)
+      ) {
+        channelsDM.push(channels[i]);
+      }
+    }
+    return channelsDM;
   }
 
   @UseGuards(JwtAuthGuard)

@@ -8,7 +8,6 @@ import { reactive, type ComponentOptions } from 'vue'
 
 export const state = reactive({
   connected: false,
-  redirected: false,
   Messages: [] as Array<{
     id: number
     data: any
@@ -119,6 +118,14 @@ socket.on('channel-removed', (channelName: string) => {
   })
 })
 
+socket.on('dm-created', (channelName: string) => {
+  routerInstance.push('/chat/' + channelName)
+  notify({
+    type: 'success',
+    text: 'DM created'
+  })
+})
+
 socket.on('success', (msg: string) => {
   notify({
     type: 'success',
@@ -133,6 +140,10 @@ socket.on('error', (msg: string) => {
   })
   // routerInstance.push('/chat')
 })
+
+socket.on('redirect', (channelName: string) => {
+  routerInstance.push('/chat/' + channelName)
+}) 
 
 socket.on('error-banned', () => {
   notify({
