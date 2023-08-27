@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useStore } from '../store'
 import { socket, state } from '@/socket'
 import axios from 'axios'
-// import { setRouterInstance } from '@/socket'
 </script>
 
 <script lang="ts">
@@ -65,7 +64,6 @@ export default {
     }
   },
   async mounted() {
-    // setRouterInstance(this.$router)
     await this.getChannels()
     await this.getChannelsDM()
   }

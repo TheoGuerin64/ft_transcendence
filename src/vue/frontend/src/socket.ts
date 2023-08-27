@@ -74,7 +74,6 @@ socket.on('user-joined', (username: string, avatar: string, login: string, chann
       }
     }
   })
-  // routerInstance.push('/chat/' + channelName)
 })
 
 socket.on('user-left', (username: string, avatar: string, login: string, channelName: string) => {
@@ -89,7 +88,6 @@ socket.on('user-left', (username: string, avatar: string, login: string, channel
       }
     }
   })
-  // routerInstance.push('/chat')
 })
 
 socket.on('reload', () => {
@@ -138,12 +136,11 @@ socket.on('error', (msg: string) => {
     type: 'error',
     text: msg
   })
-  // routerInstance.push('/chat')
 })
 
 socket.on('redirect', (channelName: string) => {
   routerInstance.push('/chat/' + channelName)
-}) 
+})
 
 socket.on('error-banned', () => {
   notify({
