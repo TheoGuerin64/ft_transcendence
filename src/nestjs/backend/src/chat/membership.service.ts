@@ -1,8 +1,8 @@
-import { async } from 'rxjs';
-import { DeepPartial, Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Membership } from './membership.entity';
+import { async } from 'rxjs'
+import { DeepPartial, Repository } from 'typeorm'
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { Membership } from './membership.entity'
 
 @Injectable()
 export class MembershipService {
@@ -11,9 +11,9 @@ export class MembershipService {
     private readonly membershipModel: Repository<Membership>,
   ) {}
 
-  create(membershipData: DeepPartial<Membership>): Membership {
+  async create(membershipData: DeepPartial<Membership>): Promise<Membership> {
     const membership = this.membershipModel.create(membershipData);
-    this.membershipModel.save(membership);
+    await this.membershipModel.save(membership);
     return membership;
   }
 
