@@ -8,10 +8,12 @@ export default {
     return {}
   },
   props: {
-    userStats: { type: Object as () => statistics }
+    userStats: {
+      type: Object as () => statistics
+    }
   },
 
-  mounted() {
+  updated() {
     this.updatePiechart()
   },
   methods: {
