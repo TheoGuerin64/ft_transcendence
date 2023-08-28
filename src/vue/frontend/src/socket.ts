@@ -142,10 +142,6 @@ socket.on('error', (msg: string) => {
   })
 })
 
-socket.on('redirect', (channelName: string) => {
-  routerInstance.push('/chat/' + channelName)
-})
-
 socket.on('error-banned', () => {
   notify({
     type: 'error',

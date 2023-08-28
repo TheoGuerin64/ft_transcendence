@@ -85,7 +85,7 @@ export class ChannelGateway {
         req.user.login,
       );
       if (membership) {
-        client.emit('redirect', channelDto.name);
+        client.emit('redirect', '/chat/' + channelDto.name);
         return;
       }
       if (!channelDto.isProtected && !channelDto.isPublic) {
@@ -111,7 +111,7 @@ export class ChannelGateway {
             channelDto.name,
           );
         client.emit('success', 'You joined the channel');
-        client.emit('redirect', channelDto.name);
+        client.emit('redirect', '/chat/' + channelDto.name);
       }
     } catch (error) {
       console.log(error);
