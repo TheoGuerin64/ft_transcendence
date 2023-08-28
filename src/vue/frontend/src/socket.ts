@@ -1,9 +1,9 @@
 import PongView from './views/PongViews/PongView.vue'
+import router from './router'
 import { getCookie } from './utils'
 import { io } from 'socket.io-client'
 import { notify } from '@kyvg/vue3-notification'
 import { playerStatus } from './store'
-
 import { reactive, type ComponentOptions } from 'vue'
 
 export const state = reactive({
@@ -150,8 +150,9 @@ socket.on('error-banned', () => {
   routerInstance.push('/chat')
 })
 
-socket.on('findGame', (playerOneLogin: string, playerTwoLogin: string, gameType: string) => {
+socket.on('findGame', async (playerOneLogin: string, playerTwoLogin: string, gameType: string) => {
   socket.emit('joinGameRoom')
+  await router.push('/game')
   PongViewMethods.init(playerOneLogin, playerTwoLogin, gameType)
 })
 socket.on('ballMovement', (posX: number, posY: number) => {
