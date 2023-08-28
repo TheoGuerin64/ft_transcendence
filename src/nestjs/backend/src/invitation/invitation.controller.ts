@@ -47,24 +47,26 @@ export class InvitationController {
       throw new BadRequestException('Invitation already sent');
     }
 
-    const channel = await this.channelService.findOne(
-      sendInvitationDto.channel,
-    );
-    if (channel === null) {
-      throw new BadRequestException('Channel does not exist');
-    }
-    if (channel.isProtected || channel.isPublic) {
-      throw new BadRequestException('Channel is not private');
-    }
+    if (sendInvitationDto.channel !== null) {
+      const channel = await this.channelService.findOne(
+        sendInvitationDto.channel,
+      );
+      if (channel === null) {
+        throw new BadRequestException('Channel does not exist');
+      }
+      if (channel.isProtected || channel.isPublic) {
+        throw new BadRequestException('Channel is not private');
+      }
 
-    const membership = await this.membershipService.findOne(
-      sendInvitationDto.channel,
-      req.user.login,
-    );
-    if (membership === null) {
-      throw new BadRequestException('You are not a member of this channel');
-    } else if (membership.role !== 'owner') {
-      throw new BadRequestException('You are not the owner of this channel');
+      const membership = await this.membershipService.findOne(
+        sendInvitationDto.channel,
+        req.user.login,
+      );
+      if (membership === null) {
+        throw new BadRequestException('You are not a member of this channel');
+      } else if (membership.role !== 'owner') {
+        throw new BadRequestException('You are not the owner of this channel');
+      }
     }
 
     await this.invitationService.sendInvitation({
