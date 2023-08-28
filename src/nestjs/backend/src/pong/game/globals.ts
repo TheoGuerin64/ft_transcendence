@@ -4,7 +4,7 @@ export const playerWidth = 0.1;
 
 export const ballRadius = 0.15;
 export const ballBaseSpeed = 0.03;
-export const IncreaseBallSpeed = 0.0005;
+export const IncreaseBallSpeed = 0.005;
 
 export const mapLength = 2;
 export const collisionPlayerMapBorder = mapLength - playerHeight / 2;
