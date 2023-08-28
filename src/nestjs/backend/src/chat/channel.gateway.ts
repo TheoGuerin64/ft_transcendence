@@ -1,10 +1,10 @@
-import { async } from 'rxjs';
-import { ChannelService } from './channel.service';
-import { JwtAuthGuard } from '../auth/auth-jwt.guard';
-import { MembershipService } from './membership.service';
-import { Server, Socket } from 'socket.io';
-import { UserService } from 'src/user/user.service';
-import { validate } from 'class-validator';
+import { async } from 'rxjs'
+import { ChannelService } from './channel.service'
+import { JwtAuthGuard } from '../auth/auth-jwt.guard'
+import { MembershipService } from './membership.service'
+import { Server, Socket } from 'socket.io'
+import { UserService } from 'src/user/user.service'
+import { validate } from 'class-validator'
 import {
   ChannelDto,
   MembershipDto,
@@ -183,6 +183,22 @@ export class ChannelGateway {
   }
 
   @UseGuards(JwtAuthGuard)
+  @SubscribeMessage('create-dm')
+  async createDm(
+    @MessageBody() target: string,
+    @ConnectedSocket() client: Socket,
+    @Req() req: any,
+  ): Promise<void> {
+    try {
+      if (await this.channelService.createDM(target, req.user.login, client)) {
+        client.emit('dm-created', req.user.login + '-' + target);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  @UseGuards(JwtAuthGuard)
   @SubscribeMessage('reconnect')
   async reconnect(
     @MessageBody() channelDto: ChannelDto,
@@ -225,11 +241,7 @@ export class ChannelGateway {
         client.emit('error', 'You are not the owner of this channel');
         return;
       }
-      await this.channelService.removeChannel(
-        channelDto.name,
-        client,
-        this.server,
-      );
+      await this.channelService.removeChannel(channelDto.name, this.server);
       this.server.emit('channel-removed', channelDto.name);
     } catch (error) {
       console.log(error);

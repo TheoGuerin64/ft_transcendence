@@ -5,6 +5,7 @@ import { Membership } from './membership.entity';
 import { MembershipService } from './membership.service';
 import { Message } from './message.entity';
 import { PasswordDto } from './channel.pipe';
+import { User } from 'src/user/user.entity';
 import {
   Body,
   Controller,
@@ -24,7 +25,30 @@ export class ChannelController {
   @UseGuards(JwtAuthGuard)
   @Get()
   async channelsCreated(): Promise<Channel[]> {
-    return await this.channelService.findAll();
+    const channels = await this.channelService.findAll();
+    let channelsNoDM = [];
+    for (let i = 0; i < channels.length; i++) {
+      if (channels[i].isDM === false) {
+        channelsNoDM.push(channels[i]);
+      }
+    }
+    return channelsNoDM;
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('dm')
+  async channelsCreatedDM(@Req() req: any): Promise<Channel[]> {
+    const channels = await this.channelService.findAll();
+    let channelsDM = [];
+    for (let i = 0; i < channels.length; i++) {
+      if (
+        channels[i].isDM === true &&
+        channels[i].name.includes(req.user.login)
+      ) {
+        channelsDM.push(channels[i]);
+      }
+    }
+    return channelsDM;
   }
 
   @UseGuards(JwtAuthGuard)
@@ -50,5 +74,13 @@ export class ChannelController {
       return membership.role;
     }
     return 'none';
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('members/:name')
+  async getMembers(@Param('name') name: string): Promise<User[]> {
+    const memberships = await this.membershipService.findAll(name);
+    const users = memberships.map((membership) => membership.user);
+    return users;
   }
 }
