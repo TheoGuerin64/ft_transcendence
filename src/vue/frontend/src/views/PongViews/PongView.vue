@@ -163,7 +163,7 @@ export default {
         if (gameElements.scene === null) {
           return
         }
-        const arrayElements: THREE.Mesh[] = gameElements.scene.children
+        const arrayElements: THREE.Mesh[] = gameElements.scene.children as THREE.Mesh[]
         const elementToMove = arrayElements.find((element) => element.uuid === login)
         if (elementToMove === undefined) {
           return
@@ -288,7 +288,7 @@ export default {
 </script>
 
 <template>
-  <h1 class="title is-1 has-text-centered">Game</h1>
+  <h1 class="title is-1 has-text-centered mt-4">Game</h1>
   <div class="has-text-centered">
     <lobbyView @joinQueue="(queueType) => joinQueue(queueType)" />
     <queueView @leftQueue="() => leftQueue()" />
