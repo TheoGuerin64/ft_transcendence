@@ -99,8 +99,6 @@ socket.on('reset', () => {
 })
 
 socket.on('channel-created', async (channelName: string) => {
-  location.reload()
-  routerInstance.push('/chat')
   notify({
     type: 'success',
     text: 'Channel ' + channelName + ' created'
@@ -108,8 +106,6 @@ socket.on('channel-created', async (channelName: string) => {
 })
 
 socket.on('channel-removed', (channelName: string) => {
-  location.reload()
-  routerInstance.push('/chat')
   notify({
     type: 'success',
     text: 'Channel ' + channelName + ' removed'
