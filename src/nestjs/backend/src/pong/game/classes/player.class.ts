@@ -1,5 +1,6 @@
 export class Player {
   private readonly login: string;
+  private readonly username: string;
   private readonly socketID: string;
   private posX: number;
   private posY: number;
@@ -7,8 +8,9 @@ export class Player {
   private lastKeyType: string[];
   private intervalID: NodeJS.Timer[];
 
-  constructor(login: string, socketID: string) {
+  constructor(login: string, username: string, socketID: string) {
     this.login = login;
+    this.username = username;
     this.socketID = socketID;
     this.posX = 0;
     this.posY = 0;
@@ -19,6 +21,9 @@ export class Player {
 
   getLogin(): string {
     return this.login;
+  }
+  getUsername(): string {
+    return this.username;
   }
   getSocketID(): string {
     return this.socketID;
