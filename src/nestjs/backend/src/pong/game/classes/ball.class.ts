@@ -16,6 +16,8 @@ export class Ball {
     vector = vector.normalize();
     this.directionX = vector.x;
     this.directionY = vector.y;
+    this.directionX = 1;
+    this.directionY = 0;
     this.positionX = 0;
     if (gameType === 'normal') {
       this.positionY = 0;
