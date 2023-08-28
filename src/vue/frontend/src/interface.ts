@@ -1,5 +1,6 @@
 export interface User {
   login: string
+  username: string
   avatar: string
 }
 export interface Match {

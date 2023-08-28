@@ -4,6 +4,7 @@ import { PlayerService } from './services/player.service';
 import { PongService } from './services/pong.service';
 import { Req, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import { UserService } from 'src/user/user.service';
 
 import {
   ConnectedSocket,
@@ -21,12 +22,14 @@ export class PongGateway {
     private readonly playerService: PlayerService,
     private readonly pongService: PongService,
     private readonly gameService: GameService,
+    private readonly userService: UserService,
   ) {}
 
   @UseGuards(JwtAuthGuard)
   @SubscribeMessage('connectGame')
-  connect(@ConnectedSocket() socket: Socket, @Req() req: any) {
-    this.playerService.connectGame(socket, req.user.login);
+  async connect(@ConnectedSocket() socket: Socket, @Req() req: any) {
+    const user = await this.userService.findOne(req.user.login);
+    this.playerService.connectGame(socket, user.login, user.name);
   }
 
   @UseGuards(JwtAuthGuard)
