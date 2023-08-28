@@ -81,4 +81,12 @@ export class PongGateway {
   disconnecting(@ConnectedSocket() socket: Socket) {
     this.pongService.disconnectPlayer(this.server, socket);
   }
+
+  invitationGame(
+    userOne: { login: string; username: string; socketID: string },
+    userTwo: { login: string; username: string; socketID: string },
+    gameType: string,
+  ) {
+    this.pongService.invitationGame(this.server, userOne, userTwo, gameType);
+  }
 }

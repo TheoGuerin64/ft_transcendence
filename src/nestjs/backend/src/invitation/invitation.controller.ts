@@ -15,10 +15,16 @@ import {
   RefuseInvitationDto,
   SendInvitationDto,
 } from './invitation.pipe';
+import { ChannelService } from 'src/chat/channel.service';
+import { MembershipService } from 'src/chat/membership.service';
 
 @Controller('invitation')
 export class InvitationController {
-  constructor(private readonly invitationService: InvitationService) {}
+  constructor(
+    private readonly invitationService: InvitationService,
+    private readonly channelService: ChannelService,
+    private readonly membershipService: MembershipService,
+  ) {}
 
   @Get()
   @UseGuards(JwtAuthGuard)
@@ -32,11 +38,40 @@ export class InvitationController {
     @Req() req: any,
     @Body() sendInvitationDto: SendInvitationDto,
   ): Promise<void> {
+    const invitation = await this.invitationService.findInvitation(
+      req.user.login,
+      sendInvitationDto.login,
+      sendInvitationDto.channel,
+    );
+    if (invitation !== null) {
+      throw new BadRequestException('Invitation already sent');
+    }
+
+    const channel = await this.channelService.findOne(
+      sendInvitationDto.channel,
+    );
+    if (channel === null) {
+      throw new BadRequestException('Channel does not exist');
+    }
+    if (channel.isProtected || channel.isPublic) {
+      throw new BadRequestException('Channel is not private');
+    }
+
+    const membership = await this.membershipService.findOne(
+      sendInvitationDto.channel,
+      req.user.login,
+    );
+    if (membership === null) {
+      throw new BadRequestException('You are not a member of this channel');
+    } else if (membership.role !== 'owner') {
+      throw new BadRequestException('You are not the owner of this channel');
+    }
+
     await this.invitationService.sendInvitation({
       requester_login: req.user.login,
+      requester_socket_id: sendInvitationDto.socket_id,
       requested_login: sendInvitationDto.login,
-      requested_socket_id: sendInvitationDto.socket_id,
-      channel: sendInvitationDto.channel,
+      channel_id: sendInvitationDto.channel,
     });
   }
 
@@ -49,8 +84,8 @@ export class InvitationController {
     const invitation = await this.invitationService.findInvitationById(
       acceptInvitationDto.id,
     );
-    if (invitation.requester.login !== req.user.login) {
-      throw new BadRequestException('You are not the requester');
+    if (invitation.requester.login === req.user.login) {
+      throw new BadRequestException('You are the requester');
     }
 
     await this.invitationService.acceptInvitation(
@@ -68,8 +103,8 @@ export class InvitationController {
     const invitation = await this.invitationService.findInvitationById(
       refuseInvitationDto.id,
     );
-    if (invitation.requester.login !== req.user.login) {
-      throw new BadRequestException('You are not the requester');
+    if (invitation.requester.login === req.user.login) {
+      throw new BadRequestException('You are the requester');
     }
 
     await this.invitationService.refuseInvitation(invitation);

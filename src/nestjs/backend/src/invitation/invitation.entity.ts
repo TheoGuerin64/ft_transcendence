@@ -32,9 +32,10 @@ export class Invitation {
   @Column({ type: 'char', length: 20 })
   requester_socket_id: string;
 
-  @Column({ type: 'char', length: 20, nullable: true })
-  requested_socket_id: string;
+  @Column({ type: 'varchar', length: 16, nullable: true })
+  channel_id: string;
 
   @ManyToOne(() => Channel, { nullable: true })
+  @JoinColumn({ name: 'channel_id' })
   channel: string;
 }

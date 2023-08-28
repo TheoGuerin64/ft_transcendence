@@ -4,6 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import ManageMenu from '@/components/ManageMenu.vue'
 import { useStore } from '@/store'
 import axios from 'axios'
+import { text } from '@fortawesome/fontawesome-svg-core'
 </script>
 
 <script lang="ts">
@@ -35,7 +36,8 @@ export default {
       role: '' as string,
       manageMenu: false as boolean,
       password: '' as string,
-      protectedDialog: false as boolean
+      protectedDialog: false as boolean,
+      showInvitation: false as boolean
     }
   },
   methods: {
@@ -74,6 +76,32 @@ export default {
       } catch (error) {
         console.log(error)
       }
+    },
+    async invite() {
+      const login = (document.getElementById('invite-login') as HTMLInputElement).value
+      try {
+        const response = await axios.post(
+          'http://127.0.0.1:3000/invitation',
+          {
+            channel: this.channel.name,
+            login: login,
+            socket_id: socket.id.toString()
+          },
+          { withCredentials: true }
+        )
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          this.$notify({
+            type: 'error',
+            text: error.response?.data.message
+          })
+        }
+      }
+    }
+  },
+  computed: {
+    isPrivate(): boolean {
+      return !this.channel.isProtected && !this.channel.isPublic
     }
   },
   async created() {
@@ -138,7 +166,7 @@ export default {
     </span>
     {{ channel.name }}
   </a>
-  <div v-if="channel.showContextMenu" class="mt-2 mb-2 ml-3">
+  <div v-if="channel.showContextMenu" class="is-flex mt-2 mb-2 ml-3">
     <button
       v-if="role === 'owner'"
       class="button is-warning is-small ml-3"
@@ -150,5 +178,20 @@ export default {
     <div v-if="manageMenu && role === 'owner'">
       <ManageMenu :channel="channel" />
     </div>
+    <input
+      v-if="showInvitation && role === 'owner' && isPrivate"
+      class="input is-small ml-2"
+      id="invite-login"
+      type="text"
+      placeholder="login"
+      style="width: 10%"
+    />
+    <button
+      v-if="role === 'owner' && isPrivate"
+      class="button is-info is-small ml-3"
+      @click="showInvitation ? invite() : (showInvitation = !showInvitation)"
+    >
+      Invite
+    </button>
   </div>
 </template>

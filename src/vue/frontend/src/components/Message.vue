@@ -2,6 +2,7 @@
 import UserAvatar from './UserAvatar.vue'
 import { socket } from '@/socket'
 import { useStore } from '@/store'
+import axios from 'axios'
 </script>
 
 <script lang="ts">
@@ -30,8 +31,25 @@ export default {
       if (this.login === this.store.user?.login) return
       this.showContextMenu = !this.showContextMenu
     },
-    inviteToGame(login: string): void {
-      console.log('Inviting ', login, ' to game')
+    async inviteToGame(login: string): Promise<void> {
+      try {
+        const response = await axios.post(
+          'http://127.0.0.1:3000/invitation',
+          {
+            channel: null,
+            login: login,
+            socket_id: socket.id.toString()
+          },
+          { withCredentials: true }
+        )
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          this.$notify({
+            type: 'error',
+            text: error.response?.data.message
+          })
+        }
+      }
     },
     block(): void {
       const data = {
