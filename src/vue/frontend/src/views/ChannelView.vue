@@ -105,7 +105,6 @@ export default {
     }
   },
   async mounted() {
-    setRouterInstance(this.$router)
     const data = { name: this.channelName as string }
     state.Messages = []
     await this.getRole()

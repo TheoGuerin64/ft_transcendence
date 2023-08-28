@@ -76,6 +76,10 @@ socket.on('user-joined', (username: string, avatar: string, login: string, chann
   })
 })
 
+socket.on('channel-joined', (channelName: string) => {
+  routerInstance.push('/chat/' + channelName)
+})
+
 socket.on('user-left', (username: string, avatar: string, login: string, channelName: string) => {
   state.Messages.push({
     id: state.idMessage++,
@@ -90,6 +94,10 @@ socket.on('user-left', (username: string, avatar: string, login: string, channel
   })
 })
 
+socket.on('redirect', (route: string) => {
+  routerInstance.push(route)
+})
+
 socket.on('reload', () => {
   location.reload()
 })
@@ -99,8 +107,6 @@ socket.on('reset', () => {
 })
 
 socket.on('channel-created', async (channelName: string) => {
-  location.reload()
-  routerInstance.push('/chat')
   notify({
     type: 'success',
     text: 'Channel ' + channelName + ' created'
@@ -108,8 +114,6 @@ socket.on('channel-created', async (channelName: string) => {
 })
 
 socket.on('channel-removed', (channelName: string) => {
-  location.reload()
-  routerInstance.push('/chat')
   notify({
     type: 'success',
     text: 'Channel ' + channelName + ' removed'
