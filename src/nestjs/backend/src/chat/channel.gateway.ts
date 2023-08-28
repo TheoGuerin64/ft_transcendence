@@ -1,6 +1,7 @@
 import { ChannelService } from './channel.service';
 import { JwtAuthGuard } from '../auth/auth-jwt.guard';
 import { MembershipService } from './membership.service';
+import { Req, UseGuards } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { UserService } from 'src/user/user.service';
 import {
@@ -9,7 +10,6 @@ import {
   MessageDto,
   PasswordDto,
 } from './channel.pipe';
-import { Req, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
@@ -38,6 +38,9 @@ export class ChannelGateway {
     try {
       if (messageDto.content === '') {
         client.emit('error', 'Message cannot be empty');
+        return;
+      } else if (messageDto.content.length > 1000) {
+        client.emit('error', 'Message cannot be longer than 1000 characters');
         return;
       }
       await this.channelService.checkConnection(
@@ -82,6 +85,7 @@ export class ChannelGateway {
         req.user.login,
       );
       if (membership) {
+        client.emit('redirect', channelDto.name);
         return;
       }
       if (!channelDto.isProtected && !channelDto.isPublic) {
@@ -107,6 +111,7 @@ export class ChannelGateway {
             channelDto.name,
           );
         client.emit('success', 'You joined the channel');
+        client.emit('redirect', channelDto.name);
       }
     } catch (error) {
       console.log(error);
@@ -176,7 +181,7 @@ export class ChannelGateway {
       ) {
         client.emit('error', 'This channel already exists');
       } else {
-        this.server.emit('channel-created', channelDto.name);
+        client.emit('channel-created', channelDto.name);
       }
     } catch (error) {
       console.log(error);

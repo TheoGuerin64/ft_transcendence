@@ -1,8 +1,8 @@
-import { DeepPartial, Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { User } from './user.entity';
-import { UserStatsService } from 'src/userStats/userStats.service';
+import { DeepPartial, Repository } from 'typeorm'
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { User } from './user.entity'
+import { UserStatsService } from 'src/userStats/userStats.service'
 
 @Injectable()
 export class UserService {
@@ -41,7 +41,6 @@ export class UserService {
    */
   async update(user: User, userData: DeepPartial<User>): Promise<User> {
     Object.assign(user, userData);
-    //await this.userModel.update(user.login, user);
     await this.userModel.save(user);
     return user;
   }

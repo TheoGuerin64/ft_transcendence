@@ -1,12 +1,13 @@
-import { Channel } from './channel.entity';
-import { ChannelDto, MembershipDto } from './channel.pipe';
-import { DeepPartial, Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MembershipService } from './membership.service';
-import { MessageService } from './message.service';
-import { User } from 'src/user/user.entity';
-import { UserService } from '../user/user.service';
+import * as bcrypt from 'bcrypt'
+import { Channel } from './channel.entity'
+import { ChannelDto, MembershipDto } from './channel.pipe'
+import { DeepPartial, Repository } from 'typeorm'
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { MembershipService } from './membership.service'
+import { MessageService } from './message.service'
+import { User } from 'src/user/user.entity'
+import { UserService } from '../user/user.service'
 
 @Injectable()
 export class ChannelService {
@@ -104,7 +105,12 @@ export class ChannelService {
     ) {
       return false;
     }
-    if (channelDto.isProtected && channelDto.password !== channel.password) {
+    if (
+      channelDto.isProtected && role !== 'owner' &&
+      !(
+        (await bcrypt.compare(channelDto.password, channel.password))
+      )
+    ) {
       client.emit('error', 'Wrong password');
       return true;
     }
@@ -189,6 +195,9 @@ export class ChannelService {
   ): Promise<boolean> {
     if (await this.findOne(channel.name)) {
       return true;
+    }
+    if (channel.password !== '') {
+      channel.password = await bcrypt.hash(channel.password, 10);
     }
     const newChannel = this.create({
       name: channel.name,
@@ -451,7 +460,7 @@ export class ChannelService {
       return false;
     }
     if (!channel.isProtected && channel.isPublic) {
-      channel.password = password;
+      channel.password = await bcrypt.hash(password, 10);
       channel.isProtected = true;
       channel.isPublic = false;
     } else if (!channel.isProtected && !channel.isPublic) {
@@ -524,7 +533,7 @@ export class ChannelService {
       client.emit('error', 'This channel is private');
       return false;
     } else if (channel.isProtected) {
-      channel.password = password;
+      channel.password = await bcrypt.hash(password, 10);
     }
     await this.channelModel.save(channel);
     return true;
