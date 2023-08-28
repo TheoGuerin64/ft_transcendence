@@ -18,7 +18,6 @@ export class BallService {
    * @param server socket server
    * @param game game instance
    */
-
   static ballMovement(server: Server, game: Game): void {
     this.newBallPosition(server, game);
     server
@@ -45,9 +44,6 @@ export class BallService {
       ball.getPositionY() + ball.getDirectionY() * ball.getSpeed();
 
     this.updateDirection(game, ball, { x: newPosX, y: newPosY });
-
-    ball.setPositionX(newPosX);
-    ball.setPositionY(newPosY);
   }
 
   /**
@@ -61,7 +57,7 @@ export class BallService {
     game: Game,
     ball: Ball,
     newPos: { x: number; y: number },
-  ) {
+  ): void {
     if (
       newPos.y <= -collisionBallMapBorder ||
       newPos.y >= collisionBallMapBorder
@@ -74,55 +70,15 @@ export class BallService {
         newPos.x >= collisionBallMapBorder) &&
       this.ballHitPaddle(game, newPos)
     ) {
-      this.updateDirectionOnPaddle(game, ball, newPos);
+      ball.setDirectionX(-ball.getDirectionX());
+      ball.setSpeed(ball.getSpeed() + IncreaseBallSpeed);
+      newPos.x = this.adaptNewPosition(newPos.x, collisionBallMapBorder);
     }
     if (game.getGameType() === 'custom') {
       this.checkCentralCube(ball, newPos);
     }
-  }
-
-  /**
-   * adapt the direction and the position if the ball hit a paddle
-   * and increase its speed
-   * @param game game instance
-   * @param ball ball instance
-   * @param newPos new position on X and Y axes of the ball
-   */
-  private static updateDirectionOnPaddle(
-    game: Game,
-    ball: Ball,
-    newPos: { x: number; y: number },
-  ): void {
-    //ball.setDirectionY(this.calculateDirectionY(game, ball));
-    ball.setDirectionX(-ball.getDirectionX());
-    ball.setSpeed(ball.getSpeed() + IncreaseBallSpeed);
-    newPos.x = this.adaptNewPosition(newPos.x, collisionBallMapBorder);
-  }
-
-  /**
-   * calculate new direction Y by calculating where did the ball hit the paddle
-   * and multiplying it by the the orientation,
-   * depending if the ball hit the top or the bot of the paddle
-   * @param game game instance
-   * @param ball ball instance
-   * @returns the new direction Y
-   */
-  private static calculateDirectionY(game: Game, ball: Ball): number {
-    const impact =
-      game.getBall().getPositionY() - game.getPlayerTwo().getPosY();
-    const vectorValue = (((100 / (playerHeight / 2)) * impact) / 100) % 1;
-    let vectorOrientation;
-    if (
-      (ball.getPositionX() < 0 &&
-        game.getBall().getPositionY() < game.getPlayerOne().getPosY()) ||
-      (ball.getPositionX() > 0 &&
-        game.getBall().getPositionY() < game.getPlayerTwo().getPosY())
-    ) {
-      vectorOrientation = -1;
-    } else {
-      vectorOrientation = 1;
-    }
-    return vectorOrientation * Math.abs(vectorValue);
+    ball.setPositionX(newPos.x);
+    ball.setPositionY(newPos.y);
   }
 
   /**
