@@ -28,7 +28,6 @@ export class BallService {
         game.getBall().getPositionX(),
         game.getBall().getPositionY(),
       );
-    server.in(game.getGameID()).emit('message');
   }
 
   /**
@@ -94,7 +93,7 @@ export class BallService {
     ball: Ball,
     newPos: { x: number; y: number },
   ): void {
-    ball.setDirectionY(this.calculateDirectionY(game, ball));
+    //ball.setDirectionY(this.calculateDirectionY(game, ball));
     ball.setDirectionX(-ball.getDirectionX());
     ball.setSpeed(ball.getSpeed() + IncreaseBallSpeed);
     newPos.x = this.adaptNewPosition(newPos.x, collisionBallMapBorder);
