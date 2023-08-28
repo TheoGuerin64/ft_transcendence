@@ -32,7 +32,7 @@ const PongViewMethods = (PongView as ComponentOptions).methods
 
 export const socket = io('http://localhost:3000', {
   autoConnect: false
-})
+}) as any
 
 let routerInstance = null
 
