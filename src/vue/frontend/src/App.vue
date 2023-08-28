@@ -47,7 +47,7 @@ export default {
   },
   created() {
     axios
-      .get('http://127.0.0.1:3000/user/me', {
+      .get('http://127.0.0.1:3000/user', {
         withCredentials: true
       })
       .then((response) => {
