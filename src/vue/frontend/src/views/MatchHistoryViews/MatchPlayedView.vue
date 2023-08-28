@@ -23,8 +23,8 @@ export default {
      */
     userWon(match: Match): string {
       if (
-        (this.useStore.user?.name === match.users[0].login?.trimEnd() && match.result[0] === 5) ||
-        (this.useStore.user?.name === match.users[1].login?.trimEnd() && match.result[1] === 5)
+        (this.useStore.user?.name === match.users[0].username && match.result[0] === 5) ||
+        (this.useStore.user?.name === match.users[1].username && match.result[1] === 5)
       ) {
         return 'box column is-flex is-three-fifths is-offset-one-fifth is-justify-content-space-between has-background-success'
       } else {

@@ -1,15 +1,12 @@
-import { Channel } from './channel.entity'
-import { ChannelDto, MembershipDto } from './channel.pipe'
-import { DeepPartial, Repository } from 'typeorm'
-import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { MembershipService } from './membership.service'
-import { MessageService } from './message.service'
-import { Server } from 'socket.io'
-import { Socket } from 'dgram'
-import { use } from 'passport'
-import { User } from 'src/user/user.entity'
-import { UserService } from '../user/user.service'
+import { Channel } from './channel.entity';
+import { ChannelDto, MembershipDto } from './channel.pipe';
+import { DeepPartial, Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { MembershipService } from './membership.service';
+import { MessageService } from './message.service';
+import { User } from 'src/user/user.entity';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class ChannelService {
@@ -143,7 +140,7 @@ export class ChannelService {
     if (!user) {
       return true;
     }
-    let channel = await this.findOne(channelName);
+    const channel = await this.findOne(channelName);
     if (!channel) {
       return true;
     }

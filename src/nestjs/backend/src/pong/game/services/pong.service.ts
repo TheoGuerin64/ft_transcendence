@@ -29,19 +29,19 @@ export class PongService {
    */
   invitationGame(
     server: Server,
-    userOne: { login: string; username: string; socket: Socket },
-    userTwo: { login: string; username: string; socket: Socket },
+    userOne: { login: string; username: string; socketID: string },
+    userTwo: { login: string; username: string; socketID: string },
     gameType: string,
   ) {
     const playerOne = new Player(
       userOne.login,
       userOne.username,
-      userOne.socket.id,
+      userOne.socketID,
     );
     const playerTwo = new Player(
       userTwo.login,
       userTwo.username,
-      userTwo.socket.id,
+      userTwo.socketID,
     );
     this.startGame(server, playerOne, playerTwo, gameType);
   }

@@ -93,6 +93,10 @@ export class ChannelGateway {
       if (membership) {
         return;
       }
+      if (!channelDto.isProtected && !channelDto.isPublic) {
+        client.emit('error', 'Channel is private');
+        return;
+      }
       if (
         !(await this.channelService.addMembership(
           channelDto,
