@@ -83,7 +83,7 @@ export default {
 </script>
 
 <template>
-  <div v-if="channel.isProtected" id="protectedDialog">
+  <div v-if="channel.isProtected" class="is-flex">
     <a
       class="panel-block"
       @click="joinChannel(channel)"
@@ -97,13 +97,12 @@ export default {
     <button
       v-if="!channel.promptPassword"
       class="button is-info is-small mt-1 ml-3"
-      id="protectedButton"
       @click="channel.promptPassword = !channel.promptPassword"
     >
       <!-- Join -->
       <FontAwesomeIcon :icon="['fas', 'fingerprint']" size="xl" />
     </button>
-    <div id="passwordInput">
+    <div class="is-flex">
       <form @submit="joinChannel(channel)">
         <input
           v-if="channel.promptPassword"

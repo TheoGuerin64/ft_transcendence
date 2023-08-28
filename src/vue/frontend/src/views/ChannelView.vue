@@ -138,7 +138,7 @@ export default {
     <div v-if="adminPanel">
       <AdminPanel :role="role" />
     </div>
-    <div id="chatDisplay">
+    <div class="chatDisplay">
       <ul>
         <template v-for="message in state.Messages" :key="message.id">
           <li v-if="!blockedUsers.includes(message.data.user.login)">
@@ -154,14 +154,14 @@ export default {
         </template>
       </ul>
     </div>
-    <div id="sendBar">
+    <div class="sendBar">
       <form @submit="submitNewMessage">
-        <input class="input" id="inputMessage" v-model="message" />
+        <input class="input" v-model="message" />
       </form>
-      <button class="button is-success" id="sendMessage" @click="submitNewMessage">
+      <button class="button is-success ml-2" @click="submitNewMessage">
         <FontAwesomeIcon :icon="['fas', 'paper-plane']" />
       </button>
-      <button class="button is-danger ml-3" id="leave" @click="leave">
+      <button class="button is-danger ml-5" @click="leave">
         <FontAwesomeIcon :icon="['fas', 'right-to-bracket']" />
       </button>
     </div>
@@ -169,7 +169,7 @@ export default {
 </template>
 
 <style>
-#chatDisplay {
+.chatDisplay {
   width: 90%;
   height: 600px;
   border: solid;
@@ -182,36 +182,26 @@ export default {
   scrollbar-width: auto;
 }
 
-#messages {
+.messages {
   margin: 1%;
   padding: 0;
 }
 
-#messages li {
+.messages li {
   list-style-type: none;
   padding: 1%;
   margin-top: 1%;
 }
 
-#sendBar {
+.sendBar {
   width: 40%;
   display: flex;
   margin-top: 2%;
   margin-left: 6%;
 }
 
-#sendMessage {
+.sendChannel {
   margin-left: 2%;
-}
-
-#sendChannel {
-  margin-left: 2%;
-}
-
-#inputChannel {
-  border-radius: 5px;
-  width: 100%;
-  margin-left: 8%;
 }
 
 .header {

@@ -81,7 +81,7 @@ export default {
 </script>
 <template>
   <div class="mt-3 mb-4 admin-panel">
-    <nav class="panel column is-10" id="channelPanel">
+    <nav class="panel column is-10 channelPanel">
       <p class="panel-heading">Users</p>
       <div v-for="user in Users" :key="user.id" class="user-panel">
         <div class="user-info">
