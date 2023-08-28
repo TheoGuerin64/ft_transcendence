@@ -13,7 +13,7 @@ import {
 @Injectable()
 export class BallService {
   /**
-   * update the ball positions
+   * update the ball position
    * and emit this information to the players in the game
    * @param server socket server
    * @param game game instance
