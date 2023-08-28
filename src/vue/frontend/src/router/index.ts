@@ -20,13 +20,13 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/Game',
+      path: '/game',
       name: 'game',
       component: PongView,
       beforeEnter: isAuthenticatedGuard
     },
     {
-      path: '/MatchHistory',
+      path: '/match-history',
       name: 'match history',
       component: MatchHistoryView,
       beforeEnter: isAuthenticatedGuard
