@@ -52,13 +52,14 @@ export default {
   }
 }
 </script>
+
 <template>
-  <h1 class="title is-1 has-text-centered">Match History</h1>
+  <h1 class="title is-1 has-text-centered mt-4">Match History</h1>
   <div v-if="userStats.ladder !== -1">
     <MatchesStatistics :userStats="userStats" />
     <div id="history">
       <MatchPlayed />
     </div>
   </div>
-  <div v-else><p>no match played for the moment</p></div>
+  <div v-else class="ml-3"><p>No matches played at the moment bozo</p></div>
 </template>

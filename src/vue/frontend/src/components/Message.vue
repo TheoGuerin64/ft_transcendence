@@ -2,8 +2,6 @@
 import UserAvatar from './UserAvatar.vue'
 import { socket } from '@/socket'
 import { useStore } from '@/store'
-import axios from 'axios'
-import { onUpdated } from 'vue'
 </script>
 
 <script lang="ts">
