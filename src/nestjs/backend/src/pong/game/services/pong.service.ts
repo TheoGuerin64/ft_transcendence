@@ -202,6 +202,11 @@ export class PongService {
     const playerTwoDatabase = await this.userService.findOne(
       game.getPlayerTwo().getLogin(),
     );
+
+    if (playerOneDatabase === null || playerTwoDatabase === null) {
+      return;
+    }
+
     this.matchPlayedService.create({
       users: [playerOneDatabase, playerTwoDatabase],
       result: [game.getPlayerOne().getPoint(), game.getPlayerTwo().getPoint()],
