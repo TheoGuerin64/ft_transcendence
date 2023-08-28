@@ -17,6 +17,8 @@ import { User } from './user/user.entity';
 import { UserModule } from './user/user.module';
 import { UserStats } from './userStats/userStats.entity';
 import { userStatsModule } from './userStats/userStats.module';
+import { InvitationModule } from './invitation/invitation.module';
+import { Invitation } from './invitation/invitation.entity';
 
 @Module({
   imports: [
@@ -35,6 +37,7 @@ import { userStatsModule } from './userStats/userStats.module';
         Message,
         Channel,
         Membership,
+        Invitation,
       ],
       synchronize: true,
     }),
@@ -45,6 +48,7 @@ import { userStatsModule } from './userStats/userStats.module';
     PongModule,
     MatchPlayedModule,
     userStatsModule,
+    InvitationModule,
   ],
   controllers: [],
   providers: [AppService, AppGateway],
