@@ -17,7 +17,7 @@ export default {
       userStats: {} as statistics
     }
   },
-  async created() {
+  async mounted() {
     await this.findPlayerStat()
   },
   methods: {
