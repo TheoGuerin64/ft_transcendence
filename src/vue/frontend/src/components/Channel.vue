@@ -12,6 +12,7 @@ export interface Channel {
   name: string
   isPublic: boolean
   isProtected: boolean
+  isDM: boolean
   promptPassword: boolean
   showContextMenu: boolean
 }
@@ -27,6 +28,7 @@ export default {
         name: '' as string | undefined,
         isPublic: true as boolean,
         isProtected: false as boolean,
+        isDM: false as boolean,
         password: '' as string | undefined
       },
       store: useStore,
@@ -51,6 +53,7 @@ export default {
       this.channelData.name = channel.name
       this.channelData.isPublic = channel.isPublic
       this.channelData.isProtected = channel.isProtected
+      this.channelData.isDM = channel.isDM
       this.channelData.password = this.password
       socket.emit('join-channel', this.channelData)
       this.$router.push('/chat/' + channel.name)
@@ -97,8 +100,8 @@ export default {
       id="protectedButton"
       @click="channel.promptPassword = !channel.promptPassword"
     >
-      Join
-      <!-- <FontAwesomeIcon :icon="['fas', 'circle-arrow-right']" size="xl" /> -->
+      <!-- Join -->
+      <FontAwesomeIcon :icon="['fas', 'fingerprint']" size="xl" />
     </button>
     <div id="passwordInput">
       <form @submit="joinChannel(channel)">
@@ -125,7 +128,10 @@ export default {
     @contextmenu="handleContextMenu($event, channel)"
     class="panel-block"
   >
-    <span v-if="channel.isPublic" class="panel-icon">
+    <span v-if="channel.isDM" class="panel-icon">
+      <FontAwesomeIcon :icon="['fas', 'envelope']" />
+    </span>
+    <span v-else-if="channel.isPublic" class="panel-icon">
       <FontAwesomeIcon :icon="['fas', 'hashtag']" />
     </span>
     <span v-else class="panel-icon">

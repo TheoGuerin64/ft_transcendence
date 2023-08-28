@@ -5,7 +5,6 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { useStore } from '../store'
 import { socket, state } from '@/socket'
 import axios from 'axios'
-// import { setRouterInstance } from '@/socket'
 </script>
 
 <script lang="ts">
@@ -25,6 +24,7 @@ export default {
       },
       password: '' as string,
       Channels: [] as Channel[],
+      ChannelsDM: [] as Channel[],
       id: 0 as number
     }
   },
@@ -49,11 +49,23 @@ export default {
       } catch (error) {
         console.log(error)
       }
+    },
+    async getChannelsDM(): Promise<void> {
+      try {
+        const response = await axios.get('http://127.0.0.1:3000/channel/dm', {
+          withCredentials: true
+        })
+        for (let i = 0; i < response.data.length; i++) {
+          this.ChannelsDM.push(response.data[i])
+        }
+      } catch (error) {
+        console.log(error)
+      }
     }
   },
   async mounted() {
-    // setRouterInstance(this.$router)
     await this.getChannels()
+    await this.getChannelsDM()
   }
 }
 </script>
@@ -72,6 +84,14 @@ export default {
       <button class="button mt-3 is-link is-outlined" @click="showDialog = !showDialog">
         Create Channel
       </button>
+    </div>
+    <div class="columns is-centered mt-6">
+      <nav class="panel column is-10" id="channelPanel">
+        <p class="panel-heading">DMS</p>
+        <div v-for="channel in ChannelsDM" :key="channel.id">
+          <ChannelComponent :channel="channel" />
+        </div>
+      </nav>
     </div>
   </div>
   <div v-if="showDialog" id="dialogBox">

@@ -14,6 +14,9 @@ export class Channel {
   isProtected: boolean;
 
   @Column()
+  isDM: boolean;
+
+  @Column()
   password: string;
 
   @OneToMany(() => Message, (message) => message.channel)

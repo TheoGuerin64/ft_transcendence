@@ -4,6 +4,7 @@ import Message from '../components/Message.vue'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { state, socket, setRouterInstance } from '@/socket'
 import axios from 'axios'
+import AdminPanel from '@/components/AdminPanel.vue'
 </script>
 
 <script lang="ts">
@@ -24,13 +25,17 @@ export default {
       state: state,
       message: '' as string,
       blockedUsers: [] as string[],
-      channel: null as any
+      role: '' as string,
+      operator: false as boolean,
+      adminPanel: false as boolean,
+      channel: null as any,
+      channelName: this.$route.params.channelId
     }
   },
   methods: {
-    async getChannel(channelName: string): Promise<void> {
+    async getChannel(): Promise<void> {
       try {
-        const response = await axios.get('http://127.0.0.1:3000/channel/' + channelName, {
+        const response = await axios.get('http://127.0.0.1:3000/channel/' + this.channelName, {
           withCredentials: true
         })
         this.channel = response.data
@@ -38,11 +43,14 @@ export default {
         console.log(error)
       }
     },
-    async getMessages(channelName: string): Promise<void> {
+    async getMessages(): Promise<void> {
       try {
-        const response = await axios.get('http://127.0.0.1:3000/channel/messages/' + channelName, {
-          withCredentials: true
-        })
+        const response = await axios.get(
+          'http://127.0.0.1:3000/channel/messages/' + this.channelName,
+          {
+            withCredentials: true
+          }
+        )
         for (let i = 0; i < response.data.length; i++) {
           this.state.Messages.push({ id: i, data: response.data[i] })
         }
@@ -52,12 +60,27 @@ export default {
     },
     async getBlockedUsers(): Promise<void> {
       try {
+        this.blockedUsers = []
         const response = await axios.get('http://127.0.0.1:3000/user/blocked', {
           withCredentials: true
         })
         for (let i = 0; i < response.data.length; i++) {
           this.blockedUsers.push(response.data[i])
         }
+      } catch (error) {
+        console.log(error)
+      }
+      console.log('Blocked users: ', this.blockedUsers)
+    },
+    async getRole(): Promise<void> {
+      try {
+        const response = await axios.get(
+          'http://127.0.0.1:3000/channel/owner/' + this.channelName,
+          {
+            withCredentials: true
+          }
+        )
+        this.role = response.data
       } catch (error) {
         console.log(error)
       }
@@ -72,26 +95,28 @@ export default {
         channelName: '' as string | undefined
       }
       messageData.content = this.message
-      messageData.channelName = this.state.channelName
+      messageData.channelName = this.channelName as string
       socket.emit('message', messageData)
       this.message = ''
     },
     leave(): void {
-      const data = { name: this.$route.params.channelId }
+      const data = { name: this.channelName }
       this.$router.push('/chat')
     }
   },
   async mounted() {
     setRouterInstance(this.$router)
-    const data = { name: this.$route.params.channelId as string }
+    const data = { name: this.channelName as string }
     state.Messages = []
-    await this.getChannel(data.name)
+    await this.getRole()
+    this.operator = this.role === 'owner' || this.role === 'admin'
+    await this.getChannel()
     socket.emit('reconnect', data)
-    await this.getMessages(data.name)
     await this.getBlockedUsers()
+    await this.getMessages()
     this.state.channelName = this.$route.params.channelId as string
   },
-  updated() {
+  async updated() {
     let elem = document.getElementById('chatDisplay')
     if (elem) {
       elem.scrollTop = elem.scrollHeight
@@ -102,20 +127,28 @@ export default {
 
 <template>
   <main>
-    <div class="mt-3 ml-4">
-      <h1 class="title is-size-1-desktop has-text-dark">Home</h1>
+    <div class="header">
+      <div class="mt-3 ml-4">
+        <h1 class="title is-size-3-desktop has-text-dark">{{ channelName }}</h1>
+      </div>
+      <div v-if="operator" class="mt-3 mr-4" @click="adminPanel = !adminPanel">
+        <FontAwesomeIcon :icon="['fas', 'user-gear']" size="2xl" />
+      </div>
+    </div>
+    <div v-if="adminPanel">
+      <AdminPanel :role="role" />
     </div>
     <div id="chatDisplay">
       <ul>
         <template v-for="message in state.Messages" :key="message.id">
           <li v-if="!blockedUsers.includes(message.data.user.login)">
             <Message
-              :username="message.data.user.name"
-              :content="message.data.content"
+              @block-user="(login) => blockedUsers.push(login)"
+              :id="message.id"
               :avatar="message.data.user.avatar"
               :login="message.data.user.login"
-              :channelName="state.channelName"
-              :id="message.id"
+              :username="message.data.user.name"
+              :content="message.data.content"
             />
           </li>
         </template>
@@ -179,5 +212,11 @@ export default {
   border-radius: 5px;
   width: 100%;
   margin-left: 8%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 </style>
