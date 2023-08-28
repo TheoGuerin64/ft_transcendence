@@ -17,5 +17,6 @@ import { userStatsModule } from 'src/userStats/userStats.module';
     PlayerService,
     BallService,
   ],
+  exports: [PongGateway],
 })
 export class PongModule {}
