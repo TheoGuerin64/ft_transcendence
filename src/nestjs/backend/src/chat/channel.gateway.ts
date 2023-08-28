@@ -1,30 +1,21 @@
-import { async } from 'rxjs';
 import { ChannelService } from './channel.service';
 import { JwtAuthGuard } from '../auth/auth-jwt.guard';
 import { MembershipService } from './membership.service';
 import { Server, Socket } from 'socket.io';
 import { UserService } from 'src/user/user.service';
-import { validate } from 'class-validator';
 import {
   ChannelDto,
   MembershipDto,
   MessageDto,
   PasswordDto,
 } from './channel.pipe';
-import {
-  BadRequestException,
-  Req,
-  UseGuards,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Req, UseGuards } from '@nestjs/common';
 import {
   ConnectedSocket,
   MessageBody,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
-  WsException,
 } from '@nestjs/websockets';
 
 @WebSocketGateway({ cors: true })
@@ -94,6 +85,10 @@ export class ChannelGateway {
         req.user.login,
       );
       if (membership) {
+        return;
+      }
+      if (!channelDto.isProtected && !channelDto.isPublic) {
+        client.emit('error', 'Channel is private');
         return;
       }
       if (

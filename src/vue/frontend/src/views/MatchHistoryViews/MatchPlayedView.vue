@@ -23,8 +23,8 @@ export default {
      */
     userWon(match: Match): string {
       if (
-        (this.useStore.user?.name === match.users[0].login?.trimEnd() && match.result[0] === 5) ||
-        (this.useStore.user?.name === match.users[1].login?.trimEnd() && match.result[1] === 5)
+        (this.useStore.user?.name === match.users[0].username && match.result[0] === 5) ||
+        (this.useStore.user?.name === match.users[1].username && match.result[1] === 5)
       ) {
         return 'box column is-flex is-three-fifths is-offset-one-fifth is-justify-content-space-between has-background-success'
       } else {
@@ -58,11 +58,11 @@ export default {
         match.users = []
         match.id = response.data[x].id
         const userOne = {} as User
-        userOne.login = response.data[x].users[0].login
+        userOne.username = response.data[x].users[0].name
         userOne.avatar = response.data[x].users[0].avatar
         match.users.push(userOne)
         const userTwo = {} as User
-        userTwo.login = response.data[x].users[1].login
+        userTwo.username = response.data[x].users[1].name
         userTwo.avatar = response.data[x].users[1].avatar
         match.users.push(userTwo)
         this.Matches.unshift(match)
@@ -76,7 +76,7 @@ export default {
     <div>
       <UserAvatar :size="128" :image="match.users[0].avatar" />
       <div class="is-size-4 has-text-centered">
-        {{ match.users[0].login }}
+        {{ match.users[0].username }}
       </div>
     </div>
     <div class="is-size-2 pt-5 mt-5">
@@ -85,7 +85,7 @@ export default {
     <div>
       <UserAvatar :size="128" :image="match.users[1].avatar" />
       <div class="is-size-4 has-text-centered">
-        {{ match.users[0].login }}
+        {{ match.users[1].username }}
       </div>
     </div>
   </div>

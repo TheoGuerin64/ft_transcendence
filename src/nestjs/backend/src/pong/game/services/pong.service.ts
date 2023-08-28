@@ -29,12 +29,20 @@ export class PongService {
    */
   invitationGame(
     server: Server,
-    userOne: { login: string; socket: Socket },
-    userTwo: { login: string; socket: Socket },
+    userOne: { login: string; username: string; socketID: string },
+    userTwo: { login: string; username: string; socketID: string },
     gameType: string,
   ) {
-    const playerOne = new Player(userOne.login, userOne.socket.id);
-    const playerTwo = new Player(userTwo.login, userTwo.socket.id);
+    const playerOne = new Player(
+      userOne.login,
+      userOne.username,
+      userOne.socketID,
+    );
+    const playerTwo = new Player(
+      userTwo.login,
+      userTwo.username,
+      userTwo.socketID,
+    );
     this.startGame(server, playerOne, playerTwo, gameType);
   }
 
@@ -128,11 +136,11 @@ export class PongService {
     if (game.getPlayerOne().getPoint() >= 5) {
       server
         .to(game.getGameID())
-        .emit('PlayerOneWinGame', game.getPlayerOne().getLogin());
+        .emit('PlayerOneWinGame', game.getPlayerOne().getUsername());
     } else if (game.getPlayerTwo().getPoint() >= 5) {
       server
         .to(game.getGameID())
-        .emit('PlayerTwoWinGame', game.getPlayerTwo().getLogin());
+        .emit('PlayerTwoWinGame', game.getPlayerTwo().getUsername());
     }
   }
 
@@ -194,6 +202,11 @@ export class PongService {
     const playerTwoDatabase = await this.userService.findOne(
       game.getPlayerTwo().getLogin(),
     );
+
+    if (playerOneDatabase === null || playerTwoDatabase === null) {
+      return;
+    }
+
     this.matchPlayedService.create({
       users: [playerOneDatabase, playerTwoDatabase],
       result: [game.getPlayerOne().getPoint(), game.getPlayerTwo().getPoint()],

@@ -40,12 +40,12 @@ export class PlayerService {
    * @param socket socket which send the message
    * @param login login of the player
    */
-  connectGame(socket: Socket, login: string): void {
+  connectGame(socket: Socket, login: string, username: string): void {
     const player = this.players.find((element) => element.getLogin() === login);
     if (player !== undefined) {
       return;
     }
-    const newPlayer = new Player(login, socket.id);
+    const newPlayer = new Player(login, username, socket.id);
     this.players.push(newPlayer);
   }
 
