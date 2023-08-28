@@ -1,10 +1,10 @@
-import { async } from 'rxjs'
-import { ChannelService } from './channel.service'
-import { JwtAuthGuard } from '../auth/auth-jwt.guard'
-import { MembershipService } from './membership.service'
-import { Server, Socket } from 'socket.io'
-import { UserService } from 'src/user/user.service'
-import { validate } from 'class-validator'
+import { async } from 'rxjs';
+import { ChannelService } from './channel.service';
+import { JwtAuthGuard } from '../auth/auth-jwt.guard';
+import { MembershipService } from './membership.service';
+import { Server, Socket } from 'socket.io';
+import { UserService } from 'src/user/user.service';
+import { validate } from 'class-validator';
 import {
   ChannelDto,
   MembershipDto,
@@ -164,6 +164,12 @@ export class ChannelGateway {
     try {
       if (channelDto.isProtected && channelDto.password === '') {
         client.emit('error', 'Password cannot be empty');
+        return;
+      } else if (channelDto.name.length > 16 || channelDto.name.length < 3) {
+        client.emit(
+          'error',
+          'Channel name must be between 3 and 16 characters',
+        );
         return;
       }
       if (

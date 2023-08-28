@@ -54,7 +54,7 @@ export default {
   <ul class="menu-list">
     <li>
       <a @click="add = !add">Add password</a>
-      <div v-if="add" id="promptPassword">
+      <div v-if="add" class="promptPassword">
         <form @submit="addPassword">
           <input class="is-small input" type="password" placeholder="********" v-model="password" />
         </form>
@@ -65,7 +65,7 @@ export default {
     </li>
     <li>
       <a @click="edit = !edit">Edit password</a>
-      <div v-if="edit" id="promptPassword">
+      <div v-if="edit" class="promptPassword">
         <form @submit="editPassword">
           <input class="is-small input" type="password" v-model="password" />
         </form>
