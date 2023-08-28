@@ -48,6 +48,9 @@ export class ChannelGateway {
       if (messageDto.content === '') {
         client.emit('error', 'Message cannot be empty');
         return;
+      } else if (messageDto.content.length > 1000) {
+        client.emit('error', 'Message cannot be longer than 1000 characters');
+        return;
       }
       await this.channelService.checkConnection(
         messageDto.channelName,
