@@ -58,7 +58,6 @@ export default {
       this.channelData.isDM = channel.isDM
       this.channelData.password = this.password
       socket.emit('join-channel', this.channelData)
-      this.$router.push('/chat/' + channel.name)
     },
     leaveChannel(channel: Channel): void {
       const data = { name: channel.name }
@@ -131,15 +130,15 @@ export default {
       <FontAwesomeIcon :icon="['fas', 'fingerprint']" size="xl" />
     </button>
     <div class="is-flex">
-      <form @submit="joinChannel(channel)">
-        <input
-          v-if="channel.promptPassword"
-          class="input"
-          v-model="password"
-          placeholder="********"
-          type="password"
-        />
-      </form>
+      <!-- <form @submit="joinChannel(channel)"> -->
+      <input
+        v-if="channel.promptPassword"
+        class="input"
+        v-model="password"
+        placeholder="********"
+        type="password"
+      />
+      <!-- </form> -->
       <button
         v-if="channel.promptPassword"
         class="button is-success ml-1"

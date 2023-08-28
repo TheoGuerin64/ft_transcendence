@@ -22,7 +22,6 @@ export default {
   },
 
   async mounted() {
-    setRouterInstance(this.$router)
     // Get user informations
     let response
     try {
@@ -134,7 +133,6 @@ export default {
      */
     createDM(): void {
       socket.emit('create-dm', this.publicUser!.login)
-      // this.$router.push('/chat/' + this.store.user!.login + '-' + this.publicUser!.login)
     }
   }
 }

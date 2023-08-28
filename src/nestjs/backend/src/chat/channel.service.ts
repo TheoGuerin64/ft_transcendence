@@ -1,13 +1,13 @@
-import { Channel } from './channel.entity';
-import { ChannelDto, MembershipDto } from './channel.pipe';
-import { DeepPartial, Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MembershipService } from './membership.service';
-import { MessageService } from './message.service';
-import { User } from 'src/user/user.entity';
-import { UserService } from '../user/user.service';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt'
+import { Channel } from './channel.entity'
+import { ChannelDto, MembershipDto } from './channel.pipe'
+import { DeepPartial, Repository } from 'typeorm'
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { MembershipService } from './membership.service'
+import { MessageService } from './message.service'
+import { User } from 'src/user/user.entity'
+import { UserService } from '../user/user.service'
 
 @Injectable()
 export class ChannelService {
@@ -106,8 +106,10 @@ export class ChannelService {
       return false;
     }
     if (
-      channelDto.isProtected &&
-      !(await bcrypt.compare(channelDto.password, channel.password))
+      channelDto.isProtected && role !== 'owner' &&
+      !(
+        (await bcrypt.compare(channelDto.password, channel.password))
+      )
     ) {
       client.emit('error', 'Wrong password');
       return true;
@@ -194,6 +196,9 @@ export class ChannelService {
     if (await this.findOne(channel.name)) {
       return true;
     }
+    if (channel.password !== '') {
+      channel.password = await bcrypt.hash(channel.password, 10);
+    }
     const newChannel = this.create({
       name: channel.name,
       messages: [],
@@ -201,7 +206,7 @@ export class ChannelService {
       isProtected: channel.isProtected,
       isPublic: channel.isPublic,
       isDM: false,
-      password: await bcrypt.hash(channel.password, 10),
+      password: channel.password,
     });
     await this.save(newChannel);
     await this.addMembership(

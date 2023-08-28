@@ -2,7 +2,7 @@
 import axios from 'axios'
 import { RouterView } from 'vue-router'
 import NavMenu from './components/NavMenu.vue'
-import { socketConnect } from './socket'
+import { setRouterInstance, socketConnect } from './socket'
 import { useStore, type User } from './store'
 </script>
 
@@ -43,6 +43,7 @@ export default {
     if (this.store.user !== null) {
       socketConnect()
     }
+    setRouterInstance(this.$router)
   },
   created() {
     axios
