@@ -6,16 +6,19 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
-  PrimaryColumn,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
 @Check('requester_login != requested_login')
 export class Invitation {
-  @PrimaryColumn({ type: 'char', length: 8, unique: true })
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'char', length: 8 })
   requester_login: string;
 
-  @PrimaryColumn({ type: 'char', length: 8, unique: true })
+  @Column({ type: 'char', length: 8 })
   requested_login: string;
 
   @ManyToOne(() => User)
@@ -26,12 +29,12 @@ export class Invitation {
   @JoinColumn({ name: 'requested_login' })
   requested: User;
 
-  @Column({ type: 'int' })
-  requester_socket_id: number;
+  @Column({ type: 'char', length: 20 })
+  requester_socket_id: string;
 
-  @Column({ type: 'int' })
-  requested_socket_id: number;
+  @Column({ type: 'char', length: 20, nullable: true })
+  requested_socket_id: string;
 
-  @ManyToOne(() => Channel)
+  @ManyToOne(() => Channel, { nullable: true })
   channel: string;
 }
