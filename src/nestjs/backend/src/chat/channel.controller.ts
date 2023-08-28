@@ -1,20 +1,10 @@
 import { Channel } from './channel.entity';
 import { ChannelService } from './channel.service';
 import { JwtAuthGuard } from 'src/auth/auth-jwt.guard';
-import { Membership } from './membership.entity';
 import { MembershipService } from './membership.service';
 import { Message } from './message.entity';
-import { PasswordDto } from './channel.pipe';
 import { User } from 'src/user/user.entity';
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Param, Req, UseGuards } from '@nestjs/common';
 
 @Controller('channel')
 export class ChannelController {
@@ -26,7 +16,7 @@ export class ChannelController {
   @Get()
   async channelsCreated(): Promise<Channel[]> {
     const channels = await this.channelService.findAll();
-    let channelsNoDM = [];
+    const channelsNoDM = [];
     for (let i = 0; i < channels.length; i++) {
       if (channels[i].isDM === false) {
         channelsNoDM.push(channels[i]);
@@ -39,7 +29,7 @@ export class ChannelController {
   @Get('dm')
   async channelsCreatedDM(@Req() req: any): Promise<Channel[]> {
     const channels = await this.channelService.findAll();
-    let channelsDM = [];
+    const channelsDM = [];
     for (let i = 0; i < channels.length; i++) {
       if (
         channels[i].isDM === true &&
