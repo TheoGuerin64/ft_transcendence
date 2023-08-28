@@ -106,6 +106,8 @@ export class GameService {
     gameType: string,
   ): Game {
     const newGame = new Game(gameType, playerOne, playerTwo);
+    this.resetPlayer(playerOne);
+    this.resetPlayer(playerTwo);
     this.games.push(newGame);
     server
       .in(playerOne.getSocketID())
@@ -138,8 +140,8 @@ export class GameService {
       server.to(game.getGameID()).emit('PlayerTwoWinPoint');
     }
 
-    playerOne.setPosY(0);
-    playerTwo.setPosY(0);
+    this.resetPlayer(playerOne);
+    this.resetPlayer(playerTwo);
     server
       .to(game.getGameID())
       .emit('someoneMoved', playerOne.getLogin(), playerOne.getPosY());
@@ -153,6 +155,18 @@ export class GameService {
     } else {
       game.setBall(new Ball(game.getGameType()));
       return false;
+    }
+  }
+
+  private resetPlayer(player: Player): void {
+    player.setPosY(0);
+    player.setLastKeyType(0, 'keyup');
+    player.setLastKeyType(1, 'keyup');
+    if (player.getIntervalID(0) !== null) {
+      clearInterval(player.getIntervalID(0));
+    }
+    if (player.getIntervalID(1) !== null) {
+      clearInterval(player.getIntervalID(1));
     }
   }
 }

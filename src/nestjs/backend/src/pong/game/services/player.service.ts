@@ -194,6 +194,7 @@ export class PlayerService {
   ): void {
     player.setLastKeyType(index, keytype);
     clearInterval(player.getIntervalID(index));
+    player.setIntervalID(index, null);
   }
 
   /**

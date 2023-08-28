@@ -65,7 +65,7 @@ export default {
         userTwo.login = response.data[x].users[1].login
         userTwo.avatar = response.data[x].users[1].avatar
         match.users.push(userTwo)
-        this.Matches.push(match)
+        this.Matches.unshift(match)
       }
     }
   }
