@@ -1,11 +1,10 @@
 import { authenticator } from 'otplib';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './auth-jwt.guard';
-import { LengthDto, VerifyDto } from './auth.pipe';
+import { VerifyDto } from './auth.pipe';
 import { OAuth2AuthGuard } from './auth-oauth2.guard';
 import { SignInResponse } from './auth.types';
 import { toDataURL } from 'qrcode';
-import { User } from 'src/user/user.entity';
 import { UserService } from '../user/user.service';
 import {
   BadRequestException,
@@ -56,9 +55,17 @@ export class AuthController {
   @UseInterceptors(ClassSerializerInterceptor)
   @Get('sign-in')
   async getSignIn(@Req() req: any): Promise<SignInResponse> {
+    const user = await this.userService.findOne(req.user.login);
+    const firstTime = user.firstTime;
+    if (firstTime) {
+      user.firstTime = false;
+      await this.userService.save(user);
+    }
+
     return {
       encryptedLogin: await this.authService.encrypt(req.user.login),
       twofa: req.user.twofaSecret !== null,
+      firstTime: firstTime,
     };
   }
 
@@ -147,18 +154,5 @@ export class AuthController {
     }
     user.twofaSecret = null;
     await this.userService.save(user);
-  }
-
-  /**
-   * Add random fake user to database
-   * @returns user
-   */
-  @Post('fake')
-  async postFake(@Body() lengthDto: LengthDto): Promise<User[]> {
-    const users = [];
-    for (let i = 0; i < lengthDto.length; i++) {
-      users.push(await this.authService.addFakeUser());
-    }
-    return users;
   }
 }

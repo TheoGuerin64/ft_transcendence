@@ -89,4 +89,8 @@ export class InvitationService {
   async refuseInvitation(invitation: Invitation): Promise<void> {
     await this.invitationModel.delete(invitation.id);
   }
+
+  async deleteSocketId(socket_id: string): Promise<void> {
+    await this.invitationModel.delete({ requester_socket_id: socket_id });
+  }
 }

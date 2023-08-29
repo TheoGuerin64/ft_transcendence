@@ -3,6 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
 import { UserStatsService } from 'src/userStats/userStats.service';
+import { promisify } from 'util';
+import { createDecipheriv, scrypt } from 'crypto';
 
 @Injectable()
 export class UserService {
@@ -51,7 +53,7 @@ export class UserService {
    * @param login Login of the user
    * @returns User
    */
-  findOne(login: string): Promise<User> {
+  findOne(login: string): Promise<User | null> {
     return this.userModel.findOne({
       relations: ['messages', 'memberships', 'matchPlayed'],
       where: {
@@ -73,5 +75,24 @@ export class UserService {
    */
   findAll(): Promise<User[]> {
     return this.userModel.find();
+  }
+
+  /**
+   * Decrypt data
+   * @param data Encrypted base64 data
+   * @returns Decrypted data
+   */
+  async decrypt(data: string): Promise<string> {
+    const key = (await promisify(scrypt)(
+      process.env.TWOFA_PASSWORD,
+      process.env.TWOFA_SALT,
+      32,
+    )) as Buffer;
+    const decipher = createDecipheriv('aes-256-ctr', key, '0000000000000000');
+    const buffer = Buffer.concat([
+      decipher.update(data, 'base64'),
+      decipher.final(),
+    ]);
+    return buffer.toString('utf-8');
   }
 }

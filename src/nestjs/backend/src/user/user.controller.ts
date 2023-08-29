@@ -1,7 +1,7 @@
 import { DeepPartial } from 'typeorm';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from '../auth/auth-jwt.guard';
-import { LoginDto, UserDto } from './user.pipe';
+import { EncryptedUserDto, LoginDto, UserDto } from './user.pipe';
 import { User } from './user.entity';
 import { UserService } from './user.service';
 import {
@@ -98,6 +98,60 @@ export class UserController {
     // Upate user if there is something to update
     if (Object.keys(toUpdate).length > 0) {
       const user = await this.userService.findOne(req.user.login);
+      Object.assign(user, toUpdate);
+      await this.userService.save(user);
+    }
+    return toUpdate;
+  }
+
+  /**
+   * Update user private informations
+   * @param name name of the user
+   * @param avatar avatar image
+   * @returns New user informations
+   */
+  @Post('set')
+  @UseInterceptors(FileInterceptor('avatar'))
+  async postSetUser(
+    @Req() req: any,
+    @Body() encryptedUserDto: EncryptedUserDto,
+    @UploadedFile(
+      new ParseFilePipe({
+        fileIsRequired: false,
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 2000000,
+            message: 'Avatar is too big (max 2MB)',
+          }),
+          new FileTypeValidator({ fileType: 'image' }),
+        ],
+      }),
+    )
+    avatar: Express.Multer.File,
+  ): Promise<Partial<User>> {
+    const login = await this.userService.decrypt(
+      encryptedUserDto.encrypted_login,
+    );
+
+    const toUpdate = {};
+    if (avatar) {
+      toUpdate['avatar'] =
+        'data:' +
+        avatar.mimetype +
+        ';base64,' +
+        avatar.buffer.toString('base64');
+    }
+
+    // Update only fields that are not null
+    for (const key in encryptedUserDto) {
+      if (encryptedUserDto[key] && key !== 'encrypted_login') {
+        toUpdate[key] = encryptedUserDto[key];
+      }
+    }
+
+    // Upate user if there is something to update
+    if (Object.keys(toUpdate).length > 0) {
+      const user = await this.userService.findOne(login);
       Object.assign(user, toUpdate);
       await this.userService.save(user);
     }

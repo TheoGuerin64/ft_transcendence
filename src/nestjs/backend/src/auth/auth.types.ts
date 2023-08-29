@@ -10,4 +10,5 @@ export interface JwtPayload {
 export interface SignInResponse {
   encryptedLogin: string;
   twofa: boolean;
+  firstTime: boolean;
 }
