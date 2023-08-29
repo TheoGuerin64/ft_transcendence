@@ -43,6 +43,7 @@ export class PlayerService {
   connectGame(socket: Socket, login: string, username: string): void {
     const player = this.players.find((element) => element.getLogin() === login);
     if (player !== undefined) {
+      socket.emit('alreadyOnGameView');
       return;
     }
     const newPlayer = new Player(login, username, socket.id);
