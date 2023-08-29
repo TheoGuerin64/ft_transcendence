@@ -10,8 +10,8 @@ export class Ball {
 
   constructor(gameType: string) {
     this.speed = ballBaseSpeed;
-    this.directionX = Math.random() * (1 - -1) - 1;
-    this.directionY = Math.random() * (0.4 - -0.4) - 0.4;
+    this.directionX = Math.random();
+    this.directionY = Math.random();
     let vector = new Vector2(this.directionX, this.directionY);
     vector = vector.normalize();
     this.directionX = vector.x;
