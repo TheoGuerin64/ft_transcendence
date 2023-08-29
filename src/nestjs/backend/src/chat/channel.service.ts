@@ -1,13 +1,13 @@
-import * as bcrypt from 'bcrypt'
-import { Channel } from './channel.entity'
-import { ChannelDto, MembershipDto } from './channel.pipe'
-import { DeepPartial, Repository } from 'typeorm'
-import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { MembershipService } from './membership.service'
-import { MessageService } from './message.service'
-import { User } from 'src/user/user.entity'
-import { UserService } from '../user/user.service'
+import * as bcrypt from 'bcrypt';
+import { Channel } from './channel.entity';
+import { ChannelDto, MembershipDto } from './channel.pipe';
+import { DeepPartial, Repository } from 'typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { MembershipService } from './membership.service';
+import { MessageService } from './message.service';
+import { User } from 'src/user/user.entity';
+import { UserService } from '../user/user.service';
 
 @Injectable()
 export class ChannelService {
@@ -106,10 +106,9 @@ export class ChannelService {
       return false;
     }
     if (
-      channelDto.isProtected && role !== 'owner' &&
-      !(
-        (await bcrypt.compare(channelDto.password, channel.password))
-      )
+      channelDto.isProtected &&
+      role !== 'owner' &&
+      !(await bcrypt.compare(channelDto.password, channel.password))
     ) {
       client.emit('error', 'Wrong password');
       return true;
@@ -239,11 +238,11 @@ export class ChannelService {
     const channelNameRev = target + '-' + request;
     if (await this.findOne(channelName)) {
       client.emit('error', 'This DM already exists');
-      client.emit('redirect', channelName);
+      client.emit('redirect', '/chat/' + channelName);
       return false;
     } else if (await this.findOne(channelNameRev)) {
       client.emit('error', 'This DM already exists');
-      client.emit('redirect', channelNameRev);
+      client.emit('redirect', '/chat/' + channelNameRev);
       return false;
     }
     const requestUser = await this.userService.findOne(request);
