@@ -175,7 +175,6 @@ export class ChannelService {
         }
       }
       await this.removeChannel(channel.name, server);
-      client.emit('success', 'Channel removed');
     } else {
       await this.membershipService.remove(membership);
     }
@@ -293,7 +292,6 @@ export class ChannelService {
         await this.messageService.remove(channel.messages[i]);
       }
       await this.channelModel.remove(channel);
-      server.emit('channel-removed', channel.name);
     }
   }
 
