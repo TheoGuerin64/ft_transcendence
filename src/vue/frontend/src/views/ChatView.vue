@@ -55,6 +55,7 @@ export default {
         return
       }
       socket.emit('create-channel', this.channelData)
+      this.password = ''
     },
     submitPassword(): void {
       this.protectedDialog = false

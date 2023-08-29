@@ -12,7 +12,7 @@ export class Ball {
     this.speed = ballBaseSpeed;
     let value = Math.round(Math.random()) % 2;
     let sign = value === 0 ? -1 : 1;
-    this.directionX = Math.random() * sign;
+    this.directionX = (Math.random() + 0.5) * sign;
     value = Math.round(Math.random()) % 2;
     sign = value === 0 ? -1 : 1;
     this.directionY = Math.random() * sign;
