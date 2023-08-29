@@ -1,22 +1,20 @@
 all: start
 
-start: down
+start:
 	docker compose up --build -d
 
-down: 
+stop:
 	docker compose down
 
 re: fclean start
 
-re: stop fclean start
-
 logs:
 	docker compose logs -f
 
-clean: down
+clean: stop
 	docker system prune -f --volumes
 
-fclean: down
+fclean: stop
 	docker system prune -af
 	docker system prune -af --volumes
 
