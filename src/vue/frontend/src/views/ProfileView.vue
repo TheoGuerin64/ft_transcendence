@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import axios from 'axios'
 import { useStore } from '../store'
 import InvitationList from '@/components/InvitationList.vue'
+import { setRouterInstance } from '@/socket'
 </script>
 
 <script lang="ts">
@@ -123,6 +124,7 @@ export default {
   mounted() {
     this.nameInput = this.store.user!.name
     this.newAvatar = this.store.user!.avatar
+    setRouterInstance(this.$router)
   }
 }
 </script>

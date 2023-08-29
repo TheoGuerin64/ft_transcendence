@@ -1,9 +1,9 @@
 import PongView from './views/PongViews/PongView.vue'
+import router from './router'
 import { getCookie } from './utils'
 import { io } from 'socket.io-client'
 import { notify } from '@kyvg/vue3-notification'
 import { playerStatus } from './store'
-
 import { reactive, type ComponentOptions } from 'vue'
 
 export const state = reactive({
@@ -76,6 +76,10 @@ socket.on('user-joined', (username: string, avatar: string, login: string, chann
   })
 })
 
+socket.on('channel-joined', (channelName: string) => {
+  routerInstance.push('/chat/' + channelName)
+})
+
 socket.on('user-left', (username: string, avatar: string, login: string, channelName: string) => {
   state.Messages.push({
     id: state.idMessage++,
@@ -88,6 +92,10 @@ socket.on('user-left', (username: string, avatar: string, login: string, channel
       }
     }
   })
+})
+
+socket.on('redirect', (route: string) => {
+  routerInstance.push(route)
 })
 
 socket.on('reload', () => {
@@ -134,10 +142,6 @@ socket.on('error', (msg: string) => {
   })
 })
 
-socket.on('redirect', (channelName: string) => {
-  routerInstance.push('/chat/' + channelName)
-})
-
 socket.on('error-banned', () => {
   notify({
     type: 'error',
@@ -146,8 +150,9 @@ socket.on('error-banned', () => {
   routerInstance.push('/chat')
 })
 
-socket.on('findGame', (playerOneLogin: string, playerTwoLogin: string, gameType: string) => {
+socket.on('findGame', async (playerOneLogin: string, playerTwoLogin: string, gameType: string) => {
   socket.emit('joinGameRoom')
+  await router.push('/game')
   PongViewMethods.init(playerOneLogin, playerTwoLogin, gameType)
 })
 socket.on('ballMovement', (posX: number, posY: number) => {
@@ -167,6 +172,9 @@ socket.on('PlayerOneWinGame', (login: string) => {
 })
 socket.on('PlayerTwoWinGame', (login: string) => {
   PongViewMethods.PlayerTwoWinGame(login)
+})
+socket.on('alreadyOnGameView', () => {
+  router.push('/')
 })
 
 export const socketConnect = () => {
