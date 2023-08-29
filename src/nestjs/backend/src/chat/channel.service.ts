@@ -1,13 +1,13 @@
-import * as bcrypt from 'bcrypt';
-import { Channel } from './channel.entity';
-import { ChannelDto, MembershipDto } from './channel.pipe';
-import { DeepPartial, Repository } from 'typeorm';
-import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { MembershipService } from './membership.service';
-import { MessageService } from './message.service';
-import { User } from 'src/user/user.entity';
-import { UserService } from '../user/user.service';
+import * as bcrypt from 'bcrypt'
+import { Channel } from './channel.entity'
+import { ChannelDto, MembershipDto } from './channel.pipe'
+import { DeepPartial, Repository } from 'typeorm'
+import { Injectable } from '@nestjs/common'
+import { InjectRepository } from '@nestjs/typeorm'
+import { MembershipService } from './membership.service'
+import { MessageService } from './message.service'
+import { User } from 'src/user/user.entity'
+import { UserService } from '../user/user.service'
 
 @Injectable()
 export class ChannelService {
@@ -312,6 +312,10 @@ export class ChannelService {
       client.emit('error', 'You cannot kick the owner of this channel');
       return false;
     }
+    if (member.login === login) {
+      client.emit('error', 'You cannot kick yourself');
+      return false;
+    }
     if (owner.role !== 'owner' && owner.role !== 'admin') {
       client.emit('error', 'You dont have the role to kick this user');
       return false;
@@ -321,21 +325,21 @@ export class ChannelService {
     return true;
   }
 
-  async banUser(
-    membershipDto: any,
-    login: string,
-    client: any,
-  ): Promise<boolean> {
+  async banUser(member: any, login: string, client: any): Promise<boolean> {
     const userToBan = await this.membershipService.findOne(
-      membershipDto.channelName,
-      membershipDto.login,
+      member.channelName,
+      member.login,
     );
     const owner = await this.membershipService.findOne(
-      membershipDto.channelName,
+      member.channelName,
       login,
     );
     if (userToBan.role === 'owner') {
       client.emit('error', 'You cannot ban the owner of this channel');
+      return true;
+    }
+    if (member.login === login) {
+      client.emit('error', 'You cannot ban yourself');
       return true;
     }
     if (owner.role !== 'owner' && owner.role !== 'admin') {
@@ -348,7 +352,7 @@ export class ChannelService {
   }
 
   async blockUser(
-    membershipDto: MembershipDto,
+    member: MembershipDto,
     login: string,
     client: any,
   ): Promise<boolean> {
@@ -356,52 +360,56 @@ export class ChannelService {
     if (!owner) {
       return true;
     }
-    if (!(await this.userService.findOne(membershipDto.login))) {
+    if (!(await this.userService.findOne(member.login))) {
       client.emit('error', 'User not found');
       return true;
     }
-    if (login === membershipDto.login) {
+    if (login === member.login) {
       client.emit('error', 'You cannot block yourself');
       return true;
     }
-    if (owner.blocked.includes(membershipDto.login)) {
+    if (owner.blocked.includes(member.login)) {
       client.emit('error', 'User already blocked');
       return true;
     }
-    owner.blocked.push(membershipDto.login);
+    owner.blocked.push(member.login);
     this.userService.save(owner);
     return false;
   }
 
   /**
    * Mute a user for a duration of 30 seconds (0.5 minutes)
-   * @param membershipDto
+   * @param member
    * @param login
    * @param client
    * @returns true if the user is muted, false otherwise
    */
   async muteUser(
-    membershipDto: MembershipDto,
+    member: MembershipDto,
     login: string,
     client: any,
   ): Promise<boolean> {
     const userToMute = await this.membershipService.findOne(
-      membershipDto.channelName,
-      membershipDto.login,
+      member.channelName,
+      member.login,
     );
     const owner = await this.membershipService.findOne(
-      membershipDto.channelName,
+      member.channelName,
       login,
     );
     if (userToMute.role === 'owner') {
       client.emit('error', 'You cannot mute the owner of this channel');
       return true;
     }
+    if (member.login === login) {
+      client.emit('error', 'You cannot mute yourself');
+      return true;
+    }
     if (owner.role !== 'owner' && owner.role !== 'admin') {
       client.emit('error', 'You dont have the role to mute this user');
       return true;
     }
-    if (login === membershipDto.login) {
+    if (login === member.login) {
       client.emit('error', 'You cannot mute yourself');
       return true;
     }
@@ -411,13 +419,13 @@ export class ChannelService {
     return false;
   }
 
-  async setAdmin(membershipDto: MembershipDto, login: string, client: any) {
+  async setAdmin(member: MembershipDto, login: string, client: any) {
     const userToSet = await this.membershipService.findOne(
-      membershipDto.channelName,
-      membershipDto.login,
+      member.channelName,
+      member.login,
     );
     const owner = await this.membershipService.findOne(
-      membershipDto.channelName,
+      member.channelName,
       login,
     );
     if (userToSet.role === 'owner') {
