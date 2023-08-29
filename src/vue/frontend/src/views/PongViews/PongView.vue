@@ -10,6 +10,11 @@ import queueView from './QueueView.vue'
 
 <script lang="ts">
 export default {
+  data() {
+    return {
+      count: 0
+    }
+  },
   mounted() {
     this.joinLobby()
     this.connect()
@@ -39,6 +44,7 @@ export default {
       }
       gameElements.renderer.domElement.style.display = 'block'
       state.gameParam.status = playerStatus.GAME
+      this.count++
 
       let idCanvas: number
       let ball: THREE.Mesh

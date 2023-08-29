@@ -43,7 +43,6 @@ export class UserService {
    */
   async update(user: User, userData: DeepPartial<User>): Promise<User> {
     Object.assign(user, userData);
-    //await this.userModel.update(user.login, user);
     await this.userModel.save(user);
     return user;
   }
