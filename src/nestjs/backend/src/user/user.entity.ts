@@ -1,4 +1,3 @@
-import { Channel } from '../chat/channel.entity';
 import { Exclude, Expose } from 'class-transformer';
 import { Membership } from '../chat/membership.entity';
 import { Message } from 'src/chat/message.entity';
@@ -9,7 +8,6 @@ import {
   DeepPartial,
   Entity,
   JoinTable,
-  ManyToOne,
   OneToMany,
   JoinColumn,
   ManyToMany,
@@ -40,6 +38,9 @@ export class User {
 
   @Column({ type: 'varchar', length: 3000000 })
   avatar: string;
+
+  @Column({ type: 'boolean', default: true })
+  firstTime: boolean;
 
   @Column({ type: 'varchar', array: true, default: '{}' })
   blocked: string[];
