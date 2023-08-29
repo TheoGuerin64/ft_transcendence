@@ -173,6 +173,9 @@ socket.on('PlayerOneWinGame', (login: string) => {
 socket.on('PlayerTwoWinGame', (login: string) => {
   PongViewMethods.PlayerTwoWinGame(login)
 })
+socket.on('alreadyOnGameView', () => {
+  router.push('/')
+})
 
 export const socketConnect = () => {
   const token = getCookie('token')
