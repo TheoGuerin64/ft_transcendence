@@ -107,6 +107,7 @@ socket.on('reset', () => {
 })
 
 socket.on('channel-created', async (channelName: string) => {
+  location.reload()
   notify({
     type: 'success',
     text: 'Channel ' + channelName + ' created'

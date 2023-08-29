@@ -126,11 +126,9 @@ export default {
       class="button is-info is-small mt-1 ml-3"
       @click="channel.promptPassword = !channel.promptPassword"
     >
-      <!-- Join -->
       <FontAwesomeIcon :icon="['fas', 'fingerprint']" size="xl" />
     </button>
     <div class="is-flex">
-      <!-- <form @submit="joinChannel(channel)"> -->
       <input
         v-if="channel.promptPassword"
         class="input"
@@ -138,7 +136,6 @@ export default {
         placeholder="********"
         type="password"
       />
-      <!-- </form> -->
       <button
         v-if="channel.promptPassword"
         class="button is-success ml-1"
@@ -165,7 +162,7 @@ export default {
     </span>
     {{ channel.name }}
   </a>
-  <div v-if="channel.showContextMenu" class="is-flex mt-2 mb-2 ml-3">
+  <div v-if="channel.showContextMenu" class="mt-2 mb-2 ml-3">
     <button
       v-if="role === 'owner'"
       class="button is-warning is-small ml-3"
