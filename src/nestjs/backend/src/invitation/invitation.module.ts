@@ -16,6 +16,6 @@ import { PongModule } from 'src/pong/game/pong.module';
   ],
   controllers: [InvitationController],
   providers: [InvitationService],
-  exports: [],
+  exports: [InvitationService],
 })
 export class InvitationModule {}
