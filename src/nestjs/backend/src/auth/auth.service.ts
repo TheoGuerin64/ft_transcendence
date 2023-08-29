@@ -2,7 +2,7 @@ import { createCipheriv, createDecipheriv, scrypt } from 'crypto';
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { lastValueFrom, firstValueFrom } from 'rxjs';
+import { lastValueFrom } from 'rxjs';
 import { promisify } from 'util';
 import { TokenResponse } from './auth.types';
 import { User } from '../user/user.entity';
@@ -103,29 +103,6 @@ export class AuthService {
       decipher.final(),
     ]);
     return buffer.toString('utf-8');
-  }
-
-  /**
-   * Add fake user
-   * @returns Fake user
-   */
-  async addFakeUser(): Promise<User> {
-    const response = await lastValueFrom(
-      this.httpService.get('https://randomuser.me/api/'),
-    );
-
-    const login = (
-      response.data['results'][0]['name']['last'][0] +
-      response.data['results'][0]['name']['first'].replace(/ /g, '').slice(0, 7)
-    ).toLowerCase();
-    const name = response.data['results'][0]['login']['username'].slice(0, 16);
-    const avatar = response.data['results'][0]['picture']['medium'];
-
-    return await this.userService.create({
-      login: login,
-      name: name,
-      avatar: avatar,
-    });
   }
 
   /**

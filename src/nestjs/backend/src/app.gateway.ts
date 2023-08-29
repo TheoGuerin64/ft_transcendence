@@ -4,6 +4,7 @@ import { Server, Socket } from 'socket.io';
 import { UserService } from './user/user.service';
 import { UserStatus } from './user/user.entity';
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
+import { InvitationService } from './invitation/invitation.service';
 
 @WebSocketGateway({ cors: ['http://localhost:8080', 'http://127.0.0.1:8080'] })
 export class AppGateway {
@@ -12,6 +13,7 @@ export class AppGateway {
   constructor(
     private readonly authService: AuthService,
     private readonly userService: UserService,
+    private readonly invitationService: InvitationService,
   ) {}
 
   @WebSocketServer()
@@ -44,6 +46,7 @@ export class AppGateway {
 
     if (user) {
       user.status = UserStatus.OFFLINE;
+      this.invitationService.deleteSocketId(client.id);
       await this.userService.save(user);
     }
   }
