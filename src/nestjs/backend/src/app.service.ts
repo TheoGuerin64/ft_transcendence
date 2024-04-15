@@ -17,5 +17,16 @@ export class AppService implements OnApplicationBootstrap {
           'https://encrypted-tbn2.gstatic.com/images?q=tbn:ANd9GcQg48rLPIxwM1TVtju1yN0RvAY4HyVQZsbTPIQ7hZGAUfpKV0ZG',
       });
     }
+
+    const fake = await this.userService.findOne('fake');
+    if (!fake) {
+      await this.userService.create({
+        login: 'fake',
+        name: 'Fake',
+        status: UserStatus.OFFLINE,
+        avatar:
+          'https://api.writco.in/assets/images/user/1040200713102106134.webp',
+      });
+    }
   }
 }

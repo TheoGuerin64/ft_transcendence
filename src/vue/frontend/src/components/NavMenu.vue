@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import axios from 'axios'
 import { RouterLink } from 'vue-router'
-import { socket } from '../socket'
+import { socket, socketConnect } from '../socket'
 import { useStore } from '../store'
 import UserAvatar from './UserAvatar.vue'
 </script>
@@ -46,6 +46,28 @@ export default {
       })
       this.store.setUser(null)
       socket.disconnect()
+    },
+
+    /**
+     * Sign in to the application with fake user
+     */
+    async fake(): Promise<void> {
+      this.store.setConnecting(true)
+
+      await axios.get('http://127.0.0.1:3000/auth/fake', {
+        withCredentials: true
+      })
+      socketConnect()
+
+      // get user
+      const user = await axios.get('http://127.0.0.1:3000/user', {
+        withCredentials: true
+      })
+      this.store.setUser(user.data)
+
+      // redirect to home
+      this.store.setConnecting(false)
+      await this.$router.push('/')
     }
   }
 }
@@ -69,6 +91,9 @@ export default {
         <RouterLink to="/match-history" class="navbar-item">Match History</RouterLink>
       </div>
       <div class="navbar-end">
+        <a v-if="!store.user && !store.isConnecting" class="navbar-item" @click="fake"
+          >Sign In as Fake</a
+        >
         <a v-if="!store.user && !store.isConnecting" class="navbar-item" @click="signIn">Sign In</a>
         <a v-if="store.isConnecting" class="navbar-item connecting dots-animation">Connecting</a>
         <a v-if="store.user && !store.isConnecting" class="navbar-item" @click="signOut"
