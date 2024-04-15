@@ -108,6 +108,18 @@ export class AuthController {
   }
 
   /**
+   * Sign in user with fake user
+   * @returns JWT token cookie
+   */
+  @Get('fake')
+  async getFake(@Res({ passthrough: true }) res: any): Promise<string> {
+    const user = await this.userService.findOne('fake');
+    const token = await this.authService.jwtSignIn(user);
+    res.cookie('token', token, COOKIES_OPTIONS);
+    return token;
+  }
+
+  /**
    * Sign out user by clearing JWT token cookie
    */
   @UseGuards(JwtAuthGuard)
